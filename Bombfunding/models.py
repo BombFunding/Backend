@@ -1,20 +1,7 @@
 from django.db import models
-
-class BaseUser(models.Model):
-    USER_TYPE_CHOICES = (
-        ('Investor', 'Investor'),
-        ('Startup', 'Startup'),
-        ('Basic', 'Basic'),
-    )
-
-    username = models.CharField(max_length=20, unique=True)
-    email = models.EmailField()
-    name = models.CharField(max_length=50)
-    about_me = models.TextField()
-    user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default="Basic")
-
-    def __str__(self) -> str:
-        return f"{self.name} - {self.user_type}"
+from django.core.validators import RegexValidator
+from django.contrib.auth.hashers import make_password
+from authenticator.models import BaseUser
 
 class BasicUser(models.Model):
     username = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
