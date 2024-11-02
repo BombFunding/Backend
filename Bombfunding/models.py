@@ -1,22 +1,8 @@
 from django.db import models
 from django.core.validators import RegexValidator
 from django.contrib.auth.hashers import make_password
-from authenticator.models import BaseUser
+from authenticator.models import BaseUser, StartupUser, InvestorUser, BasicUser
 
-class BasicUser(models.Model):
-    username = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
-
-    def __str__(self) -> str:
-        return f"{self.username.__str__()}"
-
-    
-class InvestorUser(models.Model):
-    username = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
-    page = models.JSONField()
-    categories = models.JSONField()
-
-    def __str__(self) -> str:
-        return f"{self.username.__str__()}"
 
 class InvestPosition(models.Model):
     username = models.ForeignKey(InvestorUser, on_delete=models.CASCADE)
@@ -31,11 +17,6 @@ class InvestPosition(models.Model):
     def __str__(self) -> str:
         return f"{self.name} - {self.username} {self.available}/{self.total}"
 
-class StartupUser(models.Model):
-    username = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
-    
-    def __str__(self) -> str:
-        return f"{self.username.__str__()}"
 
 class StartupProfile(models.Model):
     startup_user = models.OneToOneField(StartupUser, on_delete=models.CASCADE)
