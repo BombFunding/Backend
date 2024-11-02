@@ -2,22 +2,26 @@ from django.contrib.auth import authenticate
 from rest_framework import serializers
 from .models import BaseUser
 
-class UserSerializer(serializers.ModelSerializer):
+class RegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+
     class Meta:
         model = BaseUser
-        fields = ('id', 'username', 'email', 'name', 'about_me', 'user_type')
+        fields = ('id', 'username', 'email', 'name', 'about_me', 'user_type', 'password')
 
     def create(self, validated_data):
-        
-        validated_data['username'] = validated_data['username'].strip().lower()
-        return super().create(validated_data)
+        user = BaseUser.objects.create_user(**validated_data)
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
                               
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)
 
     def validate(self, data):
-        user = authenticate(username=data['username'], password=data['password'])
+        # user = authenticate(username=data['username'], password=data['password'])
+        user = authenticate(**data)
         if user and user.is_active:
             return user
         raise serializers.ValidationError("Invalid username or password.")

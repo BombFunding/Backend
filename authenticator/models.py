@@ -5,7 +5,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db import models
 
 class BaseUserManager(BaseUserManager):
-    def create_user(self, username, email, password=None):
+    def create_user(self, username, email, password=None) -> 'BaseUser':
         if not email:
             raise ValueError('The Email field must be set')
         email = self.normalize_email(email)
@@ -46,7 +46,7 @@ class BaseUser(AbstractBaseUser):
     objects = BaseUserManager()
 
     USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['email']
+    REQUIRED_FIELDS = ['email', 'password']
     
     def save(self, *args, **kwargs):
         if not self.pk:  
