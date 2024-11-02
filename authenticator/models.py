@@ -2,13 +2,23 @@ from django.db import models
 from django.core.validators import RegexValidator
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.core.exceptions import ValidationError as DjangoValidationError
+from rest_framework.exceptions import ValidationError as RestValidationError
 from django.db import models
 
 class BaseUserManager(BaseUserManager):
-    def create_user(self, username, email, password=None) -> 'BaseUser':
+    def create_user(self, username, email, password) -> 'BaseUser':
         if not email:
-            raise ValueError('The Email field must be set')
+            raise RestValidationError("Email is required.")
         email = self.normalize_email(email)
+
+        password_field = BaseUser._meta.get_field("password")
+        try:
+            for validator in password_field.validators:
+                validator(password)
+        except DjangoValidationError as e:
+            raise RestValidationError({"password": e.messages})
+
         user = self.model(username=username, email=email)
         user.set_password(password)  
         user.save(using=self._db)
@@ -39,7 +49,8 @@ class BaseUser(AbstractBaseUser):
         validators=[
             RegexValidator(
                 regex=r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$',
-                message="Password must be at least 8 characters long, contain an uppercase letter, a lowercase letter, a number, and a special character."
+                message="Password must be at least 8 characters long, contain an uppercase letter, a lowercase letter, a number, and a special character.",
+                code="invalid_password"
             )
         ]
     )
@@ -47,6 +58,7 @@ class BaseUser(AbstractBaseUser):
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email', 'password']
+
     
     def save(self, *args, **kwargs):
         if not self.pk:  
