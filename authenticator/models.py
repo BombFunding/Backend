@@ -41,7 +41,7 @@ class BaseUser(AbstractBaseUser):
     )
 
     username = models.CharField(default=" ",max_length=20, unique=True)
-    email = models.EmailField()
+    email = models.EmailField(unique=True)
     name = models.CharField(default=" ",max_length=50)
     about_me = models.TextField(default=" ")
     user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default="basic")

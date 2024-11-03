@@ -20,11 +20,25 @@ class RegisterSerializer(serializers.ModelSerializer):
         return user
                               
 class LoginSerializer(serializers.Serializer):
-    username = serializers.CharField()
+    username = serializers.CharField(required=False)
     password = serializers.CharField(write_only=True)
+    email = serializers.EmailField(required=False)
 
     def validate(self, data):
-        user = authenticate(**data)
+        if 'username' not in data and 'email' not in data:
+            raise serializers.ValidationError("Username or email is required.")
+
+        if 'username' in data:
+            user = authenticate(username=data['username'], password=data['password'])
+
+        if 'email' in data:
+            try:
+                user = BaseUser.objects.get(email=data['email'])
+                user = authenticate(username=user.username, password=data['password'])
+            except BaseUser.DoesNotExist:
+                raise serializers.ValidationError("Invalid username or password.")
+
+
         if user and user.is_active:
             return user
         raise serializers.ValidationError("Invalid username or password.")
