@@ -80,8 +80,8 @@ class BasicUser(models.Model):
     
 class InvestorUser(models.Model):
     username = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
-    page = models.JSONField()
-    categories = models.JSONField()
+    page = models.JSONField(null=True, blank=True)
+    categories = models.JSONField(null=True, blank=True)
 
     def __str__(self) -> str:
         return f"{self.username.__str__()}"
