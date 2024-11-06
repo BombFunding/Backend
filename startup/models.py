@@ -1,4 +1,4 @@
-# startup/models.py
+
 from django.db import models
 from Bombfunding.models import InvestPosition
 from authenticator.models import StartupUser, BaseUser
@@ -34,8 +34,8 @@ class StartupComment(models.Model):
     username = models.ForeignKey(
         BaseUser,
         on_delete=models.CASCADE,
-        null=True,  # اجازه می‌دهیم این فیلد خالی باشد
-        default=None,  # مقدار پیش‌فرض برای زمانی که فیلد خالی باشد
+        null=True,  
+        default=None,  
     )
     comment = models.TextField()
     time = models.DateTimeField()
@@ -48,8 +48,8 @@ class StartupApplication(models.Model):
     investor_position = models.ForeignKey(
         'Bombfunding.InvestPosition',
         on_delete=models.CASCADE,
-        null=True,  # این فیلد ممکن است خالی باشد
-        default=None,  # مقدار پیش‌فرض که می‌توانید به طور دستی تنظیم کنید
+        null=True,  
+        default=None,  
     )
 
     def __str__(self) -> str:
