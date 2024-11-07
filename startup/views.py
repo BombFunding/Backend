@@ -237,7 +237,6 @@ def get_startup_positions(request, username):
         return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
 
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])  
 def add_comment(request, profile_id):
@@ -247,12 +246,12 @@ def add_comment(request, profile_id):
     except StartupProfile.DoesNotExist:
         return Response({"detail": "Startup profile not found."}, status=status.HTTP_404_NOT_FOUND)
 
-    
     user = request.user
 
     
     comment = request.data.get('comment')
 
+    
     if not comment:
         return Response({"detail": "Comment is required."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -267,11 +266,14 @@ def add_comment(request, profile_id):
     
     serializer = StartupCommentSerializer(new_comment)
 
+    
     return Response({
         "detail": "Comment added successfully.",
-        "comment": serializer.data
+        "comment": {
+            "id": new_comment.id,  
+            **serializer.data
+        }
     }, status=status.HTTP_201_CREATED)
-
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_comments_by_profile(request, profile_id):
@@ -285,9 +287,15 @@ def get_comments_by_profile(request, profile_id):
 
         
         serializer = StartupCommentSerializer(comments, many=True)
+
         
+        comments_with_id = []
+        for comment in serializer.data:
+            comment["id"] = comment.get("id", None)  
+            comments_with_id.append(comment)
+
         
-        return JsonResponse({"comments": serializer.data}, safe=False)
+        return JsonResponse({"comments": comments_with_id}, safe=False)
     
     except Exception as e:
         return JsonResponse({"detail": f"Error: {str(e)}"}, status=500)

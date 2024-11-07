@@ -29,5 +29,4 @@ class StartupCommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StartupComment
-        fields = ['username', 'startup_profile', 'comment', 'time']
-
+        fields = ['id', 'startup_profile', 'username', 'comment', 'time']

@@ -11,4 +11,4 @@ python manage.py makemigrations
 python manage.py migrate
 python manage.py runserver
 
-if bug in migrations -> remove all files in migrations folder of all apps ecept ___init___ files
+if bug in migrations -> remove all files in migrations folders except ___init___ files
