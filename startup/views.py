@@ -17,7 +17,6 @@ from django.utils import timezone
 from authenticator.models import BaseUser  
 from .serializers import StartupCommentSerializer
 
-
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def sort_positions_by_funded(request):
@@ -62,26 +61,33 @@ def sort_positions_by_date(request):
     return JsonResponse({"positions": result}, safe=False)
 
 
-
 @api_view(['GET'])
 @permission_classes([AllowAny])  
 def get_all_positions(request):
-    
-    positions = StartupPosition.objects.all()
+    try:
+        
+        positions = StartupPosition.objects.all()
 
-    
-    result = [{
-        "name": pos.name,
-        "description": pos.description,
-        "total": pos.total,
-        "funded": pos.funded,
-        "is_done": pos.is_done,
-        "start_time": pos.start_time,  
-        "end_time": pos.end_time       
-    } for pos in positions]
+        
+        result = [{
+            "id": pos.id,  
+            "name": pos.name,
+            "description": pos.description,
+            "total": pos.total,
+            "funded": pos.funded,
+            "is_done": pos.is_done,
+            "start_time": pos.start_time,  
+            "end_time": pos.end_time,
+            "startup_profile": {
+                "startup_profile_id": pos.startup_profile.id,  
+                "name": pos.startup_profile.name  
+            }
+        } for pos in positions]
 
-    
-    return JsonResponse({"positions": result}, safe=False)
+        return JsonResponse({"positions": result}, safe=False)
+
+    except Exception as e:
+        return JsonResponse({"detail": f"Error: {str(e)}"}, status=500)
 
 
 
@@ -125,11 +131,9 @@ def search_positions_by_date_range(request):
     return JsonResponse({"positions": result}, safe=False)
 
 
-
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])  
-def startup_profile(request):
+def create_update_startup_profile(request):
     user = request.user
     if user.user_type != 'startup':  
         return Response({"detail": "Only users with 'startup' type can create or update a startup profile."},
@@ -150,48 +154,38 @@ def startup_profile(request):
         return Response({"detail": message, "profile": serializer.data}, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])  
 def create_update_position(request):
     user = request.user
 
-    
     if user.user_type != 'startup':
         return Response({"detail": "Only users with 'startup' type can create or update a startup position."},
                         status=status.HTTP_403_FORBIDDEN)
 
-    
     try:
         startup_user = StartupUser.objects.get(username=user)
     except StartupUser.DoesNotExist:
         return Response({"detail": "No related startup found."}, status=status.HTTP_404_NOT_FOUND)
 
-    
     try:
         startup_profile = StartupProfile.objects.get(startup_user=startup_user)
     except StartupProfile.DoesNotExist:
-        
         startup_profile = StartupProfile.objects.create(startup_user=startup_user, name="Default Name", description="Default Description")
 
-    
-    position_name = request.data.get('name')  
+    position_name = request.data.get('name')
     try:
         position = StartupPosition.objects.get(startup_profile=startup_profile, name=position_name)
-        
         serializer = StartupPositionSerializer(position, data=request.data, partial=True)
         message = "Position updated successfully."
     except StartupPosition.DoesNotExist:
-        
         serializer = StartupPositionSerializer(data=request.data)
         message = "Position created successfully."
 
-    
     if serializer.is_valid():
-        serializer.save(startup_profile=startup_profile)  
+        serializer.save(startup_profile=startup_profile)
         return Response({"detail": message, "position": serializer.data}, status=status.HTTP_200_OK)
-    
-    
+
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -274,6 +268,7 @@ def add_comment(request, profile_id):
             **serializer.data
         }
     }, status=status.HTTP_201_CREATED)
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_comments_by_profile(request, profile_id):
@@ -299,3 +294,18 @@ def get_comments_by_profile(request, profile_id):
     
     except Exception as e:
         return JsonResponse({"detail": f"Error: {str(e)}"}, status=500)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])  
+def get_all_startup_profiles(request):
+    try:
+        profiles = StartupProfile.objects.all()
+        
+        
+        serializer = StartupProfileSerializer(profiles, many=True)
+
+        return Response({
+            "startup_profiles": serializer.data
+        }, status=200)
+    except Exception as e:
+        return Response({"detail": f"Error: {str(e)}"}, status=500)
