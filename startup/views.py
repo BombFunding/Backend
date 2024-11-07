@@ -6,10 +6,120 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .models import StartupProfile, StartupUser,StartupPosition
 from .serializers import StartupProfileSerializer
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
 from .models import StartupUser, StartupPosition
 from rest_framework import status
+from rest_framework.permissions import AllowAny
+from django.http import JsonResponse
+from rest_framework.decorators import api_view
+from .models import StartupPosition
+from django.utils.dateparse import parse_datetime
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def sort_positions_by_funded(request):
+    order = request.query_params.get('order', 'asc')  
+    if order == 'asc':
+        positions = StartupPosition.objects.all().order_by('funded')  
+    else:
+        positions = StartupPosition.objects.all().order_by('-funded')  
+    
+    result = [{
+        "name": pos.name,
+        "description": pos.description,
+        "total": pos.total,
+        "funded": pos.funded,
+        "is_done": pos.is_done,
+        "start_time": pos.start_time,
+        "end_time": pos.end_time
+    } for pos in positions]
+
+    return JsonResponse({"positions": result}, safe=False)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def sort_positions_by_date(request):
+    order = request.query_params.get('order', 'asc')  
+    if order == 'asc':
+        positions = StartupPosition.objects.all().order_by('start_time')  
+    else:
+        positions = StartupPosition.objects.all().order_by('-start_time')  
+    
+    result = [{
+        "name": pos.name,
+        "description": pos.description,
+        "total": pos.total,
+        "funded": pos.funded,
+        "is_done": pos.is_done,
+        "start_time": pos.start_time,
+        "end_time": pos.end_time
+    } for pos in positions]
+
+    return JsonResponse({"positions": result}, safe=False)
+
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])  
+def get_all_positions(request):
+    
+    positions = StartupPosition.objects.all()
+
+    
+    result = [{
+        "name": pos.name,
+        "description": pos.description,
+        "total": pos.total,
+        "funded": pos.funded,
+        "is_done": pos.is_done,
+        "start_time": pos.start_time,  
+        "end_time": pos.end_time       
+    } for pos in positions]
+
+    
+    return JsonResponse({"positions": result}, safe=False)
+
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])  
+def search_positions_by_date_range(request):
+    
+    start_date = request.query_params.get('start_date')
+    end_date = request.query_params.get('end_date')
+    
+    
+    if not start_date or not end_date:
+        return JsonResponse({"detail": "Both 'start_date' and 'end_date' are required."}, status=400)
+
+    
+    parsed_start_date = parse_datetime(start_date + "T00:00:00Z")  
+    parsed_end_date = parse_datetime(end_date + "T23:59:59Z")  
+    
+    
+    if not parsed_start_date or not parsed_end_date:
+        return JsonResponse({"detail": "Invalid date format. Use YYYY-MM-DD."}, status=400)
+
+    
+    positions = StartupPosition.objects.filter(
+        end_time__gte=parsed_start_date,  
+        end_time__lte=parsed_end_date     
+    )
+
+    
+    result = [{
+        "name": pos.name,
+        "description": pos.description,
+        "total": pos.total,
+        "funded": pos.funded,
+        "is_done": pos.is_done,
+        "start_time": pos.start_time,  
+        "end_time": pos.end_time       
+    } for pos in positions]
+
+    
+    return JsonResponse({"positions": result}, safe=False)
+
 
 
 
@@ -82,6 +192,7 @@ def create_update_position(request):
 
 
 @api_view(['GET'])
+@permission_classes([AllowAny])  
 def get_startup_positions(request, username):
     try:
         
