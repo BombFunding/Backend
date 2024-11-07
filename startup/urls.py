@@ -11,4 +11,7 @@ urlpatterns = [
     path('positions/search_by_date_range/', views.search_positions_by_date_range, name='search_positions_by_date_range'),
     path('positions/sort_by_date/', views.sort_positions_by_date, name='sort_positions_by_date'),
     path('positions/sort_by_funded/', views.sort_positions_by_funded, name='sort_positions_by_funded'),
+    
+    path('commen-on-profile/<int:profile_id>/', views.add_comment, name='add-comment'),
+    path('all_comments_of_profile/<int:profile_id>/', views.get_comments_by_profile, name='get_comments_by_profile'),
 ]

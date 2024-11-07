@@ -1,18 +1,22 @@
 
 from .serializers import StartupPositionSerializer
-from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .models import StartupProfile, StartupUser,StartupPosition
 from .serializers import StartupProfileSerializer
 from .models import StartupUser, StartupPosition
-from rest_framework import status
 from rest_framework.permissions import AllowAny
 from django.http import JsonResponse
-from rest_framework.decorators import api_view
 from .models import StartupPosition
 from django.utils.dateparse import parse_datetime
+from django.utils import timezone
+from rest_framework import status
+from .models import StartupProfile, StartupComment
+from django.utils import timezone
+from authenticator.models import BaseUser  
+from .serializers import StartupCommentSerializer
+
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -231,3 +235,59 @@ def get_startup_positions(request, username):
         return Response({'detail': 'Startup profile not found.'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])  
+def add_comment(request, profile_id):
+    try:
+        
+        startup_profile = StartupProfile.objects.get(id=profile_id)
+    except StartupProfile.DoesNotExist:
+        return Response({"detail": "Startup profile not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    
+    user = request.user
+
+    
+    comment = request.data.get('comment')
+
+    if not comment:
+        return Response({"detail": "Comment is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    
+    new_comment = StartupComment.objects.create(
+        startup_profile=startup_profile,
+        username=user,
+        comment=comment,
+        time=timezone.now()  
+    )
+
+    
+    serializer = StartupCommentSerializer(new_comment)
+
+    return Response({
+        "detail": "Comment added successfully.",
+        "comment": serializer.data
+    }, status=status.HTTP_201_CREATED)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_comments_by_profile(request, profile_id):
+    try:
+        
+        comments = StartupComment.objects.filter(startup_profile__id=profile_id).order_by('-time')
+
+        
+        if not comments.exists():
+            return JsonResponse({"detail": "No comments found for this profile."}, status=404)
+
+        
+        serializer = StartupCommentSerializer(comments, many=True)
+        
+        
+        return JsonResponse({"comments": serializer.data}, safe=False)
+    
+    except Exception as e:
+        return JsonResponse({"detail": f"Error: {str(e)}"}, status=500)
