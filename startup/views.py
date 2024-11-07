@@ -159,49 +159,51 @@ def create_update_startup_profile(request):
 def create_update_position(request):
     user = request.user
 
+
     if user.user_type != 'startup':
         return Response({"detail": "Only users with 'startup' type can create or update a startup position."},
                         status=status.HTTP_403_FORBIDDEN)
+
 
     try:
         startup_user = StartupUser.objects.get(username=user)
     except StartupUser.DoesNotExist:
         return Response({"detail": "No related startup found."}, status=status.HTTP_404_NOT_FOUND)
 
+
     try:
         startup_profile = StartupProfile.objects.get(startup_user=startup_user)
     except StartupProfile.DoesNotExist:
+        
         startup_profile = StartupProfile.objects.create(startup_user=startup_user, name="Default Name", description="Default Description")
-
-    position_name = request.data.get('name')
+    
+    position_name = request.data.get('name')  
     try:
         position = StartupPosition.objects.get(startup_profile=startup_profile, name=position_name)
+        
         serializer = StartupPositionSerializer(position, data=request.data, partial=True)
         message = "Position updated successfully."
     except StartupPosition.DoesNotExist:
+        
         serializer = StartupPositionSerializer(data=request.data)
         message = "Position created successfully."
-
+    
     if serializer.is_valid():
-        serializer.save(startup_profile=startup_profile)
+        serializer.save(startup_profile=startup_profile)  
         return Response({"detail": message, "position": serializer.data}, status=status.HTTP_200_OK)
+    
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
 @api_view(['GET'])
-@permission_classes([AllowAny])  
-def get_startup_positions(request, username):
+def startup_search(request, username):
     try:
         
         startup_user = StartupUser.objects.get(username__username=username)
-
         
         startup_profile = StartupProfile.objects.get(startup_user=startup_user)
-
         
         positions = StartupPosition.objects.filter(startup_profile=startup_profile)
-
         
         positions_data = [{
             'name': position.name,
@@ -212,7 +214,6 @@ def get_startup_positions(request, username):
             'start_time': position.start_time,
             'end_time': position.end_time,
         } for position in positions]
-
         return Response({
             'startup_profile': {
                 'name': startup_profile.name,
@@ -222,7 +223,6 @@ def get_startup_positions(request, username):
             },
             'positions': positions_data
         }, status=status.HTTP_200_OK)
-
     except StartupUser.DoesNotExist:
         return Response({'detail': 'Startup user not found.'}, status=status.HTTP_404_NOT_FOUND)
     except StartupProfile.DoesNotExist:
@@ -300,7 +300,6 @@ def get_comments_by_profile(request, profile_id):
 def get_all_startup_profiles(request):
     try:
         profiles = StartupProfile.objects.all()
-        
         
         serializer = StartupProfileSerializer(profiles, many=True)
 

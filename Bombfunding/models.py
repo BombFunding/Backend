@@ -7,7 +7,7 @@ class InvestPosition(models.Model):
     username = models.ForeignKey(InvestorUser, on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
     description = models.TextField(null=True)
-    total = models.IntegerField()
+    total = models.IntegerField(default=0)
     available = models.IntegerField()
     is_done = models.BooleanField(default=False)
     start_time = models.DateTimeField()

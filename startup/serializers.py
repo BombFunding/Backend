@@ -14,19 +14,14 @@ class StartupProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StartupProfile
-        fields = ['id', 'startup_user', 'startup_user_username', 'name', 'description', 'page', 'categories']
-
+        fields = ['id', 'startup_user_username', 'name', 'description', 'page', 'categories']
 
 class StartupPositionSerializer(serializers.ModelSerializer):
-    
-    startup_profile_name = serializers.CharField(source='startup_profile.name', read_only=True)
-    startup_profile_id = serializers.IntegerField(source='startup_profile.id', read_only=True)
-
     class Meta:
         model = StartupPosition
-        fields = ['id', 'name', 'description', 'startup_profile_name', 'startup_profile_id']
+        fields = ['name', 'description', 'total', 'funded', 'is_done', 'start_time', 'end_time']
 
-
+        
 class StartupCommentSerializer(serializers.ModelSerializer):
     
     username = serializers.CharField(source='username.username')
