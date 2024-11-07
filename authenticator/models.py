@@ -50,7 +50,7 @@ class BaseUser(AbstractBaseUser):
         max_length=128,
         validators=[
             RegexValidator(
-                regex=r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$',
+                regex=r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$',
                 message="Password must be at least 8 characters long, contain an uppercase letter, a lowercase letter, a number, and a special character.",
                 code="invalid_password"
             )
