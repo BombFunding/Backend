@@ -6,6 +6,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .models import StartupProfile, StartupUser,StartupPosition
 from .serializers import StartupProfileSerializer
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from .models import StartupUser, StartupPosition
+from rest_framework import status
 
 
 
@@ -75,3 +79,44 @@ def create_update_position(request):
     
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+def get_startup_positions(request, username):
+    try:
+        
+        startup_user = StartupUser.objects.get(username__username=username)
+
+        
+        startup_profile = StartupProfile.objects.get(startup_user=startup_user)
+
+        
+        positions = StartupPosition.objects.filter(startup_profile=startup_profile)
+
+        
+        positions_data = [{
+            'name': position.name,
+            'description': position.description,
+            'total': position.total,
+            'funded': position.funded,
+            'is_done': position.is_done,
+            'start_time': position.start_time,
+            'end_time': position.end_time,
+        } for position in positions]
+
+        return Response({
+            'startup_profile': {
+                'name': startup_profile.name,
+                'description': startup_profile.description,
+                'page': startup_profile.page,
+                'categories': startup_profile.categories,
+            },
+            'positions': positions_data
+        }, status=status.HTTP_200_OK)
+
+    except StartupUser.DoesNotExist:
+        return Response({'detail': 'Startup user not found.'}, status=status.HTTP_404_NOT_FOUND)
+    except StartupProfile.DoesNotExist:
+        return Response({'detail': 'Startup profile not found.'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
