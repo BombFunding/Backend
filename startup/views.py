@@ -325,3 +325,27 @@ def delete_comment(request, comment_id):
     comment.delete()
     
     return Response({"detail": "Comment deleted successfully."}, status=status.HTTP_200_OK)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])  
+def edit_comment(request, comment_id):
+    try:
+        
+        comment = StartupComment.objects.get(id=comment_id)
+    except StartupComment.DoesNotExist:
+        return Response({"detail": "Comment not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    
+    if comment.username != request.user:
+        return Response({"detail": "You do not have permission to edit this comment."}, status=status.HTTP_403_FORBIDDEN)
+
+    
+    updated_comment = request.data.get("comment")
+    if not updated_comment:
+        return Response({"detail": "New comment text is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    
+    comment.comment = updated_comment
+    comment.save()
+    
+    return Response({"detail": "Comment updated successfully."}, status=status.HTTP_200_OK)
