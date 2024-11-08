@@ -230,43 +230,8 @@ def startup_search(request, username):
         return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])  
-def add_comment(request, profile_id):
-    try:
-        
-        startup_profile = StartupProfile.objects.get(id=profile_id)
-    except StartupProfile.DoesNotExist:
-        return Response({"detail": "Startup profile not found."}, status=status.HTTP_404_NOT_FOUND)
 
-    user = request.user
 
-    
-    comment = request.data.get('comment')
-
-    
-    if not comment:
-        return Response({"detail": "Comment is required."}, status=status.HTTP_400_BAD_REQUEST)
-
-    
-    new_comment = StartupComment.objects.create(
-        startup_profile=startup_profile,
-        username=user,
-        comment=comment,
-        time=timezone.now()  
-    )
-
-    
-    serializer = StartupCommentSerializer(new_comment)
-
-    
-    return Response({
-        "detail": "Comment added successfully.",
-        "comment": {
-            "id": new_comment.id,  
-            **serializer.data
-        }
-    }, status=status.HTTP_201_CREATED)
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -294,19 +259,6 @@ def get_comments_by_profile(request, profile_id):
     except Exception as e:
         return JsonResponse({"detail": f"Error: {str(e)}"}, status=500)
 
-@api_view(['GET'])
-@permission_classes([AllowAny])  
-def get_all_startup_profiles(request):
-    try:
-        profiles = StartupProfile.objects.all()
-        
-        serializer = StartupProfileSerializer(profiles, many=True)
-
-        return Response({
-            "startup_profiles": serializer.data
-        }, status=200)
-    except Exception as e:
-        return Response({"detail": f"Error: {str(e)}"}, status=500)
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])  
@@ -326,26 +278,80 @@ def delete_comment(request, comment_id):
     
     return Response({"detail": "Comment deleted successfully."}, status=status.HTTP_200_OK)
 
+@api_view(['GET'])
+@permission_classes([AllowAny])  
+def get_all_startup_profiles(request):
+    try:
+        profiles = StartupProfile.objects.all()
+        
+        serializer = StartupProfileSerializer(profiles, many=True)
+
+        return Response({
+            "startup_profiles": serializer.data
+        }, status=200)
+    except Exception as e:
+        return Response({"detail": f"Error: {str(e)}"}, status=500)
+
+
+from startup.PersianSwear import PersianSwear
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])  
+def add_comment(request, profile_id):
+    try:
+        startup_profile = StartupProfile.objects.get(id=profile_id)
+    except StartupProfile.DoesNotExist:
+        return Response({"detail": "Startup profile not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    user = request.user
+    comment = request.data.get('comment')
+
+    
+    persianswear = PersianSwear()
+    if not comment:
+        return Response({"detail": "Comment is required."}, status=status.HTTP_400_BAD_REQUEST)
+    if persianswear.has_swear(comment):
+        return Response({"detail": "Comment contains inappropriate language."}, status=status.HTTP_400_BAD_REQUEST)
+
+    
+    new_comment = StartupComment.objects.create(
+        startup_profile=startup_profile,
+        username=user,
+        comment=comment,
+        time=timezone.now()
+    )
+
+    serializer = StartupCommentSerializer(new_comment)
+    return Response({
+        "detail": "Comment added successfully.",
+        "comment": {
+            "id": new_comment.id,  
+            **serializer.data
+        }
+    }, status=status.HTTP_201_CREATED)
+
+
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])  
 def edit_comment(request, comment_id):
     try:
-        
         comment = StartupComment.objects.get(id=comment_id)
     except StartupComment.DoesNotExist:
         return Response({"detail": "Comment not found."}, status=status.HTTP_404_NOT_FOUND)
 
-    
     if comment.username != request.user:
         return Response({"detail": "You do not have permission to edit this comment."}, status=status.HTTP_403_FORBIDDEN)
 
-    
     updated_comment = request.data.get("comment")
     if not updated_comment:
         return Response({"detail": "New comment text is required."}, status=status.HTTP_400_BAD_REQUEST)
 
     
+    persianswear = PersianSwear()
+    if persianswear.has_swear(updated_comment):
+        return Response({"detail": "Comment contains inappropriate language."}, status=status.HTTP_400_BAD_REQUEST)
+
+    
     comment.comment = updated_comment
     comment.save()
-    
+
     return Response({"detail": "Comment updated successfully."}, status=status.HTTP_200_OK)
