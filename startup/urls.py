@@ -16,5 +16,6 @@ urlpatterns = [
     
     path('comment-on-profile/<int:profile_id>/', views.add_comment, name='add-comment'),
     path('all_comments_of_profile/<int:profile_id>/', views.get_comments_by_profile, name='get_comments_by_profile'),
+    path('delete-comment/<int:comment_id>/', views.delete_comment, name='delete_comment'),
 ]
 

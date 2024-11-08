@@ -1,4 +1,3 @@
-
 from .serializers import StartupPositionSerializer
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -308,3 +307,21 @@ def get_all_startup_profiles(request):
         }, status=200)
     except Exception as e:
         return Response({"detail": f"Error: {str(e)}"}, status=500)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])  
+def delete_comment(request, comment_id):
+    try:
+        
+        comment = StartupComment.objects.get(id=comment_id)
+    except StartupComment.DoesNotExist:
+        return Response({"detail": "Comment not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    
+    if comment.username != request.user:
+        return Response({"detail": "You do not have permission to delete this comment."}, status=status.HTTP_403_FORBIDDEN)
+
+    
+    comment.delete()
+    
+    return Response({"detail": "Comment deleted successfully."}, status=status.HTTP_200_OK)
