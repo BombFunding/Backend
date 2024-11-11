@@ -45,6 +45,7 @@ class BaseUser(AbstractBaseUser):
     name = models.CharField(default=" ",max_length=50)
     about_me = models.TextField(default=" ")
     user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default="basic")
+    is_confirmed = models.BooleanField(default=False)
 
     password = models.CharField(
         max_length=128,

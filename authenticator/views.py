@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import RegisterSerializer, LoginSerializer
+from django_email_verification import send_email
 
 
 class RegisterView(generics.CreateAPIView):
@@ -13,6 +14,8 @@ class RegisterView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
+        send_email(serializer.instance)
+
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
