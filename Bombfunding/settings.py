@@ -159,8 +159,8 @@ DEFAULT_FROM_EMAIL = "noreply<no_reply@domain.com>"
 
 # Global Package Settings
 # EMAIL_FROM_ADDRESS = 'noreply@bombfunding.com'  # mandatory
-EMAIL_FROM_ADDRESS = 'miliaxe001@gmail.com'  # mandatory
-EMAIL_PAGE_DOMAIN = 'https://bombfunding.com/'  # mandatory (unless you use a custom link)
+EMAIL_FROM_ADDRESS = env("GMAIL_ID")  # mandatory
+EMAIL_PAGE_DOMAIN = env("EMAIL_PAGE_DOMAIN")  # mandatory (unless you use a custom link)
 EMAIL_MULTI_USER = False  # optional (defaults to False)
 
 # Email Verification Settings (mandatory for email sending)
