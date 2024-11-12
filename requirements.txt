@@ -2,3 +2,4 @@ django
 djangorestframework
 djangorestframework-simplejwt
 django-environ
+django-email-verification
