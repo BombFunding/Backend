@@ -1,0 +1,36 @@
+{
+  "name": "persian-swear-words",
+  "version": "3.0.0",
+  "description": "A comprehensive list of Persian swear words and phrases, provided in JSON format with a JavaScript helper function for easy integration.",
+  "main": "PersianSwear.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amirshnll/Persian-Swear-Words.git"
+  },
+  "keywords": [
+    "swear",
+    "word",
+    "persian",
+    "farsi",
+    "profanity",
+    "filter",
+    "content moderation"
+  ],
+  "author": "Amir Shokri <amirsh.nll@gmail.com> (https://ashokri.com)",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/amirshnll/Persian-Swear-Words/issues"
+  },
+  "homepage": "https://github.com/amirshnll/Persian-Swear-Words#readme",
+  "files": [
+    "PersianSwear.js",
+    "data.json",
+    "data.txt"
+  ],
+  "dependencies": {
+    "persian-swear-words": "^3.0.0"
+  }
+}

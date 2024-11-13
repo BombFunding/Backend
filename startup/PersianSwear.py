@@ -6,7 +6,8 @@ class PersianSwear:
     def __init__(self):
         # with open("data.json") as file:
         #     self.data = json.load(file)
-        with open('startup\Persian-Swear-Filter\data.json', encoding='utf-8') as file:
+        with open(r'startup\Persian-Swear-Filter\data.json', encoding='utf-8') as file:
+        # with open('startup\Persian-Swear-Filter\data.json', encoding='utf-8') as file:
             self.data = json.load(file)
         self.swear_words = set(self.data["word"])
 
