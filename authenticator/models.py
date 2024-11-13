@@ -30,6 +30,7 @@ class BaseUserManager(BaseUserManager):
         user = self.create_user(username, email, password, user_type)
         user.is_staff = True
         user.is_superuser = True
+        user.set_password(password)  
         user.save(using=self._db)
         return user
 
@@ -46,6 +47,8 @@ class BaseUser(AbstractBaseUser):
     about_me = models.TextField(default=" ")
     user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default="basic")
     is_confirmed = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
 
     password = models.CharField(
         max_length=128,
@@ -67,6 +70,12 @@ class BaseUser(AbstractBaseUser):
         if not self.pk:  
             self.password = make_password(self.password)
         super(BaseUser, self).save(*args, **kwargs)
+
+    def has_perm(self, perm, obj=None):
+        return self.is_superuser
+
+    def has_module_perms(self, app_label):
+        return self.is_superuser
 
 
     def __str__(self) -> str:
