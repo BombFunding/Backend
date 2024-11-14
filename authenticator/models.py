@@ -98,11 +98,19 @@ class StartupUser(models.Model):
     def __str__(self) -> str:
         return f"{self.username}"
 
+import os
+
+def user_profile_picture_path(instance, filename):
+    username = instance.username.username
+    file_extension = filename.split('.')[-1]
+    new_filename = f"{username}.{file_extension}"
+    return os.path.join('profile_pics', new_filename)
+
 class BasicUserProfile(models.Model):
     username = models.OneToOneField(BaseUser, on_delete=models.CASCADE, related_name='basic_user_profile')
     about_me = models.TextField(default=" ", blank=True)
     email = models.EmailField(unique=True)
-    profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True)  
+    profile_picture = models.ImageField(upload_to=user_profile_picture_path, null=True, blank=True)  
     interests = models.CharField(max_length=500, blank=True)  
 
     def __str__(self):
@@ -111,8 +119,9 @@ class BasicUserProfile(models.Model):
     def save(self, *args, **kwargs):
         self.about_me = self.username.about_me
         self.email = self.username.email
-        self.username.name = self.username.username 
+        self.username.name = self.username.username
         super(BasicUserProfile, self).save(*args, **kwargs)
+
 
 # signal
 
