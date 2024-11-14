@@ -1,17 +1,7 @@
-superuser:
-python manage.py createsuperuser --username admin --email admin@gmail.com --user_type basic --password !ADMIN00admin
-______________
-windows:
+to do:
 
-python -m venv 
-venv/venv\Scripts\activate
-pip install django
-pip install djangorestframework
-pip install djangorestframework-simplejwt
-pip install pip install django-filter
-
-python manage.py makemigrations
-python manage.py migrate
-python manage.py runserver
-
-if bug in migrations -> remove all files in migrations folders except ___init___ files
+like comment
+rate startup
+tag of basic users
+seraching in basic users
+add to bookmarks
