@@ -51,7 +51,7 @@ class BaseUser(AbstractBaseUser):
 
     password = models.CharField(
         max_length=128,
-        validators=[
+        validators=[ 
             RegexValidator(
                 regex=r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$',
                 message="Password must be at least 8 characters long, contain an uppercase letter, a lowercase letter, a number, and a special character.",
@@ -103,7 +103,17 @@ def create_user_profile(sender, instance, created, **kwargs):
     if created:
         if instance.user_type == "basic":
             BasicUser.objects.create(username=instance)
-        elif instance.user_type == "startup":
-            StartupUser.objects.create(username=instance)
         elif instance.user_type == "investor":
             InvestorUser.objects.create(username=instance)
+        elif instance.user_type == "startup":
+            startup_user = StartupUser.objects.create(username=instance)
+
+            from startup.models import StartupProfile  
+
+            StartupProfile.objects.create(
+                startup_user=startup_user,
+                name=instance.username,  
+                description="",          
+                page={},                 
+                categories=[],           
+            )

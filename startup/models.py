@@ -1,14 +1,6 @@
-# آدما؟
-# یه استارتاپیوزر چند تا پروفایل داشته باشه؟
-# کامنت ادیت و حذف داره یا نه؟
-# پیج خود جیسون پیجه ست
-# درصد درآمد یا امتیاز
-# پوزیشن های مختلف برای بخش های مختلف بتونه سرمایه گذاری کنه
-
 from django.db import models
 from Bombfunding.models import InvestPosition
 from authenticator.models import StartupUser, BaseUser
-
 
 class StartupProfile(models.Model):
     startup_user = models.OneToOneField(StartupUser, on_delete=models.CASCADE)
@@ -18,7 +10,7 @@ class StartupProfile(models.Model):
     categories = models.JSONField()
 
     def save(self, *args, **kwargs):
-        if not self.name:
+        if not self.name:  
             self.name = self.startup_user.username  
         super().save(*args, **kwargs)
 
@@ -37,7 +29,6 @@ class StartupPosition(models.Model):
 
     def __str__(self) -> str:
         return f"{self.name} - {self.startup_profile.name} {self.funded}/{self.total}"
-
 
 class StartupComment(models.Model):
     startup_profile = models.ForeignKey(StartupProfile, on_delete=models.CASCADE)
