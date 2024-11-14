@@ -5,3 +5,4 @@ rate startup
 tag of basic users
 seraching in basic users
 add to bookmarks
+NtoN relation between basic user and startup profile. when getting startup profile general information of basic users must be sent either
