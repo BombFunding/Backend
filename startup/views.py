@@ -129,25 +129,46 @@ def search_positions_by_date_range(request):
     
     return JsonResponse({"positions": result}, safe=False)
 
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from .models import StartupProfile, StartupUser
+from .serializers import StartupProfileSerializer
+
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])  
 def create_update_startup_profile(request):
     user = request.user
+    
+    # بررسی نوع کاربر
     if user.user_type != 'startup':
         return Response({"detail": "Only users with 'startup' type can create or update a startup profile."},
                         status=status.HTTP_403_FORBIDDEN)
+    
+    # بازیابی یا ایجاد StartupUser مربوطه
     try:
         startup_user = StartupUser.objects.get(username=user)
     except StartupUser.DoesNotExist:
         return Response({"detail": "No related startup found."}, status=status.HTTP_404_NOT_FOUND)
     
-    profile, created = StartupProfile.objects.get_or_create(startup_user=startup_user)  # بررسی و ایجاد یکجا
-    serializer = StartupProfileSerializer(profile, data=request.data, partial=True)
-    
+    # بررسی وجود پروفایل StartupProfile
+    profile = StartupProfile.objects.filter(startup_user=startup_user).first()
+    if profile:
+        # به‌روزرسانی پروفایل موجود
+        serializer = StartupProfileSerializer(profile, data=request.data, partial=True)
+        message = "Profile updated successfully."
+    else:
+        # ایجاد پروفایل جدید
+        serializer = StartupProfileSerializer(data=request.data)
+        message = "Profile created successfully."
+
+    # ذخیره و اعتبارسنجی اطلاعات
     if serializer.is_valid():
-        serializer.save()
-        message = "Profile created successfully." if created else "Profile updated successfully."
+        serializer.save(startup_user=startup_user)
         return Response({"detail": message, "profile": serializer.data}, status=status.HTTP_200_OK)
+    
+    # پاسخ خطای اعتبارسنجی
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
