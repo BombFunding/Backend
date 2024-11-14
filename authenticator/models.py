@@ -26,10 +26,11 @@ class BaseUserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, username, email, password=None):
-        user = self.create_user(username, email, password)
+    def create_superuser(self, username, email, password, user_type):
+        user = self.create_user(username, email, password, user_type)
         user.is_staff = True
         user.is_superuser = True
+        user.set_password(password)  
         user.save(using=self._db)
         return user
 
@@ -45,12 +46,15 @@ class BaseUser(AbstractBaseUser):
     name = models.CharField(default=" ",max_length=50)
     about_me = models.TextField(default=" ")
     user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default="basic")
+    is_confirmed = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
 
     password = models.CharField(
         max_length=128,
         validators=[
             RegexValidator(
-                regex=r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$',
+                regex=r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$',
                 message="Password must be at least 8 characters long, contain an uppercase letter, a lowercase letter, a number, and a special character.",
                 code="invalid_password"
             )
@@ -66,6 +70,12 @@ class BaseUser(AbstractBaseUser):
         if not self.pk:  
             self.password = make_password(self.password)
         super(BaseUser, self).save(*args, **kwargs)
+
+    def has_perm(self, perm, obj=None):
+        return self.is_superuser
+
+    def has_module_perms(self, app_label):
+        return self.is_superuser
 
 
     def __str__(self) -> str:
