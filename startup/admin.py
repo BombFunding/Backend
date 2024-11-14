@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import StartupProfile, StartupPosition, StartupComment, StartupApplication
-from .models import BaseUser  # Ensure you import BaseUser
+from .models import BaseUser  
 
 @admin.register(StartupProfile)
 class StartupProfileAdmin(admin.ModelAdmin):
@@ -47,12 +47,12 @@ class StartupCommentAdmin(admin.ModelAdmin):
     get_startup_profile_name.short_description = 'Startup Profile'
 
     def get_username(self, obj):
-        return obj.username.username  # This ensures the username from BaseUser is displayed
+        return obj.username.username  
     get_username.short_description = 'Commenter Username'
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "username":
-            # Show all BaseUser related users (instead of specific models like StartupUser or InvestorUser)
+            
             kwargs["queryset"] = BaseUser.objects.all()  
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 

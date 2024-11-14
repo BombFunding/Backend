@@ -141,34 +141,34 @@ from .serializers import StartupProfileSerializer
 def create_update_startup_profile(request):
     user = request.user
     
-    # بررسی نوع کاربر
+    
     if user.user_type != 'startup':
         return Response({"detail": "Only users with 'startup' type can create or update a startup profile."},
                         status=status.HTTP_403_FORBIDDEN)
     
-    # بازیابی یا ایجاد StartupUser مربوطه
+    
     try:
         startup_user = StartupUser.objects.get(username=user)
     except StartupUser.DoesNotExist:
         return Response({"detail": "No related startup found."}, status=status.HTTP_404_NOT_FOUND)
     
-    # بررسی وجود پروفایل StartupProfile
+    
     profile = StartupProfile.objects.filter(startup_user=startup_user).first()
     if profile:
-        # به‌روزرسانی پروفایل موجود
+        
         serializer = StartupProfileSerializer(profile, data=request.data, partial=True)
         message = "Profile updated successfully."
     else:
-        # ایجاد پروفایل جدید
+        
         serializer = StartupProfileSerializer(data=request.data)
         message = "Profile created successfully."
 
-    # ذخیره و اعتبارسنجی اطلاعات
+    
     if serializer.is_valid():
         serializer.save(startup_user=startup_user)
         return Response({"detail": message, "profile": serializer.data}, status=status.HTTP_200_OK)
     
-    # پاسخ خطای اعتبارسنجی
+    
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
@@ -249,8 +249,6 @@ def startup_search(request, username):
     
 
 
-
-
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_comments_by_profile(request, profile_id):
@@ -268,12 +266,13 @@ def get_comments_by_profile(request, profile_id):
         
         comments_with_id = []
         for comment in serializer.data:
+            comment.pop("startup_profile", None)  
             comment["id"] = comment.get("id", None)  
             comments_with_id.append(comment)
 
         
-        return JsonResponse({"comments": comments_with_id}, safe=False)
-    
+        return JsonResponse({"comments": comments_with_id}, safe=False, json_dumps_params={'ensure_ascii': False})
+
     except Exception as e:
         return JsonResponse({"detail": f"Error: {str(e)}"}, status=500)
 
