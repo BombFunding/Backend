@@ -4,11 +4,11 @@ from . import views
 urlpatterns = [
     path('create-update-startup-profile/', views.create_update_startup_profile, name='startup-profile'),
     path('create-update-position/', views.create_update_position, name='create_update_position'),
-    path('startup_search/<str:username>/', views.startup_search, name='get_startup_info'),
-    path('search_by_date_range/', views.search_positions_by_date_range, name='search_positions_by_date_range'),  
+    path('startup_search_by_name/<str:username>/', views.startup_search_by_name, name='get_startup_info'),
+    path('view_own_startup_profile/', views.view_own_startup_profile, name='view_own_startup_profile'),  
+    path('search_by_date_range/', views.search_positions_by_date_range, name='search_positions_by_date_range'),
     path('all-positions/', views.get_all_positions, name='get_all_positions'),
     path('all_startup_profiles/', views.get_all_startup_profiles, name='get_all_startup_profiles'),
-
 
     path('positions/search_by_date_range/', views.search_positions_by_date_range, name='search_positions_by_date_range'),
     path('positions/sort_by_date/', views.sort_positions_by_date, name='sort_positions_by_date'),
@@ -19,4 +19,3 @@ urlpatterns = [
     path('delete-comment/<int:comment_id>/', views.delete_comment, name='delete_comment'),
     path('edit-comment/<int:comment_id>/', views.edit_comment, name='edit_comment'),
 ]
-

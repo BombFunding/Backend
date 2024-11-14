@@ -12,14 +12,18 @@ from authenticator.models import StartupUser, BaseUser
 
 class StartupProfile(models.Model):
     startup_user = models.OneToOneField(StartupUser, on_delete=models.CASCADE)
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, editable=False)  
     description = models.TextField()
     page = models.JSONField()
     categories = models.JSONField()
 
+    def save(self, *args, **kwargs):
+        if not self.name:
+            self.name = self.startup_user.username  
+        super().save(*args, **kwargs)
+
     def __str__(self) -> str:
         return f"{self.name} - {self.startup_user.username}"
-
 
 class StartupPosition(models.Model):
     startup_profile = models.ForeignKey(StartupProfile, on_delete=models.CASCADE)
