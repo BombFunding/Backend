@@ -9,9 +9,6 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import RegisterSerializer, LoginSerializer
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from .models import BasicUserProfile
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
@@ -107,5 +104,37 @@ def view_basic_user_profile(request, username):
 
     except BasicUserProfile.DoesNotExist:
         return Response({'detail': 'Basic user profile not found.'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def update_basic_user_profile(request):
+    user = request.user  
+    try:
+        basic_user_profile, created = BasicUserProfile.objects.get_or_create(username=user)
+
+        data = request.data
+        
+        if 'about_me' in data:
+            user.about_me = data['about_me']  
+        if 'email' in data:
+            user.email = data['email']  
+        if 'password' in data:
+            user.set_password(data['password'])  
+        
+        user.save()  
+        if 'interests' in data:
+            basic_user_profile.interests = data['interests']
+        if 'profile_picture' in request.FILES:
+            basic_user_profile.profile_picture = request.FILES['profile_picture']
+        if 'header_picture' in request.FILES:
+            basic_user_profile.header_picture = request.FILES['header_picture']
+        
+        basic_user_profile.save()  
+
+        return Response({'detail': 'Profile updated successfully.'}, status=status.HTTP_200_OK)
+
     except Exception as e:
         return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
