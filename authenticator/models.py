@@ -106,11 +106,18 @@ def user_profile_picture_path(instance, filename):
     new_filename = f"{username}.{file_extension}"
     return os.path.join('profile_pics', new_filename)
 
+def user_header_picture_path(instance, filename):
+    username = instance.username.username
+    file_extension = filename.split('.')[-1]
+    new_filename = f"{username}.{file_extension}"
+    return os.path.join('header_pics', new_filename)
+
 class BasicUserProfile(models.Model):
     username = models.OneToOneField(BaseUser, on_delete=models.CASCADE, related_name='basic_user_profile')
     about_me = models.TextField(default=" ", blank=True)
     email = models.EmailField(unique=True)
     profile_picture = models.ImageField(upload_to=user_profile_picture_path, null=True, blank=True)  
+    header_picture = models.ImageField(upload_to=user_header_picture_path, null=True, blank=True)  
     interests = models.CharField(max_length=500, blank=True)  
 
     def __str__(self):
