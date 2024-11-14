@@ -98,18 +98,36 @@ class StartupUser(models.Model):
     def __str__(self) -> str:
         return f"{self.username}"
 
+class BasicUserProfile(models.Model):
+    username = models.OneToOneField(BaseUser, on_delete=models.CASCADE, related_name='basic_user_profile')
+    about_me = models.TextField(default=" ", blank=True)
+    email = models.EmailField(unique=True)
+    profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True)  
+    interests = models.CharField(max_length=500, blank=True)  
+
+    def __str__(self):
+        return f"Profile of {self.username.username}"
+
+    def save(self, *args, **kwargs):
+        self.about_me = self.username.about_me
+        self.email = self.username.email
+        self.username.name = self.username.username 
+        super(BasicUserProfile, self).save(*args, **kwargs)
+
+# signal
+
 @receiver(post_save, sender=BaseUser)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         if instance.user_type == "basic":
             BasicUser.objects.create(username=instance)
+            BasicUserProfile.objects.create(username=instance, about_me=instance.about_me, email=instance.email)
+
         elif instance.user_type == "investor":
             InvestorUser.objects.create(username=instance)
         elif instance.user_type == "startup":
-            startup_user = StartupUser.objects.create(username=instance)
-
             from startup.models import StartupProfile  
-
+            startup_user = StartupUser.objects.create(username=instance)
             StartupProfile.objects.create(
                 startup_user=startup_user,
                 name=instance.username,  
@@ -117,3 +135,13 @@ def create_user_profile(sender, instance, created, **kwargs):
                 page={},                 
                 categories=[],           
             )
+
+@receiver(post_save, sender=BaseUser)
+def update_basic_user_profile(sender, instance, **kwargs):
+    try:
+        profile = instance.basic_user_profile
+        profile.about_me = instance.about_me
+        profile.email = instance.email
+        profile.save()
+    except BasicUserProfile.DoesNotExist:
+        pass 

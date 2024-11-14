@@ -1,8 +1,5 @@
 superuser:
-python manage.py createsuperuser --username admin --email admin@gmail.com 
-admin
-admin@gmail.com
-!ADMIN00admin
+python manage.py createsuperuser --username admin --email admin@gmail.com --user_type basic --password !ADMIN00admin
 ______________
 windows:
 
