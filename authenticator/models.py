@@ -6,7 +6,6 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework.exceptions import ValidationError as RestValidationError
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.db import models
 
 class BaseUserManager(BaseUserManager):
     def create_user(self, username, email, password, user_type) -> 'BaseUser':
@@ -41,9 +40,9 @@ class BaseUser(AbstractBaseUser):
         ('basic', 'Basic'),
     )
 
-    username = models.CharField(default=" ",max_length=20, unique=True)
+    username = models.CharField(default=" ", max_length=20, unique=True)
     email = models.EmailField(unique=True)
-    name = models.CharField(default=" ",max_length=50)
+    name = models.CharField(default=" ", max_length=50)
     about_me = models.TextField(default=" ")
     user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default="basic")
     is_confirmed = models.BooleanField(default=False)
@@ -65,7 +64,6 @@ class BaseUser(AbstractBaseUser):
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email', 'password', 'user_type']
 
-    
     def save(self, *args, **kwargs):
         if not self.pk:  
             self.password = make_password(self.password)
@@ -77,7 +75,6 @@ class BaseUser(AbstractBaseUser):
     def has_module_perms(self, app_label):
         return self.is_superuser
 
-
     def __str__(self) -> str:
         return f"{self.name} - {self.user_type}"
 
@@ -85,30 +82,28 @@ class BasicUser(models.Model):
     username = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
 
     def __str__(self) -> str:
-        return f"{self.username.__str__()}"
+        return f"{self.username}"
 
-    
 class InvestorUser(models.Model):
     username = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
     page = models.JSONField(null=True, blank=True)
     categories = models.JSONField(null=True, blank=True)
 
     def __str__(self) -> str:
-        return f"{self.username.__str__()}"
+        return f"{self.username}"
 
 class StartupUser(models.Model):
     username = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
-    
+
     def __str__(self) -> str:
-        return f"{self.username.__str__()}"
+        return f"{self.username}"
 
 @receiver(post_save, sender=BaseUser)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         if instance.user_type == "basic":
-            BasicUser.objects.create(username = instance)
+            BasicUser.objects.create(username=instance)
         elif instance.user_type == "startup":
-            StartupUser.objects.create(username = instance)
+            StartupUser.objects.create(username=instance)
         elif instance.user_type == "investor":
-            InvestorUser.objects.create(username = instance)
-            
+            InvestorUser.objects.create(username=instance)

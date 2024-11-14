@@ -5,7 +5,7 @@ from .serializers import StartupPositionSerializer
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from .models import StartupProfile, StartupUser,StartupPosition
+from .models import StartupProfile, StartupUser,StartupPosition, BaseUser
 from .serializers import StartupProfileSerializer
 from .models import StartupUser, StartupPosition
 from rest_framework.permissions import AllowAny
@@ -13,10 +13,8 @@ from django.http import JsonResponse
 from .models import StartupPosition
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
-from rest_framework import status
+from django.contrib.auth.hashers import make_password
 from .models import StartupProfile, StartupComment
-from django.utils import timezone
-from authenticator.models import BaseUser  
 from .serializers import StartupCommentSerializer
 
 @api_view(['GET'])
@@ -133,40 +131,62 @@ def search_positions_by_date_range(request):
     return JsonResponse({"positions": result}, safe=False)
 
 
+from django.core.exceptions import ValidationError as DjangoValidationError
+from rest_framework.exceptions import ValidationError as RestValidationError
+from django.contrib.auth.hashers import make_password
+
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])  
+@permission_classes([IsAuthenticated])
 def create_update_startup_profile(request):
     user = request.user
-    
-    
+
     if user.user_type != 'startup':
         return Response({"detail": "Only users with 'startup' type can create or update a startup profile."},
                         status=status.HTTP_403_FORBIDDEN)
-    
-    
+
     try:
         startup_user = StartupUser.objects.get(username=user)
     except StartupUser.DoesNotExist:
         return Response({"detail": "No related startup found."}, status=status.HTTP_404_NOT_FOUND)
-    
-    
+
     profile = StartupProfile.objects.filter(startup_user=startup_user).first()
     if profile:
-        
         serializer = StartupProfileSerializer(profile, data=request.data, partial=True)
         message = "Profile updated successfully."
     else:
-        
         serializer = StartupProfileSerializer(data=request.data)
         message = "Profile created successfully."
 
     
+    if 'password' in request.data:
+        password = request.data['password']
+        
+        
+        password_field = user._meta.get_field("password")
+        try:
+            for validator in password_field.validators:
+                validator(password)
+        except DjangoValidationError as e:
+            raise RestValidationError({"password": e.messages})
+        
+        
+        user.password = make_password(password)
+        user.save(update_fields=['password'])
+
     if serializer.is_valid():
         serializer.save(startup_user=startup_user)
-        return Response({"detail": message, "profile": serializer.data}, status=status.HTTP_200_OK)
-    
-    
+        return Response({
+            "detail": message,
+            "profile": {
+                "username": user.username,
+                "email": user.email,
+                **serializer.data
+            }
+        }, status=status.HTTP_200_OK)
+
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])  
