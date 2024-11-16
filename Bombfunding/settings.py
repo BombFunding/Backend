@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "Bombfunding",
     "django_email_verification",
+    "corsheaders",
 ]
 
 REST_FRAMEWORK = {
@@ -71,6 +72,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware"
 ]
 
 ROOT_URLCONF = "Bombfunding.urls"
@@ -180,3 +182,7 @@ def password_change_callback(user, password):
 
 EMAIL_MAIL_PAGE_TEMPLATE = 'mail_page.html'
 EMAIL_MAIL_CALLBACK = email_verified_callback
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+]
