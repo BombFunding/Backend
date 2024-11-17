@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "Bombfunding",
     "django_email_verification",
     "corsheaders",
+    "drf_yasg",
 ]
 
 REST_FRAMEWORK = {
