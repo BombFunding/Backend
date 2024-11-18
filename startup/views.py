@@ -137,7 +137,7 @@ from django.contrib.auth.hashers import make_password
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def create_update_startup_profile(request):
+def update_startup_profile(request):
     user = request.user
 
     if user.user_type != 'startup':
