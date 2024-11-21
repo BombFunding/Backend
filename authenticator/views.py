@@ -76,8 +76,9 @@ class ResetPasswordView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
-
-        user.password = make_password(serializer.validated_data["password"])
-        user.save()
+        try:
+            user.change_password(serializer.validated_data["password"])
+        except DjangoValidationError as e:
+            return Response({"message": e.message_dict}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"message": "Password reset successfully"}, status=status.HTTP_200_OK)
