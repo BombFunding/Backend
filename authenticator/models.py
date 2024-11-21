@@ -108,18 +108,27 @@ class StartupUser(models.Model):
         return self.username.username  
 
 import os
+from django.core.files.storage import default_storage
 
 def user_profile_picture_path(instance, filename):
     username = instance.username.username
     file_extension = filename.split('.')[-1]
     new_filename = f"{username}.{file_extension}"
-    return os.path.join('profile_pics', new_filename)
+    file_path = os.path.join('profile_pics', new_filename)
+    if default_storage.exists(file_path):
+        default_storage.delete(file_path)
+    return file_path
 
 def user_header_picture_path(instance, filename):
     username = instance.username.username
     file_extension = filename.split('.')[-1]
     new_filename = f"{username}.{file_extension}"
-    return os.path.join('header_pics', new_filename)
+    file_path = os.path.join('header_pics', new_filename)
+    if default_storage.exists(file_path):        
+        default_storage.delete(file_path)
+    
+    return file_path
+
 
 class BasicUserProfile(models.Model):
     username = models.OneToOneField(BaseUser, on_delete=models.CASCADE, related_name='basic_user_profile')

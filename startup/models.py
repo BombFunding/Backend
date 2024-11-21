@@ -3,17 +3,28 @@ from Bombfunding.models import InvestPosition
 from authenticator.models import StartupUser, BaseUser
 import os
 
+import os
+from django.core.files.storage import default_storage
+
 def user_profile_picture_path(instance, filename):
-    username = instance.startup_user.username.username  
+    username = instance.startup_user.username.username
     file_extension = filename.split('.')[-1]
     new_filename = f"{username}.{file_extension}"
-    return os.path.join('profile_pics', new_filename)
+    file_path = os.path.join('profile_pics', new_filename)
+    if default_storage.exists(file_path):
+        default_storage.delete(file_path)
+    return file_path
 
 def user_header_picture_path(instance, filename):
-    username = instance.startup_user.username.username  
+    username = instance.startup_user.username.username
     file_extension = filename.split('.')[-1]
     new_filename = f"{username}.{file_extension}"
-    return os.path.join('header_pics', new_filename)
+    file_path = os.path.join('header_pics', new_filename)
+    if default_storage.exists(file_path):        
+        default_storage.delete(file_path)
+    
+    return file_path
+
 
 class StartupProfile(models.Model):
     startup_user = models.OneToOneField(StartupUser, on_delete=models.CASCADE)
