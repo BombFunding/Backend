@@ -2,6 +2,7 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
+from .models import BaseUser
 from .serializers import RegisterSerializer, LoginSerializer, EmailSerializer, ResetPasswordSerializer
 from django_email_verification import send_email
 from django.core.mail import send_mail
@@ -9,21 +10,16 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
-from django.contrib.auth.hashers import make_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 
 
 class RegisterView(generics.CreateAPIView):
+    queryset = BaseUser.objects.all()
     serializer_class = RegisterSerializer
-    permission_classes = [AllowAny]
 
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        send_email(serializer.instance)
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
+    def perform_create(self, serializer):
+        user = serializer.save()
+        send_email(user)
 
 class LoginView(generics.CreateAPIView):
     serializer_class = LoginSerializer
