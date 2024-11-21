@@ -147,7 +147,7 @@ def create_user_profile(sender, instance, created, **kwargs):
             StartupProfile.objects.create(
                 startup_user=startup_user,
                 name=instance.username,  
-                description="",          
+                bio="",          
                 page={},                 
                 categories=[],           
             )

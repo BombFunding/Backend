@@ -28,7 +28,7 @@ def sort_positions_by_funded(request):
     
     result = [{
         "name": pos.name,
-        "description": pos.description,
+        "bio": pos.bio,
         "total": pos.total,
         "funded": pos.funded,
         "is_done": pos.is_done,
@@ -50,7 +50,7 @@ def sort_positions_by_date(request):
     
     result = [{
         "name": pos.name,
-        "description": pos.description,
+        "bio": pos.bio,
         "total": pos.total,
         "funded": pos.funded,
         "is_done": pos.is_done,
@@ -72,7 +72,7 @@ def get_all_positions(request):
         result = [{
             "id": pos.id,  
             "name": pos.name,
-            "description": pos.description,
+            "bio": pos.bio,
             "total": pos.total,
             "funded": pos.funded,
             "is_done": pos.is_done,
@@ -119,7 +119,7 @@ def search_positions_by_date_range(request):
     
     result = [{
         "name": pos.name,
-        "description": pos.description,
+        "bio": pos.bio,
         "total": pos.total,
         "funded": pos.funded,
         "is_done": pos.is_done,
@@ -134,58 +134,6 @@ def search_positions_by_date_range(request):
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework.exceptions import ValidationError as RestValidationError
 from django.contrib.auth.hashers import make_password
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def update_startup_profile(request):
-    user = request.user
-
-    if user.user_type != 'startup':
-        return Response({"detail": "Only users with 'startup' type can create or update a startup profile."},
-                        status=status.HTTP_403_FORBIDDEN)
-
-    try:
-        startup_user = StartupUser.objects.get(username=user)
-    except StartupUser.DoesNotExist:
-        return Response({"detail": "No related startup found."}, status=status.HTTP_404_NOT_FOUND)
-
-    profile = StartupProfile.objects.filter(startup_user=startup_user).first()
-    if profile:
-        serializer = StartupProfileSerializer(profile, data=request.data, partial=True)
-        message = "Profile updated successfully."
-    else:
-        serializer = StartupProfileSerializer(data=request.data)
-        message = "Profile created successfully."
-
-    
-    if 'password' in request.data:
-        password = request.data['password']
-        
-        
-        password_field = user._meta.get_field("password")
-        try:
-            for validator in password_field.validators:
-                validator(password)
-        except DjangoValidationError as e:
-            raise RestValidationError({"password": e.messages})
-        
-        
-        user.password = make_password(password)
-        user.save(update_fields=['password'])
-
-    if serializer.is_valid():
-        serializer.save(startup_user=startup_user)
-        return Response({
-            "detail": message,
-            "profile": {
-                "username": user.username,
-                "email": user.email,
-                **serializer.data
-            }
-        }, status=status.HTTP_200_OK)
-
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 @api_view(['POST'])
@@ -209,7 +157,7 @@ def create_update_position(request):
         startup_profile = StartupProfile.objects.get(startup_user=startup_user)
     except StartupProfile.DoesNotExist:
         
-        startup_profile = StartupProfile.objects.create(startup_user=startup_user, name="Default Name", description="Default Description")
+        startup_profile = StartupProfile.objects.create(startup_user=startup_user, name="Default Name", bio="Default bio")
     
     position_name = request.data.get('name')  
     try:
@@ -229,89 +177,10 @@ def create_update_position(request):
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['GET'])
-def startup_search_by_name(request, username):
-    try:
-        startup_user = StartupUser.objects.get(username__username=username)
-        startup_profile = StartupProfile.objects.get(startup_user=startup_user)
-        
-        positions = StartupPosition.objects.filter(startup_profile=startup_profile)
-        positions_data = [{
-            'name': position.name,
-            'description': position.description,
-            'total': position.total,
-            'funded': position.funded,
-            'is_done': position.is_done,
-            'start_time': position.start_time,
-            'end_time': position.end_time,
-        } for position in positions]
-        
-        return Response({
-            'startup_profile': {
-                'name': startup_profile.name,
-                'description': startup_profile.description,
-                'page': startup_profile.page,
-                'categories': startup_profile.categories,
-                'about_me': startup_user.username.about_me,  
-                'email': startup_user.username.email,
-            },
-            'positions': positions_data
-        }, status=status.HTTP_200_OK)
-    
-    except StartupUser.DoesNotExist:
-        return Response({'detail': 'Startup user not found.'}, status=status.HTTP_404_NOT_FOUND)
-    except StartupProfile.DoesNotExist:
-        return Response({'detail': 'Startup profile not found.'}, status=status.HTTP_404_NOT_FOUND)
-    except Exception as e:
-        return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def view_own_startup_profile(request):
-    user = request.user
-    try:
-        
-        startup_user = StartupUser.objects.get(username=user)
-        startup_profile = StartupProfile.objects.get(startup_user=startup_user)
-
-        
-        positions = StartupPosition.objects.filter(startup_profile=startup_profile)
-        positions_data = [{
-            'name': position.name,
-            'description': position.description,
-            'total': position.total,
-            'funded': position.funded,
-            'is_done': position.is_done,
-            'start_time': position.start_time,
-            'end_time': position.end_time,
-        } for position in positions]
-
-        return Response({
-            'startup_profile': {
-                'name': startup_profile.name,
-                'description': startup_profile.description,
-                'page': startup_profile.page,
-                'categories': startup_profile.categories,
-                'password': user.password,        
-                'email': user.email,              
-                'about_me': user.about_me,        
-            },
-            'positions': positions_data
-        }, status=status.HTTP_200_OK)
-
-    except StartupUser.DoesNotExist:
-        return Response({'detail': 'Startup user not found.'}, status=status.HTTP_404_NOT_FOUND)
-    except StartupProfile.DoesNotExist:
-        return Response({'detail': 'Startup profile not found.'}, status=status.HTTP_404_NOT_FOUND)
-    except Exception as e:
-        return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -358,20 +227,6 @@ def delete_comment(request, comment_id):
     comment.delete()
     
     return Response({"detail": "Comment deleted successfully."}, status=status.HTTP_200_OK)
-
-@api_view(['GET'])
-@permission_classes([AllowAny])  
-def get_all_startup_profiles(request):
-    try:
-        profiles = StartupProfile.objects.all()
-        
-        serializer = StartupProfileSerializer(profiles, many=True)
-
-        return Response({
-            "startup_profiles": serializer.data
-        }, status=200)
-    except Exception as e:
-        return Response({"detail": f"Error: {str(e)}"}, status=500)
 
 
 from startup.PersianSwear import PersianSwear
@@ -436,3 +291,125 @@ def edit_comment(request, comment_id):
     comment.save()
 
     return Response({"detail": "Comment updated successfully."}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def startup_search_by_name(request, username):
+    try:
+        startup_user = StartupUser.objects.get(username__username=username)
+        startup_profile = StartupProfile.objects.get(startup_user=startup_user)
+
+        positions = StartupPosition.objects.filter(startup_profile=startup_profile)
+        positions_data = [ 
+            {
+                'name': position.name,
+                'bio': position.bio,
+                'total': position.total,
+                'funded': position.funded,
+                'is_done': position.is_done,
+                'start_time': position.start_time,
+                'end_time': position.end_time,
+            } for position in positions
+        ]
+
+        return Response({
+            'startup_profile': {
+                'name': startup_profile.name,
+                'bio': startup_profile.bio,
+                'page': startup_profile.page,
+                'categories': startup_profile.categories,
+                'email': startup_user.username.email,
+                'socials': startup_profile.socials,
+                'first_name': startup_profile.first_name,
+                'last_name': startup_profile.last_name,
+            },
+            'positions': positions_data
+        }, status=status.HTTP_200_OK)
+
+    except StartupUser.DoesNotExist:
+        return Response({'detail': 'Startup user not found.'}, status=status.HTTP_404_NOT_FOUND)
+    except StartupProfile.DoesNotExist:
+        return Response({'detail': 'Startup profile not found.'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def view_own_startup_profile(request):
+    user = request.user
+    try:
+        startup_user = StartupUser.objects.get(username=user)
+        startup_profile = StartupProfile.objects.get(startup_user=startup_user)
+
+        positions = StartupPosition.objects.filter(startup_profile=startup_profile)
+        positions_data = [
+            {
+                'name': position.name,
+                'bio': position.bio,
+                'total': position.total,
+                'funded': position.funded,
+                'is_done': position.is_done,
+                'start_time': position.start_time,
+                'end_time': position.end_time,
+            } for position in positions
+        ]
+
+        return Response({
+            'startup_profile': {
+                'name': startup_profile.name,
+                'bio': startup_profile.bio,
+                'page': startup_profile.page,
+                'categories': startup_profile.categories,
+                'email': user.email,  
+                'socials': startup_profile.socials,
+                'phone': startup_profile.phone,
+                'first_name': startup_profile.first_name,
+                'last_name': startup_profile.last_name,
+            },
+            'positions': positions_data
+        }, status=status.HTTP_200_OK)
+
+    except StartupUser.DoesNotExist:
+        return Response({'detail': 'Startup user not found.'}, status=status.HTTP_404_NOT_FOUND)
+    except StartupProfile.DoesNotExist:
+        return Response({'detail': 'Startup profile not found.'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def update_startup_profile(request):
+    user = request.user
+
+    if user.user_type != 'startup':
+        return Response({"detail": "Only users with 'startup' type can create or update a startup profile."},
+                        status=status.HTTP_403_FORBIDDEN)
+
+    try:
+        startup_user = StartupUser.objects.get(username=user)
+    except StartupUser.DoesNotExist:
+        return Response({"detail": "No related startup found."}, status=status.HTTP_404_NOT_FOUND)
+
+    profile = StartupProfile.objects.filter(startup_user=startup_user).first()
+
+    if profile:
+        non_editable_fields = ['name', 'email']
+        data = {key: value for key, value in request.data.items() if key not in non_editable_fields}
+        serializer = StartupProfileSerializer(profile, data=data, partial=True)
+        message = "Profile updated successfully."
+    else:
+        serializer = StartupProfileSerializer(data=request.data)
+        message = "Profile created successfully."
+
+    if serializer.is_valid():
+        serializer.save(startup_user=startup_user)
+        return Response({
+            "detail": message,
+            "profile": {
+                "username": user.username,
+                "email": user.email,  
+                **serializer.data
+            }
+        }, status=status.HTTP_200_OK)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

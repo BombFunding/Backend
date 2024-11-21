@@ -5,7 +5,12 @@ from authenticator.models import StartupUser, BaseUser
 class StartupProfile(models.Model):
     startup_user = models.OneToOneField(StartupUser, on_delete=models.CASCADE)
     name = models.CharField(max_length=50, editable=False)  
-    description = models.TextField()
+    socials = models.JSONField(default=dict)  
+    email = models.EmailField(max_length=100, editable=False, default='example@example.com')
+    phone = models.CharField(max_length=15, blank=True, null=True)  
+    first_name = models.CharField(max_length=50, editable=False , null=True)  
+    last_name = models.CharField(max_length=50, editable=False, null=True)
+    bio = models.TextField()
     page = models.JSONField()
     categories = models.JSONField()
 
@@ -20,7 +25,7 @@ class StartupProfile(models.Model):
 class StartupPosition(models.Model):
     startup_profile = models.ForeignKey(StartupProfile, on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
-    description = models.TextField()
+    bio = models.TextField()
     total = models.IntegerField()
     funded = models.IntegerField()
     is_done = models.BooleanField(default=False)
