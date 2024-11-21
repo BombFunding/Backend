@@ -290,7 +290,6 @@ def edit_comment(request, comment_id):
 
     return Response({"detail": "Comment updated successfully."}, status=status.HTTP_200_OK)
 
-
 @api_view(['GET'])
 def startup_search_by_name(request, username):
     try:
@@ -298,7 +297,7 @@ def startup_search_by_name(request, username):
         startup_profile = StartupProfile.objects.get(startup_user=startup_user)
 
         positions = StartupPosition.objects.filter(startup_profile=startup_profile)
-        positions_data = [ 
+        positions_data = [
             {
                 'name': position.name,
                 'bio': position.bio,
@@ -320,6 +319,8 @@ def startup_search_by_name(request, username):
                 'socials': startup_profile.socials,
                 'first_name': startup_profile.first_name,
                 'last_name': startup_profile.last_name,
+                'profile_picture': startup_profile.profile_picture.url if startup_profile.profile_picture else None,
+                'header_picture': startup_profile.header_picture.url if startup_profile.header_picture else None,
             },
             'positions': positions_data
         }, status=status.HTTP_200_OK)
@@ -330,6 +331,7 @@ def startup_search_by_name(request, username):
         return Response({'detail': 'Startup profile not found.'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -363,6 +365,8 @@ def view_own_startup_profile(request):
                 'phone': startup_profile.phone,
                 'first_name': startup_profile.first_name,
                 'last_name': startup_profile.last_name,
+                'profile_picture': startup_profile.profile_picture.url if startup_profile.profile_picture else None,
+                'header_picture': startup_profile.header_picture.url if startup_profile.header_picture else None,
             },
             'positions': positions_data
         }, status=status.HTTP_200_OK)
@@ -373,6 +377,7 @@ def view_own_startup_profile(request):
         return Response({'detail': 'Startup profile not found.'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -405,8 +410,10 @@ def update_startup_profile(request):
             "detail": message,
             "profile": {
                 "username": user.username,
-                "email": user.email,  
-                **serializer.data
+                "email": user.email,
+                **serializer.data,
+                "profile_picture": profile.profile_picture.url if profile and profile.profile_picture else None,
+                "header_picture": profile.header_picture.url if profile and profile.header_picture else None,
             }
         }, status=status.HTTP_200_OK)
 
