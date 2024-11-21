@@ -25,12 +25,11 @@ def user_header_picture_path(instance, filename):
     
     return file_path
 
-
 class StartupProfile(models.Model):
     startup_user = models.OneToOneField(StartupUser, on_delete=models.CASCADE)
-    name = models.CharField(max_length=50, editable=False)  
+    name = models.CharField(max_length=50, editable=False , null=True)  
+    email = models.EmailField(max_length=100, editable=False, null=True) 
     socials = models.JSONField(default=dict, null=True)  
-    email = models.EmailField(max_length=100, editable=False)
     phone = models.CharField(max_length=15, blank=True, null=True)  
     first_name = models.CharField(max_length=50, editable=False, null=True)  
     last_name = models.CharField(max_length=50, editable=False, null=True)
@@ -42,13 +41,14 @@ class StartupProfile(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.name:
-            self.name = self.startup_user.username  
-        if not self.email:
+            self.name = self.startup_user.username
+        if not self.email:  
             self.email = self.startup_user.username.email  
         super().save(*args, **kwargs)
 
     def __str__(self) -> str:
-        return f"{self.startup_user.username} - {self.startup_user.username}"
+        return f"{self.name} - {self.startup_user.username}"
+
 
 class StartupPosition(models.Model):
     startup_profile = models.ForeignKey(StartupProfile, on_delete=models.CASCADE)

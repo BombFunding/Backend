@@ -12,7 +12,7 @@ from rest_framework import serializers
 from .models import StartupProfile
 
 class StartupProfileSerializer(serializers.ModelSerializer):
-    startup_user_username = serializers.CharField(source='startup_user.username', read_only=True)
+    startup_user_username = serializers.CharField(source='startup_user.username.username', read_only=True)
     email = serializers.EmailField(source='startup_user.email', read_only=True)  
     about_me = serializers.CharField(required=False, allow_blank=True)
     socials = serializers.JSONField(required=False, allow_null=True)

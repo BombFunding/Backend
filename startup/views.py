@@ -67,8 +67,6 @@ def get_all_positions(request):
     try:
         
         positions = StartupPosition.objects.all()
-
-        
         result = [{
             "id": pos.id,  
             "name": pos.name,
