@@ -5,15 +5,15 @@ from authenticator.models import BaseUser
 @admin.register(StartupProfile)
 class StartupProfileAdmin(admin.ModelAdmin):
     list_display = [
-        'startup_user', 'name', 'bio', 'socials', 'phone', 
-        'first_name', 'last_name', 'email', 'get_startup_user_name'
+        'get_startup_user_name', 'email'
     ]
     search_fields = ['name', 'startup_user__username', 'email']
     list_filter = ['categories']
 
     def get_startup_user_name(self, obj):
-        return obj.startup_user.username
-    get_startup_user_name.short_bio = 'Startup User'
+        return obj.name  
+    get_startup_user_name.short_description = 'Startup Name'  
+
 
 @admin.register(StartupPosition)
 class StartupPositionAdmin(admin.ModelAdmin):

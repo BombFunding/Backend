@@ -95,8 +95,17 @@ class InvestorUser(models.Model):
 class StartupUser(models.Model):
     username = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
 
+    @property
+    def display_username(self):
+        return self.username.username
+
+    def save(self, *args, **kwargs):
+        if self.username:
+            self.username = BaseUser.objects.get(pk=self.username.pk)
+        super().save(*args, **kwargs)
+
     def __str__(self) -> str:
-        return f"{self.username}"
+        return self.username.username  
 
 import os
 
