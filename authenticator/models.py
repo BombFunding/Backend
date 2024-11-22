@@ -42,8 +42,6 @@ class BaseUser(AbstractBaseUser):
 
     username = models.CharField(default=" ", max_length=20, unique=True)
     email = models.EmailField(unique=True)
-    name = models.CharField(default=" ", max_length=50)
-    about_me = models.TextField(default=" ")
     user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default="basic")
     is_confirmed = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
@@ -76,7 +74,7 @@ class BaseUser(AbstractBaseUser):
         return self.is_superuser
 
     def __str__(self) -> str:
-        return f"{self.name} - {self.user_type}"
+        return f"{self.username} - {self.user_type}"
 
 class BasicUser(models.Model):
     username = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
@@ -132,7 +130,6 @@ def user_header_picture_path(instance, filename):
 
 class BasicUserProfile(models.Model):
     username = models.OneToOneField(BaseUser, on_delete=models.CASCADE, related_name='basic_user_profile')
-    about_me = models.TextField(default=" ", blank=True)
     email = models.EmailField(unique=True)
     profile_picture = models.ImageField(upload_to=user_profile_picture_path, null=True, blank=True)  
     header_picture = models.ImageField(upload_to=user_header_picture_path, null=True, blank=True)  
@@ -142,9 +139,7 @@ class BasicUserProfile(models.Model):
         return f"Profile of {self.username.username}"
 
     def save(self, *args, **kwargs):
-        self.about_me = self.username.about_me
         self.email = self.username.email
-        self.username.name = self.username.username
         super(BasicUserProfile, self).save(*args, **kwargs)
 
 
@@ -155,7 +150,7 @@ def create_user_profile(sender, instance, created, **kwargs):
     if created:
         if instance.user_type == "basic":
             BasicUser.objects.create(username=instance)
-            BasicUserProfile.objects.create(username=instance, about_me=instance.about_me, email=instance.email)
+            BasicUserProfile.objects.create(username=instance, email=instance.email)
 
         elif instance.user_type == "investor":
             InvestorUser.objects.create(username=instance)
@@ -164,7 +159,7 @@ def create_user_profile(sender, instance, created, **kwargs):
             startup_user = StartupUser.objects.create(username=instance)
             StartupProfile.objects.create(
                 startup_user=startup_user,
-                name=instance.username,  
+                name=instance,  
                 bio="",          
                 page={},                 
                 categories=[],           
@@ -174,7 +169,6 @@ def create_user_profile(sender, instance, created, **kwargs):
 def update_basic_user_profile(sender, instance, **kwargs):
     try:
         profile = instance.basic_user_profile
-        profile.about_me = instance.about_me
         profile.email = instance.email
         profile.save()
     except BasicUserProfile.DoesNotExist:

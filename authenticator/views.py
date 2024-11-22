@@ -35,7 +35,6 @@ class LoginView(generics.CreateAPIView):
 
         return Response({
             "email": user.email,
-             "name": user.name,
              "user_type": user.user_type,
              "access_token": access_token,
              "refresh_token": str(refresh)
@@ -63,7 +62,6 @@ def view_own_basic_user_profile(request):
             'basic_user_profile': {
                 'username': user.username,
                 'email': user.email,
-                'about_me': user.about_me,
                 'interests': basic_user_profile.interests,
                 'password': user.password,
                 'profile_picture': profile_picture_url,  
@@ -96,7 +94,6 @@ def view_basic_user_profile(request, username):
             'basic_user_profile': {
                 'username': user.username,
                 'email': user.email,
-                'about_me': user.about_me,
                 'profile_picture': profile_picture_url,
                 'header_picture': header_picture_url  
             }
@@ -117,8 +114,6 @@ def update_basic_user_profile(request):
 
         data = request.data
         
-        if 'about_me' in data:
-            user.about_me = data['about_me']  
         if 'email' in data:
             user.email = data['email']  
         if 'password' in data:

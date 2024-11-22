@@ -6,7 +6,6 @@ from django.contrib import admin
 from .models import BasicUserProfile
 
 
-
 class BaseUserAdmin(admin.ModelAdmin):
     list_display = ('username', 'email', 'user_type', 'is_staff', 'is_superuser')
     search_fields = ('username', 'email')
@@ -59,7 +58,7 @@ class StartupUserAdmin(admin.ModelAdmin):
 
 @admin.register(BasicUserProfile)
 class BasicUserProfileAdmin(admin.ModelAdmin):
-    list_display = ['username', 'about_me', 'email', 'interests', 'profile_picture']
+    list_display = ['username', 'email', 'interests', 'profile_picture']
 
 admin.site.register(BaseUser, BaseUserAdmin)
 admin.site.register(BasicUser, BasicUserAdmin)
