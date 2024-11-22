@@ -2,26 +2,41 @@ from django.db import models
 from Bombfunding.models import InvestPosition
 from authenticator.models import StartupUser, BaseUser
 import os
-
-import os
 from django.core.files.storage import default_storage
+from django.db import models
+def delete_existing_images(username):
+    
+    for ext in ['jpg', 'jpeg', 'png']:
+        file_path = os.path.join('profile_pics', f"{username}.{ext}")
+        if default_storage.exists(file_path):
+            default_storage.delete(file_path)
 
 def user_profile_picture_path(instance, filename):
     username = instance.startup_user.username.username
     file_extension = filename.split('.')[-1]
     new_filename = f"{username}.{file_extension}"
     file_path = os.path.join('profile_pics', new_filename)
-    if default_storage.exists(file_path):
-        default_storage.delete(file_path)
+    
+    
+    delete_existing_images(username)
+    
     return file_path
+
+def delete_existing_header_images(username):
+    
+    for ext in ['jpg', 'jpeg', 'png']:
+        file_path = os.path.join('header_pics', f"{username}.{ext}")
+        if default_storage.exists(file_path):
+            default_storage.delete(file_path)
 
 def user_header_picture_path(instance, filename):
     username = instance.startup_user.username.username
     file_extension = filename.split('.')[-1]
     new_filename = f"{username}.{file_extension}"
     file_path = os.path.join('header_pics', new_filename)
-    if default_storage.exists(file_path):        
-        default_storage.delete(file_path)
+    
+    
+    delete_existing_header_images(username)
     
     return file_path
 class StartupProfile(models.Model):
@@ -47,7 +62,6 @@ class StartupProfile(models.Model):
 
     def __str__(self) -> str:
         return f"{self.name} - {self.startup_user.username}"
-
 
 class StartupPosition(models.Model):
     startup_profile = models.ForeignKey(StartupProfile, on_delete=models.CASCADE)
