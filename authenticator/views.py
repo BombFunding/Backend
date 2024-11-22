@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from django.conf import settings
-from .models import BasicUserProfile, BasicUser
+from .models import BasicUserProfile, BaseUser
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
@@ -133,3 +133,28 @@ def update_basic_user_profile(request):
 
     except Exception as e:
         return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+from django.core.exceptions import ValidationError as DjangoValidationError
+from rest_framework.exceptions import ValidationError as RestValidationError
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_user_password(request):
+    user = request.user  
+    new_password = request.data.get('new_password')
+
+    if not new_password:
+        return Response({'detail': 'New password is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    password_field = BaseUser._meta.get_field("password")
+
+    try:
+        for validator in password_field.validators:
+            validator(new_password)
+    except DjangoValidationError as e:
+        raise RestValidationError({"password": e.messages})
+
+    user.set_password(new_password)
+    user.save()
+
+    return Response({'detail': 'Password updated successfully.'}, status=status.HTTP_200_OK)
