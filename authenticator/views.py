@@ -108,7 +108,6 @@ def view_own_basic_user_profile(request):
             'basic_user_profile': {
                 'username': user.username,
                 'email': user.email,
-                'about_me': user.about_me,
                 'interests': basic_user_profile.interests,
                 'password': user.password,
                 'profile_picture': profile_picture_url,  
@@ -141,7 +140,6 @@ def view_basic_user_profile(request, username):
             'basic_user_profile': {
                 'username': user.username,
                 'email': user.email,
-                'about_me': user.about_me,
                 'profile_picture': profile_picture_url,
                 'header_picture': header_picture_url  
             }
@@ -162,8 +160,6 @@ def update_basic_user_profile(request):
 
         data = request.data
         
-        if 'about_me' in data:
-            user.about_me = data['about_me']  
         if 'email' in data:
             user.email = data['email']  
         if 'password' in data:
@@ -183,3 +179,28 @@ def update_basic_user_profile(request):
 
     except Exception as e:
         return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+from django.core.exceptions import ValidationError as DjangoValidationError
+from rest_framework.exceptions import ValidationError as RestValidationError
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_user_password(request):
+    user = request.user  
+    new_password = request.data.get('new_password')
+
+    if not new_password:
+        return Response({'detail': 'New password is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    password_field = BaseUser._meta.get_field("password")
+
+    try:
+        for validator in password_field.validators:
+            validator(new_password)
+    except DjangoValidationError as e:
+        raise RestValidationError({"password": e.messages})
+
+    user.set_password(new_password)
+    user.save()
+
+    return Response({'detail': 'Password updated successfully.'}, status=status.HTTP_200_OK)

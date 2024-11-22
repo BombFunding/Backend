@@ -2,40 +2,54 @@ from django.db import models
 from Bombfunding.models import InvestPosition
 from authenticator.models import StartupUser, BaseUser
 import os
-
-import os
 from django.core.files.storage import default_storage
+from django.db import models
+def delete_existing_images(username):
+    
+    for ext in ['jpg', 'jpeg', 'png']:
+        file_path = os.path.join('profile_pics', f"{username}.{ext}")
+        if default_storage.exists(file_path):
+            default_storage.delete(file_path)
 
 def user_profile_picture_path(instance, filename):
     username = instance.startup_user.username.username
     file_extension = filename.split('.')[-1]
     new_filename = f"{username}.{file_extension}"
     file_path = os.path.join('profile_pics', new_filename)
-    if default_storage.exists(file_path):
-        default_storage.delete(file_path)
+    
+    
+    delete_existing_images(username)
+    
     return file_path
+
+def delete_existing_header_images(username):
+    
+    for ext in ['jpg', 'jpeg', 'png']:
+        file_path = os.path.join('header_pics', f"{username}.{ext}")
+        if default_storage.exists(file_path):
+            default_storage.delete(file_path)
 
 def user_header_picture_path(instance, filename):
     username = instance.startup_user.username.username
     file_extension = filename.split('.')[-1]
     new_filename = f"{username}.{file_extension}"
     file_path = os.path.join('header_pics', new_filename)
-    if default_storage.exists(file_path):        
-        default_storage.delete(file_path)
+    
+    
+    delete_existing_header_images(username)
     
     return file_path
-
 class StartupProfile(models.Model):
-    startup_user = models.OneToOneField(StartupUser, on_delete=models.CASCADE)
-    name = models.CharField(max_length=50, editable=False , null=True)  
+    startup_user = models.OneToOneField(StartupUser, on_delete=models.CASCADE, editable=False)
+    name = models.CharField(max_length=50, editable=False, null=True)  
     email = models.EmailField(max_length=100, editable=False, null=True) 
     socials = models.JSONField(default=dict, null=True)  
     phone = models.CharField(max_length=15, blank=True, null=True)  
     first_name = models.CharField(max_length=50, editable=False, null=True)  
     last_name = models.CharField(max_length=50, editable=False, null=True)
-    bio = models.TextField(null=True)
-    page = models.JSONField()
-    categories = models.JSONField()
+    bio = models.TextField(null=True, blank=True) 
+    page = models.JSONField(null=True, blank=True)
+    categories = models.JSONField(null=True, blank=True)
     profile_picture = models.ImageField(upload_to=user_profile_picture_path, null=True, blank=True, default='profile_pics/default_profile.jpg')  
     header_picture = models.ImageField(upload_to=user_header_picture_path, null=True, blank=True, default='header_pics/default_header.jpg')  
 
@@ -48,7 +62,6 @@ class StartupProfile(models.Model):
 
     def __str__(self) -> str:
         return f"{self.name} - {self.startup_user.username}"
-
 
 class StartupPosition(models.Model):
     startup_profile = models.ForeignKey(StartupProfile, on_delete=models.CASCADE)

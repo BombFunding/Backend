@@ -2,17 +2,36 @@ from django.contrib import admin
 from .models import StartupProfile, StartupPosition, StartupComment, StartupApplication
 from authenticator.models import BaseUser  
 
+from django import forms
+from django.contrib import admin
+from .models import StartupProfile
+
+class StartupProfileForm(forms.ModelForm):
+    class Meta:
+        model = StartupProfile
+        fields = '__all__'
+
+    
+    bio = forms.CharField(required=False, widget=forms.Textarea, initial='')
+    phone = forms.CharField(required=False, initial='')
+    socials = forms.JSONField(required=False, initial={})
+    page = forms.JSONField(required=False, initial={})
+    categories = forms.JSONField(required=False, initial={})
+
 @admin.register(StartupProfile)
 class StartupProfileAdmin(admin.ModelAdmin):
-    list_display = [
-        'get_startup_user_name', 'email'
-    ]
+    list_display = ['get_startup_user_name', 'email']
     search_fields = ['name', 'startup_user__username', 'email']
     list_filter = ['categories']
+    form = StartupProfileForm  
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.select_related('startup_user')
 
     def get_startup_user_name(self, obj):
         return obj.name  
-    get_startup_user_name.short_description = 'Startup Name'  
+    get_startup_user_name.short_description = 'Startup Name'
 
 
 @admin.register(StartupPosition)
@@ -35,22 +54,24 @@ class StartupPositionAdmin(admin.ModelAdmin):
 
 @admin.register(StartupComment)
 class StartupCommentAdmin(admin.ModelAdmin):
-    list_display = ['get_commenter_username', 'startup_profile', 'comment', 'time', 'get_startup_profile_name']
-    search_fields = ['commenter_user__username', 'startup_profile__name', 'comment']
+    list_display = ['get_commenter_username', 'get_startup_profile_name', 'comment', 'time']
+    search_fields = ['username__username', 'startup_profile__name', 'comment']
     list_filter = ['time']
     actions = ['delete_selected']
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
-        return queryset.select_related('startup_profile', 'commenter_user')
+        return queryset.select_related('startup_profile', 'username')
 
     def get_startup_profile_name(self, obj):
         return obj.startup_profile.name
-    get_startup_profile_name.short_bio = 'Startup Profile'
+    get_startup_profile_name.short_description = 'Startup Profile'
 
     def get_commenter_username(self, obj):
-        return obj.commenter_user.username  
-    get_commenter_username.short_bio = 'Commenter Username'
+        return obj.username.username  
+    get_commenter_username.short_description = 'Commenter Username'
+
+
 
 @admin.register(StartupApplication)
 class StartupApplicationAdmin(admin.ModelAdmin):
