@@ -35,3 +35,20 @@ username , email must be uniqe
 change names of endpoints
 category just for startup and is better to be in the page not in the account
 
+__________________
+curl:
+
+curl -X POST ^
+-H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzMyMzE1NTY5LCJpYXQiOjE3MzIzMTE5NjksImp0aSI6IjU1MTdiNjNjN2RkMjQ2MzQ4MjkzYWFlMzBkNTdjYTJkIiwidXNlcl9pZCI6Mn0.46krs75Jmq7xtHfHNUgDysYeH8yJNW2kU_CENqeYiow" ^
+-H "Content-Type: multipart/form-data" ^
+-F "phone=1234567890" ^
+-F "first_name=John" ^
+-F "last_name=Doe" ^
+-F "bio=Startup founder and innovator." ^
+-F "socials[linkedin]=https://linkedin.com/company/newstartup" ^
+-F "socials[twitter]=https://twitter.com/newstartup" ^
+-F "profile_picture=@C:\Users\TARANEH\Pictures\Screenshots\Final_ERD.png" ^
+-F "header_picture=@C:\Users\TARANEH\Pictures\Screenshots\Final_ERD.png" ^
+-F "categories[]=Technology" ^
+-F "categories[]=Innovation" ^
+http://104.168.46.4:8000/startup/update_startup_profile/
