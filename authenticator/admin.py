@@ -7,7 +7,7 @@ from .models import BasicUserProfile
 
 
 class BaseUserAdmin(admin.ModelAdmin):
-    list_display = ('username', 'email', 'user_type', 'is_staff', 'is_superuser')
+    list_display = ('username', 'email', 'user_type', 'is_staff','is_confirmed', 'is_superuser')
     search_fields = ('username', 'email')
     list_filter = ('user_type', 'is_staff', 'is_superuser')
 
