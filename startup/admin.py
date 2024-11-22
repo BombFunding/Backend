@@ -2,17 +2,36 @@ from django.contrib import admin
 from .models import StartupProfile, StartupPosition, StartupComment, StartupApplication
 from authenticator.models import BaseUser  
 
+from django import forms
+from django.contrib import admin
+from .models import StartupProfile
+
+class StartupProfileForm(forms.ModelForm):
+    class Meta:
+        model = StartupProfile
+        fields = '__all__'
+
+    
+    bio = forms.CharField(required=False, widget=forms.Textarea, initial='')
+    phone = forms.CharField(required=False, initial='')
+    socials = forms.JSONField(required=False, initial={})
+    page = forms.JSONField(required=False, initial={})
+    categories = forms.JSONField(required=False, initial={})
+
 @admin.register(StartupProfile)
 class StartupProfileAdmin(admin.ModelAdmin):
-    list_display = [
-        'get_startup_user_name', 'email'
-    ]
+    list_display = ['get_startup_user_name', 'email']
     search_fields = ['name', 'startup_user__username', 'email']
     list_filter = ['categories']
+    form = StartupProfileForm  
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.select_related('startup_user')
 
     def get_startup_user_name(self, obj):
         return obj.name  
-    get_startup_user_name.short_description = 'Startup Name'  
+    get_startup_user_name.short_description = 'Startup Name'
 
 
 @admin.register(StartupPosition)

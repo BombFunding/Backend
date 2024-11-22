@@ -24,18 +24,17 @@ def user_header_picture_path(instance, filename):
         default_storage.delete(file_path)
     
     return file_path
-
 class StartupProfile(models.Model):
-    startup_user = models.OneToOneField(StartupUser, on_delete=models.CASCADE)
-    name = models.CharField(max_length=50, editable=False , null=True)  
+    startup_user = models.OneToOneField(StartupUser, on_delete=models.CASCADE, editable=False)
+    name = models.CharField(max_length=50, editable=False, null=True)  
     email = models.EmailField(max_length=100, editable=False, null=True) 
     socials = models.JSONField(default=dict, null=True)  
     phone = models.CharField(max_length=15, blank=True, null=True)  
     first_name = models.CharField(max_length=50, editable=False, null=True)  
     last_name = models.CharField(max_length=50, editable=False, null=True)
-    bio = models.TextField(null=True)
-    page = models.JSONField()
-    categories = models.JSONField()
+    bio = models.TextField(null=True, blank=True) 
+    page = models.JSONField(null=True, blank=True)
+    categories = models.JSONField(null=True, blank=True)
     profile_picture = models.ImageField(upload_to=user_profile_picture_path, null=True, blank=True, default='profile_pics/default_profile.jpg')  
     header_picture = models.ImageField(upload_to=user_header_picture_path, null=True, blank=True, default='header_pics/default_header.jpg')  
 
