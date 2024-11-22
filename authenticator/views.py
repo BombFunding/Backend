@@ -40,7 +40,7 @@ class LoginView(generics.CreateAPIView):
 
         return Response({
             "email": user.email,
-            "name": user.name,
+            "username": user.username,
             "user_type": user.user_type,
             "access_token": access_token,
             "refresh_token": str(refresh)
