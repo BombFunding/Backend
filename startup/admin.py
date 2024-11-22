@@ -5,25 +5,25 @@ from authenticator.models import BaseUser
 from django import forms
 from django.contrib import admin
 from .models import StartupProfile
-
 class StartupProfileForm(forms.ModelForm):
     class Meta:
         model = StartupProfile
         fields = '__all__'
 
-    
     bio = forms.CharField(required=False, widget=forms.Textarea, initial='')
     phone = forms.CharField(required=False, initial='')
     socials = forms.JSONField(required=False, initial={})
     page = forms.JSONField(required=False, initial={})
     categories = forms.JSONField(required=False, initial={})
+    first_name = forms.CharField(required=False, initial='')  
+    last_name = forms.CharField(required=False, initial='')   
 
 @admin.register(StartupProfile)
 class StartupProfileAdmin(admin.ModelAdmin):
-    list_display = ['get_startup_user_name', 'email']
+    list_display = ['get_startup_user_name', 'email', 'first_name', 'last_name']  
     search_fields = ['name', 'startup_user__username', 'email']
     list_filter = ['categories']
-    form = StartupProfileForm  
+    form = StartupProfileForm
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
