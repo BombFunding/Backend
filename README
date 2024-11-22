@@ -1,0 +1,37 @@
+superuser:
+python manage.py createsuperuser --username admin --email admin@gmail.com --user_type basic --password !ADMIN00admin
+______________
+windows:
+
+python -m venv 
+venv/venv\Scripts\activate
+pip install django
+pip install djangorestframework
+pip install djangorestframework-simplejwt
+pip install pip install django-filter
+pip install pillow
+
+python manage.py makemigrations
+python manage.py migrate
+python manage.py runserver
+
+if bug in migrations -> remove all files in migrations folders except ___init___ files
+
+_______________
+TODO
+profile:
+- own:
+name
+lname
+email
+phone
+bio
+social links
+
+others:
+just name , phone is hidden
+
+username , email must be uniqe
+change names of endpoints
+category just for startup and is better to be in the page not in the account
+
