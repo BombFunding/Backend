@@ -1,8 +1,8 @@
+from typing import Collection
 from django.db import models
 from django.core.validators import RegexValidator
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework.exceptions import ValidationError as RestValidationError
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -13,16 +13,7 @@ class BaseUserManager(BaseUserManager):
         if not email:
             raise RestValidationError("Email is required.")
         email = self.normalize_email(email)
-
-        password_field = BaseUser._meta.get_field("password")
-        try:
-            for validator in password_field.validators:
-                validator(password)
-        except DjangoValidationError as e:
-            raise RestValidationError({"password": e.messages})
-
-        user = self.model(username=username, email=email, user_type=user_type)
-        user.set_password(password)  
+        user = self.model(username=username, email=email, user_type=user_type, password=password)
         user.save(using=self._db)
         return user
 
@@ -30,7 +21,6 @@ class BaseUserManager(BaseUserManager):
         user = self.create_user(username, email, password, user_type)
         user.is_staff = True
         user.is_superuser = True
-        user.set_password(password)  
         user.save(using=self._db)
         return user
 
@@ -66,10 +56,17 @@ class BaseUser(AbstractBaseUser):
     REQUIRED_FIELDS = ['email', 'password', 'user_type']
 
     
+
     def save(self, *args, **kwargs):
-        if not self.pk:  
+        if self.pk:
+            self.full_clean()
             self.password = make_password(self.password)
         super(BaseUser, self).save(*args, **kwargs)
+
+    def change_password(self, new_password):
+        self.password = new_password
+        self.full_clean()
+        self.save()
 
     def has_perm(self, perm, obj=None):
         return self.is_superuser
