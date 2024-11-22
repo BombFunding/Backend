@@ -173,3 +173,26 @@ def update_basic_user_profile(sender, instance, **kwargs):
         profile.save()
     except BasicUserProfile.DoesNotExist:
         pass 
+
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
+
+@receiver(post_delete, sender=BaseUser)
+def delete_user_profile(sender, instance, **kwargs):
+    """
+    زمانی که یک BaseUser حذف می‌شود، پروفایل‌های مربوط به آن نیز حذف می‌شود.
+    """
+    try:
+        from startup.models import StartupProfile
+        
+        if instance.user_type == "basic":
+            instance.basic_user_profile.delete()
+        elif instance.user_type == "investor":
+            instance.investor_user.delete()
+        elif instance.user_type == "startup":
+            startup_user = instance.startup_user
+            startup_user.delete()
+            startup_profile = StartupProfile.objects.get(startup_user=startup_user)
+            startup_profile.delete()
+    except Exception as e:
+        pass
