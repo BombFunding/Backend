@@ -35,22 +35,24 @@ class StartupPositionAdmin(admin.ModelAdmin):
 
 @admin.register(StartupComment)
 class StartupCommentAdmin(admin.ModelAdmin):
-    list_display = ['get_commenter_username', 'startup_profile', 'comment', 'time', 'get_startup_profile_name']
-    search_fields = ['commenter_user__username', 'startup_profile__name', 'comment']
+    list_display = ['get_commenter_username', 'get_startup_profile_name', 'comment', 'time']
+    search_fields = ['username__username', 'startup_profile__name', 'comment']
     list_filter = ['time']
     actions = ['delete_selected']
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
-        return queryset.select_related('startup_profile', 'commenter_user')
+        return queryset.select_related('startup_profile', 'username')
 
     def get_startup_profile_name(self, obj):
         return obj.startup_profile.name
-    get_startup_profile_name.short_bio = 'Startup Profile'
+    get_startup_profile_name.short_description = 'Startup Profile'
 
     def get_commenter_username(self, obj):
-        return obj.commenter_user.username  
-    get_commenter_username.short_bio = 'Commenter Username'
+        return obj.username.username  
+    get_commenter_username.short_description = 'Commenter Username'
+
+
 
 @admin.register(StartupApplication)
 class StartupApplicationAdmin(admin.ModelAdmin):
