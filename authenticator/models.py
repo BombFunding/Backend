@@ -55,7 +55,7 @@ class BaseUser(AbstractBaseUser):
     
 
     def save(self, *args, **kwargs):
-        if self.pk:
+        if not self.pk:
             self.full_clean()
             self.password = make_password(self.password)
         super(BaseUser, self).save(*args, **kwargs)
