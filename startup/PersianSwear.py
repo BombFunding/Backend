@@ -65,5 +65,3 @@ class PersianSwear:
 
 
 persianswear = PersianSwear()
-
-print(persianswear.is_bad('خر',ignoreOT=False )) # True
