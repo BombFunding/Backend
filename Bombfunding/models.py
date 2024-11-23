@@ -1,5 +1,5 @@
-
 from django.db import models
+
 from authenticator.models import InvestorUser
 
 
@@ -20,10 +20,10 @@ class InvestPosition(models.Model):
 class InvestorApplication(models.Model):
     investor_applicant = models.ForeignKey(InvestorUser, on_delete=models.CASCADE)
     investor_position = models.ForeignKey(
-        'Bombfunding.InvestPosition',
+        "Bombfunding.InvestPosition",
         on_delete=models.CASCADE,
-        null=True,  
-        default=None,  
+        null=True,
+        default=None,
     )
 
     def __str__(self) -> str:

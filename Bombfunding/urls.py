@@ -14,19 +14,20 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path, include
-from drf_yasg.views import get_schema_view
+from django.urls import include, path
 from drf_yasg import openapi
+from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 
 schema_view = get_schema_view(
     openapi.Info(
         title="Bombfunding API",
         default_version="v1",
-        description = "API for Bombfunding",
+        description="API for Bombfunding",
         license=openapi.License(name="GPLv3 License"),
     ),
     public=True,
@@ -34,13 +35,15 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('auth/', include('authenticator.urls')),
-    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    path('startup/', include('startup.urls')),  
+    path("admin/", admin.site.urls),
+    path("auth/", include("authenticator.urls")),
+    path(
+        "swagger/",
+        schema_view.with_ui("swagger", cache_timeout=0),
+        name="schema-swagger-ui",
+    ),
+    path("startup/", include("startup.urls")),
 ]
-from django.conf import settings
-from django.conf.urls.static import static
 
-if settings.DEBUG: 
+if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

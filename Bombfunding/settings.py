@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 import os
 from datetime import timedelta
 from pathlib import Path
+
 import environ
 
 env = environ.Env()
@@ -33,7 +34,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 # Application definition
 
@@ -74,7 +75,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "corsheaders.middleware.CorsMiddleware"
+    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = "Bombfunding.urls"
@@ -169,9 +170,9 @@ EMAIL_PAGE_DOMAIN = env("EMAIL_PAGE_DOMAIN")  # mandatory (unless you use a cust
 EMAIL_MULTI_USER = False  # optional (defaults to False)
 
 # Email Verification Settings (mandatory for email sending)
-EMAIL_MAIL_SUBJECT = 'Confirm your email {{ user.username }}'
-EMAIL_MAIL_HTML = 'mail_body.html'
-EMAIL_MAIL_PLAIN = 'mail_body.txt'
+EMAIL_MAIL_SUBJECT = "Confirm your email {{ user.username }}"
+EMAIL_MAIL_HTML = "mail_body.html"
+EMAIL_MAIL_PLAIN = "mail_body.txt"
 EMAIL_MAIL_TOKEN_LIFE = 60 * 60  # one hour
 
 
@@ -182,12 +183,13 @@ def email_verified_callback(user):
 def password_change_callback(user, password):
     user.set_password(password)
 
-EMAIL_MAIL_PAGE_TEMPLATE = 'mail_page.html'
+
+EMAIL_MAIL_PAGE_TEMPLATE = "mail_page.html"
 EMAIL_MAIL_CALLBACK = email_verified_callback
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
 ]
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")

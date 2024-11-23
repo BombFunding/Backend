@@ -1,18 +1,20 @@
-from django.db import models
-from django.core.validators import RegexValidator
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-from rest_framework.exceptions import ValidationError as RestValidationError
-from django.db.models.signals import post_save
+from django.core.validators import RegexValidator
+from django.db import models
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
-from django.db.models.signals import post_delete
+from rest_framework.exceptions import ValidationError as RestValidationError
+
 
 class BaseUserManager(BaseUserManager):
-    def create_user(self, username, email, password, user_type) -> 'BaseUser':
+    def create_user(self, username, email, password, user_type) -> "BaseUser":
         if not email:
             raise RestValidationError("Email is required.")
         email = self.normalize_email(email)
-        user = self.model(username=username, email=email, user_type=user_type, password=password)
+        user = self.model(
+            username=username, email=email, user_type=user_type, password=password
+        )
         user.save(using=self._db)
         return user
 
@@ -23,16 +25,19 @@ class BaseUserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
+
 class BaseUser(AbstractBaseUser):
     USER_TYPE_CHOICES = (
-        ('investor', 'Investor'),
-        ('startup', 'Startup'),
-        ('basic', 'Basic'),
+        ("investor", "Investor"),
+        ("startup", "Startup"),
+        ("basic", "Basic"),
     )
 
     username = models.CharField(default=" ", max_length=20, unique=True)
     email = models.EmailField(unique=True)
-    user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default="basic")
+    user_type = models.CharField(
+        max_length=10, choices=USER_TYPE_CHOICES, default="basic"
+    )
     is_confirmed = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
@@ -41,18 +46,16 @@ class BaseUser(AbstractBaseUser):
         max_length=128,
         validators=[
             RegexValidator(
-                regex=r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$',
+                regex=r"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$",
                 message="Password must be at least 8 characters long, contain an uppercase letter, a lowercase letter, a number, and a special character.",
-                code="invalid_password"
+                code="invalid_password",
             )
-        ]
+        ],
     )
     objects = BaseUserManager()
 
-    USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['email', 'password', 'user_type']
-
-    
+    USERNAME_FIELD = "username"
+    REQUIRED_FIELDS = ["email", "password", "user_type"]
 
     def save(self, *args, **kwargs):
         if not self.pk:
@@ -75,23 +78,31 @@ class BaseUser(AbstractBaseUser):
     def __str__(self) -> str:
         return f"{self.username} - {self.user_type}"
 
+
 class BasicUser(models.Model):
-    username = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
+    username = models.OneToOneField(
+        BaseUser, on_delete=models.CASCADE, primary_key=True
+    )
 
     def __str__(self) -> str:
         return f"{self.username.__str__()}"
 
-    
+
 class InvestorUser(models.Model):
-    username = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
+    username = models.OneToOneField(
+        BaseUser, on_delete=models.CASCADE, primary_key=True
+    )
     page = models.JSONField(null=True, blank=True)
     categories = models.JSONField(null=True, blank=True)
 
     def __str__(self) -> str:
         return f"{self.username}"
 
+
 class StartupUser(models.Model):
-    username = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
+    username = models.OneToOneField(
+        BaseUser, on_delete=models.CASCADE, primary_key=True
+    )
 
     @property
     def display_username(self):
@@ -103,37 +114,46 @@ class StartupUser(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self) -> str:
-        return self.username.username  
+        return self.username.username
+
 
 import os
 from django.core.files.storage import default_storage
 
+
 def user_profile_picture_path(instance, filename):
     username = instance.username.username
-    file_extension = filename.split('.')[-1]
+    file_extension = filename.split(".")[-1]
     new_filename = f"{username}.{file_extension}"
-    file_path = os.path.join('profile_pics', new_filename)
+    file_path = os.path.join("profile_pics", new_filename)
     if default_storage.exists(file_path):
         default_storage.delete(file_path)
     return file_path
 
+
 def user_header_picture_path(instance, filename):
     username = instance.username.username
-    file_extension = filename.split('.')[-1]
+    file_extension = filename.split(".")[-1]
     new_filename = f"{username}.{file_extension}"
-    file_path = os.path.join('header_pics', new_filename)
-    if default_storage.exists(file_path):        
+    file_path = os.path.join("header_pics", new_filename)
+    if default_storage.exists(file_path):
         default_storage.delete(file_path)
-    
+
     return file_path
 
 
 class BasicUserProfile(models.Model):
-    username = models.OneToOneField(BaseUser, on_delete=models.CASCADE, related_name='basic_user_profile')
+    username = models.OneToOneField(
+        BaseUser, on_delete=models.CASCADE, related_name="basic_user_profile"
+    )
     email = models.EmailField(unique=True)
-    profile_picture = models.ImageField(upload_to=user_profile_picture_path, null=True, blank=True)  
-    header_picture = models.ImageField(upload_to=user_header_picture_path, null=True, blank=True)  
-    interests = models.CharField(max_length=500, blank=True)  
+    profile_picture = models.ImageField(
+        upload_to=user_profile_picture_path, null=True, blank=True
+    )
+    header_picture = models.ImageField(
+        upload_to=user_header_picture_path, null=True, blank=True
+    )
+    interests = models.CharField(max_length=500, blank=True)
 
     def __str__(self):
         return f"Profile of {self.username.username}"
@@ -145,6 +165,7 @@ class BasicUserProfile(models.Model):
 
 # signal
 
+
 @receiver(post_save, sender=BaseUser)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
@@ -155,15 +176,17 @@ def create_user_profile(sender, instance, created, **kwargs):
         elif instance.user_type == "investor":
             InvestorUser.objects.create(username=instance)
         elif instance.user_type == "startup":
-            from startup.models import StartupProfile  
+            from startup.models import StartupProfile
+
             startup_user = StartupUser.objects.create(username=instance)
             StartupProfile.objects.create(
                 startup_user=startup_user,
-                name=instance,  
-                bio="",          
-                page={},                 
-                categories=[],           
+                name=instance,
+                bio="",
+                page={},
+                categories=[],
             )
+
 
 @receiver(post_save, sender=BaseUser)
 def update_basic_user_profile(sender, instance, **kwargs):
@@ -172,7 +195,7 @@ def update_basic_user_profile(sender, instance, **kwargs):
         profile.email = instance.email
         profile.save()
     except BasicUserProfile.DoesNotExist:
-        pass 
+        pass
 
 
 @receiver(post_delete, sender=BaseUser)
@@ -182,7 +205,7 @@ def delete_user_profile(sender, instance, **kwargs):
     """
     try:
         from startup.models import StartupProfile
-        
+
         if instance.user_type == "basic":
             instance.basic_user_profile.delete()
         elif instance.user_type == "investor":
