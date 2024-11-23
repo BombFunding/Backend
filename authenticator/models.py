@@ -63,6 +63,7 @@ class BaseUser(AbstractBaseUser):
     def change_password(self, new_password):
         self.password = new_password
         self.full_clean()
+        self.password = make_password(self.password)
         self.save()
 
     def has_perm(self, perm, obj=None):
