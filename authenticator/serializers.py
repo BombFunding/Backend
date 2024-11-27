@@ -19,7 +19,7 @@ class LoginSerializer(serializers.Serializer):
 
     def validate(self, data):
         if "username" not in data and "email" not in data:
-            raise serializers.ValidationError("Username or email is required.")
+            raise serializers.ValidationError("نام کاربری یا ایمیل الزامی است.")
 
         if "username" in data:
             user = authenticate(username=data["username"], password=data["password"])
@@ -29,14 +29,14 @@ class LoginSerializer(serializers.Serializer):
                 user = BaseUser.objects.get(email=data["email"])
                 user = authenticate(username=user.username, password=data["password"])
             except BaseUser.DoesNotExist:
-                raise serializers.ValidationError("Invalid username or password.")
+                raise serializers.ValidationError("نام کاربری یا رمز عبور نامعتبر است.")
 
         if user and user.is_confirmed and user.is_active:
             return user
         elif user and not user.is_confirmed:
-            raise serializers.ValidationError("Email is not confirmed.")
+            raise serializers.ValidationError("ایمیل تایید نشده است.")
 
-        raise serializers.ValidationError("Invalid username or password.")
+        raise serializers.ValidationError("نام کاربری یا رمز عبور نامعتبر است.")
 
 
 class EmailSerializer(serializers.Serializer):
@@ -47,7 +47,7 @@ class EmailSerializer(serializers.Serializer):
             user = BaseUser.objects.get(email=data["email"])
             return user
         except BaseUser.DoesNotExist:
-            raise serializers.ValidationError("Email does not exist.")
+            raise serializers.ValidationError("ایمیل وجود ندارد.")
 
 
 class ResetPasswordSerializer(serializers.Serializer):
@@ -65,4 +65,4 @@ class ResetPasswordSerializer(serializers.Serializer):
         except (TypeError, ValueError, OverflowError, BaseUser.DoesNotExist):
             pass
 
-        raise serializers.ValidationError("Invalid reset link.")
+        raise serializers.ValidationError("لینک بازنشانی نامعتبر است.")
