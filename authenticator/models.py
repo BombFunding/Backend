@@ -117,9 +117,12 @@ class StartupUser(models.Model):
         return self.username.username
 
 
+# DO NOT IMPORT ANYTHING IN THE MIDDLE OF THE FILE
 import os
 from django.core.files.storage import default_storage
 
+# TODO: Perhaps, we should move these functions to a separate file if they are used in multiple models.
+# TODO: These two functions are also very similar. Perhaps, we can combine them into one function.
 
 def user_profile_picture_path(instance, filename):
     username = instance.username.username
@@ -161,10 +164,6 @@ class BasicUserProfile(models.Model):
     def save(self, *args, **kwargs):
         self.email = self.username.email
         super(BasicUserProfile, self).save(*args, **kwargs)
-
-
-# signal
-
 
 @receiver(post_save, sender=BaseUser)
 def create_user_profile(sender, instance, created, **kwargs):

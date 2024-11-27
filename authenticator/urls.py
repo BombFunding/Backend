@@ -6,10 +6,10 @@ from .views import (
     LoginView,
     RegisterView,
     ResetPasswordView,
-    change_user_password,
-    update_basic_user_profile,
-    view_basic_user_profile,
-    view_own_basic_user_profile,
+    ChangeUserPasswordView,
+    UpdateBasicUserProfileView,
+    ViewBasicUserProfileView,
+    ViewOwnBasicUserProfileView,
 )
 
 urlpatterns = [
@@ -19,16 +19,16 @@ urlpatterns = [
     path("verify/", include("django_email_verification.urls")),
     path("forgetpassword/", ForgetPasswordEmailView.as_view(), name="password_reset"),
     path("resetpassword/", ResetPasswordView.as_view(), name="password_reset_confirm"),
-    path("profile/", view_own_basic_user_profile, name="view_own_basic_user_profile"),
+    path("profile/", ViewOwnBasicUserProfileView.as_view(), name="view_own_basic_user_profile"),
     path(
         "profile/<str:username>/",
-        view_basic_user_profile,
+        ViewBasicUserProfileView.as_view(),
         name="view_basic_user_profile",
     ),
     path(
         "update_basic_user_profile/",
-        update_basic_user_profile,
+        UpdateBasicUserProfileView.as_view(),
         name="update_basic_user_profile",
     ),
-    path("change_password/", change_user_password, name="change_user_password"),
+    path("change_password/", ChangeUserPasswordView.as_view(), name="change_user_password"),
 ]
