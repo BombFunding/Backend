@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fa">
 <head>
     <meta charset="UTF-8">
-    <title>Account Confirmation</title>
+    <title>تأیید حساب</title>
     <style>
         body {
             font-family: sans-serif;
@@ -54,13 +54,13 @@
 <body>
     <div class="container">
         {% if success %}
-            <h1>Account Confirmed!</h1>
-            <p>Welcome, {{ user.username }}! Your account is now active. You can now log in and start using Bombfunding.</p>
-            <a href="{% url 'login' %}">Go to Login</a>
+            <h1>حساب تأیید شد!</h1>
+            <p>خوش آمدید، {{ user.username }}! حساب شما اکنون فعال است. اکنون می‌توانید وارد شوید و از Bombfunding استفاده کنید.</p>
+            <a href="localhost:3000/login">ورود به سیستم</a>
         {% else %}
-            <h1 class="error">Error: Invalid Token</h1>
-            <p class="error">The verification link you used is invalid or has expired. Please try requesting a new verification email.</p>
-            <a href="{% url 'resend_verification_email' %}">Resend Verification Email</a>
+            <h1 class="error">خطا: توکن نامعتبر</h1>
+            <p class="error">لینک تأیید که استفاده کرده‌اید نامعتبر است یا منقضی شده است. لطفاً سعی کنید درخواست ایمیل تأیید جدیدی بدهید.</p>
+            <a href="{% url 'resend_verification_email' %}">ارسال مجدد ایمیل تأیید</a>
         {% endif %}
     </div>
 </body>
