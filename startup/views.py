@@ -97,7 +97,7 @@ def get_all_positions(request):
         return JsonResponse({"positions": result}, safe=False)
 
     except Exception as e:
-        return JsonResponse({"detail": f"Error: {str(e)}"}, status=500)
+        return JsonResponse({"خطا": "خطا: " + str(e)}, status=500)
 
 
 @api_view(["GET"])
@@ -108,7 +108,7 @@ def search_positions_by_date_range(request):
 
     if not start_date or not end_date:
         return JsonResponse(
-            {"detail": "Both 'start_date' and 'end_date' are required."}, status=400
+            {"خطا": "هر دو 'start_date' و 'end_date' مورد نیاز است."}, status=400
         )
 
     parsed_start_date = parse_datetime(start_date + "T00:00:00Z")
@@ -116,7 +116,7 @@ def search_positions_by_date_range(request):
 
     if not parsed_start_date or not parsed_end_date:
         return JsonResponse(
-            {"detail": "Invalid date format. Use YYYY-MM-DD."}, status=400
+            {"خطا": "فرمت تاریخ نامعتبر است. از YYYY-MM-DD استفاده کنید."}, status=400
         )
 
     positions = StartupPosition.objects.filter(
@@ -147,7 +147,7 @@ def create_update_position(request):
     if user.user_type != "startup":
         return Response(
             {
-                "detail": "Only users with 'startup' type can create or update a startup position."
+                "خطا": "فقط کاربران با نوع 'startup' می‌توانند موقعیت استارتاپ ایجاد یا به‌روزرسانی کنند."
             },
             status=status.HTTP_403_FORBIDDEN,
         )
@@ -156,7 +156,7 @@ def create_update_position(request):
         startup_user = StartupUser.objects.get(username=user)
     except StartupUser.DoesNotExist:
         return Response(
-            {"detail": "No related startup found."}, status=status.HTTP_404_NOT_FOUND
+            {"خطا": "استارتاپ مرتبط یافت نشد."}, status=status.HTTP_404_NOT_FOUND
         )
 
     try:
@@ -175,15 +175,15 @@ def create_update_position(request):
         serializer = StartupPositionSerializer(
             position, data=request.data, partial=True
         )
-        message = "Position updated successfully."
+        message = "موقعیت با موفقیت به‌روزرسانی شد."
     except StartupPosition.DoesNotExist:
         serializer = StartupPositionSerializer(data=request.data)
-        message = "Position created successfully."
+        message = "موقعیت با موفقیت ایجاد شد."
 
     if serializer.is_valid():
         serializer.save(startup_profile=startup_profile)
         return Response(
-            {"detail": message, "position": serializer.data}, status=status.HTTP_200_OK
+            {"پیام": message, "position": serializer.data}, status=status.HTTP_200_OK
         )
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -199,7 +199,7 @@ def get_comments_by_profile(request, profile_id):
 
         if not comments.exists():
             return JsonResponse(
-                {"detail": "No comments found for this profile."}, status=404
+                {"خطا": "هیچ نظری برای این پروفایل یافت نشد."}, status=404
             )
 
         serializer = StartupCommentSerializer(comments, many=True)
@@ -217,7 +217,7 @@ def get_comments_by_profile(request, profile_id):
         )
 
     except Exception as e:
-        return JsonResponse({"detail": f"Error: {str(e)}"}, status=500)
+        return JsonResponse({"خطا": "خطا: " + str(e)}, status=500)
 
 
 @api_view(["DELETE"])
@@ -227,19 +227,19 @@ def delete_comment(request, comment_id):
         comment = StartupComment.objects.get(id=comment_id)
     except StartupComment.DoesNotExist:
         return Response(
-            {"detail": "Comment not found."}, status=status.HTTP_404_NOT_FOUND
+            {"خطا": "نظر یافت نشد."}, status=status.HTTP_404_NOT_FOUND
         )
 
     if comment.username != request.user:
         return Response(
-            {"detail": "You do not have permission to delete this comment."},
+            {"خطا": "شما اجازه حذف این نظر را ندارید."},
             status=status.HTTP_403_FORBIDDEN,
         )
 
     comment.delete()
 
     return Response(
-        {"detail": "Comment deleted successfully."}, status=status.HTTP_200_OK
+        {"پیام": "نظر با موفقیت حذف شد."}, status=status.HTTP_200_OK
     )
 
 
@@ -250,7 +250,7 @@ def add_comment(request, profile_id):
         startup_profile = StartupProfile.objects.get(id=profile_id)
     except StartupProfile.DoesNotExist:
         return Response(
-            {"detail": "Startup profile not found."}, status=status.HTTP_404_NOT_FOUND
+            {"خطا": "پروفایل استارتاپ یافت نشد."}, status=status.HTTP_404_NOT_FOUND
         )
 
     user = request.user
@@ -259,11 +259,11 @@ def add_comment(request, profile_id):
     persianswear = PersianSwear()
     if not comment:
         return Response(
-            {"detail": "Comment is required."}, status=status.HTTP_400_BAD_REQUEST
+            {"خطا": "نظر مورد نیاز است."}, status=status.HTTP_400_BAD_REQUEST
         )
     if persianswear.has_swear(comment):
         return Response(
-            {"detail": "Comment contains inappropriate language."},
+            {"خطا": "نظر حاوی زبان نامناسب است."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -277,7 +277,7 @@ def add_comment(request, profile_id):
     serializer = StartupCommentSerializer(new_comment)
     return Response(
         {
-            "detail": "Comment added successfully.",
+            "پیام": "نظر با موفقیت اضافه شد.",
             "comment": {"id": new_comment.id, **serializer.data},
         },
         status=status.HTTP_201_CREATED,
@@ -291,26 +291,26 @@ def edit_comment(request, comment_id):
         comment = StartupComment.objects.get(id=comment_id)
     except StartupComment.DoesNotExist:
         return Response(
-            {"detail": "Comment not found."}, status=status.HTTP_404_NOT_FOUND
+            {"خطا": "نظر یافت نشد."}, status=status.HTTP_404_NOT_FOUND
         )
 
     if comment.username != request.user:
         return Response(
-            {"detail": "You do not have permission to edit this comment."},
+            {"خطا": "شما اجازه ویرایش این نظر را ندارید."},
             status=status.HTTP_403_FORBIDDEN,
         )
 
     updated_comment = request.data.get("comment")
     if not updated_comment:
         return Response(
-            {"detail": "New comment text is required."},
+            {"خطا": "متن نظر جدید مورد نیاز است."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
     persianswear = PersianSwear()
     if persianswear.has_swear(updated_comment):
         return Response(
-            {"detail": "Comment contains inappropriate language."},
+            {"خطا": "نظر حاوی زبان نامناسب است."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -318,7 +318,7 @@ def edit_comment(request, comment_id):
     comment.save()
 
     return Response(
-        {"detail": "Comment updated successfully."}, status=status.HTTP_200_OK
+        {"پیام": "نظر با موفقیت به‌روزرسانی شد."}, status=status.HTTP_200_OK
     )
 
 
@@ -371,14 +371,14 @@ def startup_search_by_name(request, username):
 
     except StartupUser.DoesNotExist:
         return Response(
-            {"detail": "Startup user not found."}, status=status.HTTP_404_NOT_FOUND
+            {"خطا": "کاربر استارتاپ یافت نشد."}, status=status.HTTP_404_NOT_FOUND
         )
     except StartupProfile.DoesNotExist:
         return Response(
-            {"detail": "Startup profile not found."}, status=status.HTTP_404_NOT_FOUND
+            {"خطا": "پروفایل استارتاپ یافت نشد."}, status=status.HTTP_404_NOT_FOUND
         )
     except Exception as e:
-        return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"خطا": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["GET"])
@@ -433,14 +433,14 @@ def view_own_startup_profile(request):
 
     except StartupUser.DoesNotExist:
         return Response(
-            {"detail": "Startup user not found."}, status=status.HTTP_404_NOT_FOUND
+            {"خطا": "کاربر استارتاپ یافت نشد."}, status=status.HTTP_404_NOT_FOUND
         )
     except StartupProfile.DoesNotExist:
         return Response(
-            {"detail": "Startup profile not found."}, status=status.HTTP_404_NOT_FOUND
+            {"خطا": "پروفایل استارتاپ یافت نشد."}, status=status.HTTP_404_NOT_FOUND
         )
     except Exception as e:
-        return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"خطا": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["POST"])
@@ -451,7 +451,7 @@ def update_startup_profile(request):
     if user.user_type != "startup":
         return Response(
             {
-                "detail": "Only users with 'startup' type can create or update a startup profile."
+                "خطا": "فقط کاربران با نوع 'startup' می‌توانند پروفایل استارتاپ ایجاد یا به‌روزرسانی کنند."
             },
             status=status.HTTP_403_FORBIDDEN,
         )
@@ -460,7 +460,7 @@ def update_startup_profile(request):
         startup_user = StartupUser.objects.get(username=user)
     except StartupUser.DoesNotExist:
         return Response(
-            {"detail": "No related startup found."}, status=status.HTTP_404_NOT_FOUND
+            {"خطا": "استارتاپ مرتبط یافت نشد."}, status=status.HTTP_404_NOT_FOUND
         )
 
     profile = StartupProfile.objects.filter(startup_user=startup_user).first()
@@ -473,16 +473,16 @@ def update_startup_profile(request):
             if key not in non_editable_fields
         }
         serializer = StartupProfileSerializer(profile, data=data, partial=True)
-        message = "Profile updated successfully."
+        message = "پروفایل با موفقیت به‌روزرسانی شد."
     else:
         serializer = StartupProfileSerializer(data=request.data)
-        message = "Profile created successfully."
+        message = "پروفایل با موفقیت ایجاد شد."
 
     if serializer.is_valid():
         serializer.save(startup_user=startup_user)
         return Response(
             {
-                "detail": message,
+                "پیام": message,
                 "profile": {
                     "username": user.username,
                     "email": user.email,
