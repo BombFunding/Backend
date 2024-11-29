@@ -219,16 +219,8 @@ def view_own_baseuser_profile(request):
 def update_baseuser_profile(request):
     user = request.user
 
-    if user.user_type != "startup":
-        return Response(
-            {
-                "detail": "Only users with 'startup' type can create or update a profile."
-            },
-            status=status.HTTP_403_FORBIDDEN,
-        )
-
     try:
-        base_user = BaseUser.objects.get(username=user)
+        base_user = BaseUser.objects.get(username=user.username)
     except BaseUser.DoesNotExist:
         return Response(
             {"detail": "No related base user found."}, status=status.HTTP_404_NOT_FOUND

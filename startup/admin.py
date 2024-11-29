@@ -79,3 +79,4 @@ class StartupApplicationAdmin(admin.ModelAdmin):
         return obj.investor_position.name if obj.investor_position else "-"
 
     get_investor_position_name.short_bio = "Investor Position"
+
