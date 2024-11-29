@@ -1,9 +1,7 @@
 from django import forms
 from django.contrib import admin
 
-from .models import StartupApplication, StartupComment, StartupPosition, BaseProfile
-
-
+from .models import StartupApplication, StartupComment, StartupPosition, StartupProfile
 
 @admin.register(StartupPosition)
 class StartupPositionAdmin(admin.ModelAdmin):
@@ -81,3 +79,20 @@ class StartupApplicationAdmin(admin.ModelAdmin):
         return obj.investor_position.name if obj.investor_position else "-"
 
     get_investor_position_name.short_bio = "Investor Position"
+
+@admin.register(StartupProfile)
+class StartupProfileAdmin(admin.ModelAdmin):
+    list_display = (
+        'base_profile', 
+        'startup_rank', 
+        'startup_categories', 
+        'startup_starting_date', 
+        'startup_profile_visit_count'
+    )
+    search_fields = ('base_profile__name', 'startup_categories')
+    list_filter = ('startup_categories', 'startup_starting_date')
+    ordering = ('-startup_rank',)
+
+    def base_profile_name(self, obj):
+        return obj.base_profile.name
+    base_profile_name.short_description = 'Base Profile Name'

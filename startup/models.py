@@ -1,11 +1,13 @@
 from django.db import models
 from authenticator.models import BaseUser, StartupUser,BaseProfile
 
+from django.core.exceptions import ValidationError
+
 class StartupProfile(models.Model):
     base_profile = models.OneToOneField(
         BaseProfile, on_delete=models.CASCADE, editable=False
     )
-    startup_rank = models.IntegerField(default=0)  
+    startup_rank = models.PositiveSmallIntegerField(default=1)  
     startup_categories = models.CharField(
         max_length=50,
         choices=[
@@ -22,6 +24,14 @@ class StartupProfile(models.Model):
     )  
     startup_starting_date = models.DateField(null=True, blank=True)  
     startup_profile_visit_count = models.PositiveIntegerField(default=0)  
+
+    def clean(self):
+        if not (1 <= self.startup_rank <= 5):
+            raise ValidationError({'startup_rank': "Rank must be between 1 and 5."})
+
+    def save(self, *args, **kwargs):
+        self.full_clean() 
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.base_profile.name}"

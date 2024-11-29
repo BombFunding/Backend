@@ -194,7 +194,11 @@ def create_user_profile(sender, instance, created, **kwargs):
             bio="",
         )
 
-        if instance.user_type == "startup":
+        if instance.user_type == "basic":
+            BasicUser.objects.create(username=instance)
+        elif instance.user_type == "investor":
+            InvestorUser.objects.create(username=instance)
+        elif instance.user_type == "startup":
             StartupProfile.objects.create(
                 base_profile=base_profile,
                 startup_categories="Technology", 
