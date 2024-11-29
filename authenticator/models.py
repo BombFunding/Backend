@@ -203,11 +203,9 @@ def create_user_profile(sender, instance, created, **kwargs):
                 base_profile=base_profile,
                 startup_categories="Technology", 
                 startup_starting_date=None,       
-                startup_rank=0,                  
+                startup_rank=1,                  
                 startup_profile_visit_count=0,   
             )
-
-
 
 @receiver(post_delete, sender=BaseUser)
 def delete_user_profile(sender, instance, **kwargs):
