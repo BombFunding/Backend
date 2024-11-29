@@ -3,6 +3,10 @@ from django.shortcuts import redirect
 from django.urls import reverse
 
 from .models import BaseUser, BasicUser, InvestorUser, StartupUser
+from django import forms
+from django.contrib import admin
+from .models import BaseProfile
+
 
 
 class BaseUserAdmin(admin.ModelAdmin):
@@ -71,6 +75,33 @@ class StartupUserAdmin(admin.ModelAdmin):
             reverse("admin:authenticator_baseuser_change", args=[base_user_id])
         )
 
+
+class BaseProfileForm(forms.ModelForm):
+    class Meta:
+        model = BaseProfile
+        fields = "__all__"
+
+    bio = forms.CharField(required=False, widget=forms.Textarea, initial="")
+    phone = forms.CharField(required=False, initial="")
+    socials = forms.JSONField(required=False, initial={})
+    first_name = forms.CharField(required=False, initial="")
+    last_name = forms.CharField(required=False, initial="")
+
+
+@admin.register(BaseProfile)
+class BaseProfileAdmin(admin.ModelAdmin):
+    list_display = ["get_startup_user_name", "email", "first_name", "last_name"]
+    search_fields = ["name", "startup_user__username", "email"]
+    form = BaseProfileForm
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.select_related("startup_user")
+
+    def get_startup_user_name(self, obj):
+        return obj.name
+
+    get_startup_user_name.short_description = "Startup Name"
 
 
 admin.site.register(BaseUser, BaseUserAdmin)

@@ -8,6 +8,7 @@ from rest_framework.response import Response
 
 from startup.PersianSwear import PersianSwear
 
+from authenticator.serializers import BaseProfileSerializer
 from .models import (
     StartupComment,
     StartupPosition,
@@ -17,7 +18,6 @@ from .models import (
 from .serializers import (
     StartupCommentSerializer,
     StartupPositionSerializer,
-    BaseProfileSerializer,
 )
 
 
