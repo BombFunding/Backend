@@ -128,7 +128,7 @@ def delete_existing_images(username):
 
 
 def user_profile_picture_path(instance, filename):
-    username = instance.startup_user.username.username
+    username = instance.base_user.username
     file_extension = filename.split(".")[-1]
     new_filename = f"{username}.{file_extension}"
     file_path = os.path.join("profile_pics", new_filename)
@@ -146,7 +146,7 @@ def delete_existing_header_images(username):
 
 
 def user_header_picture_path(instance, filename):
-    username = instance.startup_user.username.username
+    username = instance.base_user.username
     file_extension = filename.split(".")[-1]
     new_filename = f"{username}.{file_extension}"
     file_path = os.path.join("header_pics", new_filename)
@@ -166,18 +166,9 @@ class BaseProfile(models.Model):
     first_name = models.CharField(max_length=50, null=True)
     last_name = models.CharField(max_length=50, null=True)
     bio = models.TextField(null=True, blank=True)
-    profile_picture = models.ImageField(
-        upload_to="profile_pics/",
-        null=True,
-        blank=True,
-        default="profile_pics/default_profile.jpg",
-    )
-    header_picture = models.ImageField(
-        upload_to="header_pics/",
-        null=True,
-        blank=True,
-        default="header_pics/default_header.jpg",
-    )
+    profile_picture = models.ImageField(upload_to=user_profile_picture_path, null=True, blank=True, default='profile_pics/default_profile.jpg')  
+    header_picture = models.ImageField(upload_to=user_header_picture_path, null=True, blank=True, default='header_pics/default_header.jpg')  
+
 
     def save(self, *args, **kwargs):
         if not self.name:

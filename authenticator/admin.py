@@ -91,17 +91,17 @@ class BaseProfileForm(forms.ModelForm):
 @admin.register(BaseProfile)
 class BaseProfileAdmin(admin.ModelAdmin):
     list_display = ["get_startup_user_name", "email", "first_name", "last_name"]
-    search_fields = ["name", "startup_user__username", "email"]
+    search_fields = ["name", "base_user__username", "email"]
     form = BaseProfileForm
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
-        return queryset.select_related("startup_user")
+        return queryset.select_related("base_user")
 
     def get_startup_user_name(self, obj):
         return obj.name
 
-    get_startup_user_name.short_description = "Startup Name"
+    get_startup_user_name.short_description = "base Name"
 
 
 admin.site.register(BaseUser, BaseUserAdmin)
