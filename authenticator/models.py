@@ -199,6 +199,7 @@ def create_user_profile(sender, instance, created, **kwargs):
         elif instance.user_type == "investor":
             InvestorUser.objects.create(username=instance)
         elif instance.user_type == "startup":
+            StartupUser.objects.create(username=instance)
             StartupProfile.objects.create(
                 base_profile=base_profile,
                 startup_categories="Technology", 
