@@ -191,16 +191,26 @@ class BaseProfile(models.Model):
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from startup.models import StartupProfile
 
 @receiver(post_save, sender=BaseUser)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        BaseProfile.objects.create(
+        base_profile = BaseProfile.objects.create(
             base_user=instance,
-            name=instance.username,  
-            email=instance.email,   
-            bio="",                 
+            name=instance.username,
+            email=instance.email,
+            bio="",
         )
+
+        if instance.user_type == "startup":
+            StartupProfile.objects.create(
+                base_profile=base_profile,
+                startup_categories="Technology", 
+                startup_starting_date=None,       
+                startup_rank=0,                  
+                startup_profile_visit_count=0,   
+            )
 
 
 
