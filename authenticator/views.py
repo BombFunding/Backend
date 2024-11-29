@@ -11,12 +11,13 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import BaseUser
+from .models import BaseUser,BaseProfile
 from .serializers import (
     EmailSerializer,
     LoginSerializer,
     RegisterSerializer,
     ResetPasswordSerializer,
+    BaseProfileSerializer
 )
 
 
@@ -124,3 +125,154 @@ def change_user_password(request):
     return Response(
         {"detail": "Password updated successfully."}, status=status.HTTP_200_OK
     )
+
+#######################################
+
+
+@api_view(["GET"])
+def startup_search_by_name(request, username):
+    try:
+        startup_user = BaseUser.objects.get(username__username=username)
+        startup_profile = BaseProfile.objects.get(startup_user=startup_user)
+
+        return Response(
+            {
+                "startup_profile": {
+                    "name": startup_profile.name,
+                    "bio": startup_profile.bio,
+                    "email": startup_user.username.email,
+                    "socials": startup_profile.socials,
+                    "first_name": startup_profile.first_name,
+                    "last_name": startup_profile.last_name,
+                    "profile_picture": (
+                        startup_profile.profile_picture.url
+                        if startup_profile.profile_picture
+                        else None
+                    ),
+                    "header_picture": (
+                        startup_profile.header_picture.url
+                        if startup_profile.header_picture
+                        else None
+                    ),
+                },
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    except BaseUser.DoesNotExist:
+        return Response(
+            {"detail": "Startup user not found."}, status=status.HTTP_404_NOT_FOUND
+        )
+    except BaseProfile.DoesNotExist:
+        return Response(
+            {"detail": "Startup profile not found."}, status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def view_own_startup_profile(request):
+    user = request.user
+    try:
+        startup_user = BaseUser.objects.get(username=user)
+        startup_profile = BaseProfile.objects.get(startup_user=startup_user)
+
+        return Response(
+            {
+                "startup_profile": {
+                    "name": startup_profile.name,
+                    "bio": startup_profile.bio,
+                    "email": user.email,
+                    "socials": startup_profile.socials,
+                    "phone": startup_profile.phone,
+                    "first_name": startup_profile.first_name,
+                    "last_name": startup_profile.last_name,
+                    "profile_picture": (
+                        startup_profile.profile_picture.url
+                        if startup_profile.profile_picture
+                        else None
+                    ),
+                    "header_picture": (
+                        startup_profile.header_picture.url
+                        if startup_profile.header_picture
+                        else None
+                    ),
+                },
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    except BaseUser.DoesNotExist:
+        return Response(
+            {"detail": "Startup user not found."}, status=status.HTTP_404_NOT_FOUND
+        )
+    except BaseProfile.DoesNotExist:
+        return Response(
+            {"detail": "Startup profile not found."}, status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def update_startup_profile(request):
+    user = request.user
+
+    if user.user_type != "startup":
+        return Response(
+            {
+                "detail": "Only users with 'startup' type can create or update a startup profile."
+            },
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    try:
+        startup_user = BaseUser.objects.get(username=user)
+    except BaseUser.DoesNotExist:
+        return Response(
+            {"detail": "No related startup found."}, status=status.HTTP_404_NOT_FOUND
+        )
+
+    profile = BaseProfile.objects.filter(startup_user=startup_user).first()
+
+    if profile:
+        non_editable_fields = ["name", "email"]
+        data = {
+            key: value
+            for key, value in request.data.items()
+            if key not in non_editable_fields
+        }
+        serializer = BaseProfileSerializer(profile, data=data, partial=True)
+        message = "Profile updated successfully."
+    else:
+        serializer = BaseProfileSerializer(data=request.data)
+        message = "Profile created successfully."
+
+    if serializer.is_valid():
+        serializer.save(startup_user=startup_user)
+        return Response(
+            {
+                "detail": message,
+                "profile": {
+                    "username": user.username,
+                    "email": user.email,
+                    **serializer.data,
+                    "profile_picture": (
+                        profile.profile_picture.url
+                        if profile and profile.profile_picture
+                        else None
+                    ),
+                    "header_picture": (
+                        profile.header_picture.url
+                        if profile and profile.header_picture
+                        else None
+                    ),
+                },
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
