@@ -28,15 +28,5 @@ urlpatterns = [
         "positions/sort_by_funded/",
         views.sort_positions_by_funded,
         name="sort_positions_by_funded",
-    ),
-    path("comment_on_profile/<int:profile_id>/", views.add_comment, name="add_comment"),
-    path(
-        "all_comments_of_profile/<int:profile_id>/",
-        views.get_comments_by_profile,
-        name="get_comments_by_profile",
-    ),
-    path(
-        "delete_comment/<int:comment_id>/", views.delete_comment, name="delete_comment"
-    ),
-    path("edit_comment/<int:comment_id>/", views.edit_comment, name="edit_comment"),
+    )
 ]

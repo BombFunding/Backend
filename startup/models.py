@@ -51,21 +51,6 @@ class StartupPosition(models.Model):
         return f"{self.name} - {self.startup_profile.name} {self.funded}/{self.total}"
 
 
-class StartupComment(models.Model):
-    startup_profile = models.ForeignKey(BaseProfile, on_delete=models.CASCADE)
-    username = models.ForeignKey(
-        BaseUser,
-        on_delete=models.CASCADE,
-        null=True,
-        default=None,
-    )
-    comment = models.TextField()
-    time = models.DateTimeField()
-
-    def __str__(self) -> str:
-        return f"{self.username} - {self.startup_profile.name}"
-
-
 class StartupApplication(models.Model):
     startup_applicant = models.ForeignKey(BaseProfile, on_delete=models.CASCADE)
     investor_position = models.ForeignKey(

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django import forms
-from .models import BaseUser, BasicUser, InvestorUser, StartupUser, BaseProfile, StartupProfile
+from .models import BaseUser, BasicUser, InvestorUser, StartupUser, BaseProfile, StartupProfile, BaseuserComment
 
 
 class BaseUserAdminForm(forms.ModelForm):
@@ -75,6 +75,33 @@ class StartupProfileAdmin(admin.ModelAdmin):
         return obj.base_profile.name
 
     get_base_name.short_description = "Base Name"
+
+
+@admin.register(BaseuserComment)
+class BaseuserCommentAdmin(admin.ModelAdmin):
+    list_display = [
+        "get_commenter_username",
+        "get_startup_profile_name",
+        "comment",
+        "time",
+    ]
+    search_fields = ["username__username", "startup_profile__name", "comment"]
+    list_filter = ["time"]
+    actions = ["delete_selected"]
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.select_related("startup_profile", "username")
+
+    def get_startup_profile_name(self, obj):
+        return obj.startup_profile.name
+
+    get_startup_profile_name.short_description = "Startup Profile"
+
+    def get_commenter_username(self, obj):
+        return obj.username.username
+
+    get_commenter_username.short_description = "Commenter Username"
 
 
 admin.site.register(BaseUser, BaseUserAdmin)

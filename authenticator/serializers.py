@@ -3,7 +3,7 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.http import urlsafe_base64_decode
 from rest_framework import serializers
 
-from .models import BaseUser, BaseProfile
+from .models import BaseUser, BaseProfile,BaseuserComment
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -115,3 +115,13 @@ class BaseProfileSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+
+
+class BaseuserCommentSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source="username.username")
+
+    startup_profile = serializers.CharField(source="startup_profile.name")
+
+    class Meta:
+        model = BaseuserComment
+        fields = ["id", "startup_profile", "username", "comment", "time"]

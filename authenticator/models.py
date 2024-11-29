@@ -117,6 +117,7 @@ class StartupUser(models.Model):
         return self.username.username
 
 
+
 from django.core.files.storage import default_storage
 import os
 
@@ -180,6 +181,22 @@ class BaseProfile(models.Model):
     def __str__(self):
         return f"{self.name} - {self.base_user.username}"
 
+
+class BaseuserComment(models.Model):
+    baseuser_profile = models.ForeignKey(BaseProfile, on_delete=models.CASCADE)
+    username = models.ForeignKey(
+        BaseUser,
+        on_delete=models.CASCADE,
+        null=True,
+        default=None,
+    )
+    comment = models.TextField()
+    time = models.DateTimeField()
+
+    def __str__(self) -> str:
+        return f"{self.username} - {self.baseuser_profile.name}"
+
+
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from startup.models import StartupProfile
@@ -205,7 +222,7 @@ def create_user_profile(sender, instance, created, **kwargs):
                 startup_categories="Technology", 
                 startup_starting_date=None,       
                 startup_rank=1,                  
-                startup_profile_visit_count=0,   
+                baseuser_profile_visit_count=0,   
             )
 
 @receiver(post_delete, sender=BaseUser)
@@ -223,7 +240,9 @@ def delete_user_profile(sender, instance, **kwargs):
         elif instance.user_type == "startup":
             startup_user = instance.startup_user
             startup_user.delete()
-            startup_profile = BaseProfile.objects.get(startup_user=startup_user)
-            startup_profile.delete()
+            baseuser_profile = BaseProfile.objects.get(startup_user=startup_user)
+            baseuser_profile.delete()
     except Exception as e:
         pass
+
+

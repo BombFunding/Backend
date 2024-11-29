@@ -5,7 +5,7 @@ from string import punctuation
 
 class PersianSwear:
     def __init__(self):
-        file_path = os.path.join('startup', 'Persian-Swear-Filter', 'data.json')
+        file_path = os.path.join('authenticator', 'Persian-Swear-Filter', 'data.json')
         with open(file_path, encoding='utf-8') as file:
             self.data = json.load(file)
         self.swear_words = set(self.data["word"])
