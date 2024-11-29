@@ -347,8 +347,6 @@ def startup_search_by_name(request, username):
                 "startup_profile": {
                     "name": startup_profile.name,
                     "bio": startup_profile.bio,
-                    "page": startup_profile.page,
-                    "categories": startup_profile.categories,
                     "email": startup_user.username.email,
                     "socials": startup_profile.socials,
                     "first_name": startup_profile.first_name,
@@ -408,8 +406,6 @@ def view_own_startup_profile(request):
                 "startup_profile": {
                     "name": startup_profile.name,
                     "bio": startup_profile.bio,
-                    "page": startup_profile.page,
-                    "categories": startup_profile.categories,
                     "email": user.email,
                     "socials": startup_profile.socials,
                     "phone": startup_profile.phone,

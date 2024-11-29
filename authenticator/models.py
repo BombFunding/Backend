@@ -167,8 +167,6 @@ class StartupProfile(models.Model):
     first_name = models.CharField(max_length=50, null=True)
     last_name = models.CharField(max_length=50, null=True)
     bio = models.TextField(null=True, blank=True)
-    page = models.JSONField(null=True, blank=True)
-    categories = models.JSONField(null=True, blank=True)
     profile_picture = models.ImageField(
         upload_to=user_profile_picture_path,
         null=True,
@@ -212,8 +210,6 @@ def create_user_profile(sender, instance, created, **kwargs):
                 startup_user=startup_user,
                 name=instance,
                 bio="",
-                page={},
-                categories=[],
             )
 
 

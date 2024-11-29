@@ -23,8 +23,6 @@ class StartupProfileSerializer(serializers.ModelSerializer):
             "email",
             "name",
             "bio",
-            "page",
-            "categories",
             "socials",
             "phone",
             "first_name",
@@ -36,8 +34,6 @@ class StartupProfileSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         instance.name = validated_data.get("name", instance.name)
         instance.bio = validated_data.get("bio", instance.bio)
-        instance.page = validated_data.get("page", instance.page)
-        instance.categories = validated_data.get("categories", instance.categories)
         instance.socials = validated_data.get("socials", instance.socials)
         instance.phone = validated_data.get("phone", instance.phone)
         instance.first_name = validated_data.get("first_name", instance.first_name)

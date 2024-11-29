@@ -12,8 +12,6 @@ class StartupProfileForm(forms.ModelForm):
     bio = forms.CharField(required=False, widget=forms.Textarea, initial="")
     phone = forms.CharField(required=False, initial="")
     socials = forms.JSONField(required=False, initial={})
-    page = forms.JSONField(required=False, initial={})
-    categories = forms.JSONField(required=False, initial={})
     first_name = forms.CharField(required=False, initial="")
     last_name = forms.CharField(required=False, initial="")
 
@@ -22,7 +20,6 @@ class StartupProfileForm(forms.ModelForm):
 class StartupProfileAdmin(admin.ModelAdmin):
     list_display = ["get_startup_user_name", "email", "first_name", "last_name"]
     search_fields = ["name", "startup_user__username", "email"]
-    list_filter = ["categories"]
     form = StartupProfileForm
 
     def get_queryset(self, request):
