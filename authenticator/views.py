@@ -174,7 +174,7 @@ def baseuser_search_by_name(request, username):
 def view_own_baseuser_profile(request):
     user = request.user
     try:
-        base_user = BaseUser.objects.get(username=user)
+        base_user = BaseUser.objects.get(username=user.username) 
         base_profile = BaseProfile.objects.get(base_user=base_user)
 
         return Response(
