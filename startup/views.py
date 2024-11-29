@@ -11,13 +11,13 @@ from startup.PersianSwear import PersianSwear
 from .models import (
     StartupComment,
     StartupPosition,
-    StartupProfile,
+    BaseProfile,
     StartupUser,
 )
 from .serializers import (
     StartupCommentSerializer,
     StartupPositionSerializer,
-    StartupProfileSerializer,
+    BaseProfileSerializer,
 )
 
 
@@ -160,9 +160,9 @@ def create_update_position(request):
         )
 
     try:
-        startup_profile = StartupProfile.objects.get(startup_user=startup_user)
-    except StartupProfile.DoesNotExist:
-        startup_profile = StartupProfile.objects.create(
+        startup_profile = BaseProfile.objects.get(startup_user=startup_user)
+    except BaseProfile.DoesNotExist:
+        startup_profile = BaseProfile.objects.create(
             startup_user=startup_user, name="Default Name", bio="Default bio"
         )
 
@@ -247,8 +247,8 @@ def delete_comment(request, comment_id):
 @permission_classes([IsAuthenticated])
 def add_comment(request, profile_id):
     try:
-        startup_profile = StartupProfile.objects.get(id=profile_id)
-    except StartupProfile.DoesNotExist:
+        startup_profile = BaseProfile.objects.get(id=profile_id)
+    except BaseProfile.DoesNotExist:
         return Response(
             {"detail": "Startup profile not found."}, status=status.HTTP_404_NOT_FOUND
         )
@@ -326,7 +326,7 @@ def edit_comment(request, comment_id):
 def startup_search_by_name(request, username):
     try:
         startup_user = StartupUser.objects.get(username__username=username)
-        startup_profile = StartupProfile.objects.get(startup_user=startup_user)
+        startup_profile = BaseProfile.objects.get(startup_user=startup_user)
 
         positions = StartupPosition.objects.filter(startup_profile=startup_profile)
         positions_data = [
@@ -371,7 +371,7 @@ def startup_search_by_name(request, username):
         return Response(
             {"detail": "Startup user not found."}, status=status.HTTP_404_NOT_FOUND
         )
-    except StartupProfile.DoesNotExist:
+    except BaseProfile.DoesNotExist:
         return Response(
             {"detail": "Startup profile not found."}, status=status.HTTP_404_NOT_FOUND
         )
@@ -385,7 +385,7 @@ def view_own_startup_profile(request):
     user = request.user
     try:
         startup_user = StartupUser.objects.get(username=user)
-        startup_profile = StartupProfile.objects.get(startup_user=startup_user)
+        startup_profile = BaseProfile.objects.get(startup_user=startup_user)
 
         positions = StartupPosition.objects.filter(startup_profile=startup_profile)
         positions_data = [
@@ -431,7 +431,7 @@ def view_own_startup_profile(request):
         return Response(
             {"detail": "Startup user not found."}, status=status.HTTP_404_NOT_FOUND
         )
-    except StartupProfile.DoesNotExist:
+    except BaseProfile.DoesNotExist:
         return Response(
             {"detail": "Startup profile not found."}, status=status.HTTP_404_NOT_FOUND
         )
@@ -459,7 +459,7 @@ def update_startup_profile(request):
             {"detail": "No related startup found."}, status=status.HTTP_404_NOT_FOUND
         )
 
-    profile = StartupProfile.objects.filter(startup_user=startup_user).first()
+    profile = BaseProfile.objects.filter(startup_user=startup_user).first()
 
     if profile:
         non_editable_fields = ["name", "email"]
@@ -468,10 +468,10 @@ def update_startup_profile(request):
             for key, value in request.data.items()
             if key not in non_editable_fields
         }
-        serializer = StartupProfileSerializer(profile, data=data, partial=True)
+        serializer = BaseProfileSerializer(profile, data=data, partial=True)
         message = "Profile updated successfully."
     else:
-        serializer = StartupProfileSerializer(data=request.data)
+        serializer = BaseProfileSerializer(data=request.data)
         message = "Profile created successfully."
 
     if serializer.is_valid():

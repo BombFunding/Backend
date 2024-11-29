@@ -1,12 +1,12 @@
 from django import forms
 from django.contrib import admin
 
-from .models import StartupApplication, StartupComment, StartupPosition, StartupProfile
+from .models import StartupApplication, StartupComment, StartupPosition, BaseProfile
 
 
-class StartupProfileForm(forms.ModelForm):
+class BaseProfileForm(forms.ModelForm):
     class Meta:
-        model = StartupProfile
+        model = BaseProfile
         fields = "__all__"
 
     bio = forms.CharField(required=False, widget=forms.Textarea, initial="")
@@ -16,11 +16,11 @@ class StartupProfileForm(forms.ModelForm):
     last_name = forms.CharField(required=False, initial="")
 
 
-@admin.register(StartupProfile)
-class StartupProfileAdmin(admin.ModelAdmin):
+@admin.register(BaseProfile)
+class BaseProfileAdmin(admin.ModelAdmin):
     list_display = ["get_startup_user_name", "email", "first_name", "last_name"]
     search_fields = ["name", "startup_user__username", "email"]
-    form = StartupProfileForm
+    form = BaseProfileForm
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)

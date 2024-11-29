@@ -1,9 +1,9 @@
 from rest_framework import serializers
 
-from .models import StartupComment, StartupPosition, StartupProfile
+from .models import StartupComment, StartupPosition, BaseProfile
 
 
-class StartupProfileSerializer(serializers.ModelSerializer):
+class BaseProfileSerializer(serializers.ModelSerializer):
     startup_user_username = serializers.CharField(
         source="startup_user.username.username", read_only=True
     )
@@ -16,7 +16,7 @@ class StartupProfileSerializer(serializers.ModelSerializer):
     header_picture = serializers.ImageField(required=False, allow_null=True)
 
     class Meta:
-        model = StartupProfile
+        model = BaseProfile
         fields = [
             "id",
             "startup_user_username",

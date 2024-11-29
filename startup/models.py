@@ -1,8 +1,8 @@
 from django.db import models
-from authenticator.models import BaseUser, StartupUser,StartupProfile
+from authenticator.models import BaseUser, StartupUser,BaseProfile
 
 class StartupPosition(models.Model):
-    startup_profile = models.ForeignKey(StartupProfile, on_delete=models.CASCADE)
+    startup_profile = models.ForeignKey(BaseProfile, on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
     bio = models.TextField()
     total = models.IntegerField()
@@ -16,7 +16,7 @@ class StartupPosition(models.Model):
 
 
 class StartupComment(models.Model):
-    startup_profile = models.ForeignKey(StartupProfile, on_delete=models.CASCADE)
+    startup_profile = models.ForeignKey(BaseProfile, on_delete=models.CASCADE)
     username = models.ForeignKey(
         BaseUser,
         on_delete=models.CASCADE,
@@ -31,7 +31,7 @@ class StartupComment(models.Model):
 
 
 class StartupApplication(models.Model):
-    startup_applicant = models.ForeignKey(StartupProfile, on_delete=models.CASCADE)
+    startup_applicant = models.ForeignKey(BaseProfile, on_delete=models.CASCADE)
     investor_position = models.ForeignKey(
         "Bombfunding.InvestPosition",
         on_delete=models.CASCADE,

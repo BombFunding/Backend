@@ -155,10 +155,9 @@ def user_header_picture_path(instance, filename):
 
     return file_path
 
-
-class StartupProfile(models.Model):
-    startup_user = models.OneToOneField(
-        StartupUser, on_delete=models.CASCADE, editable=False
+class BaseProfile(models.Model):
+    base_user = models.OneToOneField(
+        BaseUser, on_delete=models.CASCADE, editable=False
     )
     name = models.CharField(max_length=50, editable=False, null=True)
     email = models.EmailField(max_length=100, editable=False, null=True)
@@ -168,13 +167,13 @@ class StartupProfile(models.Model):
     last_name = models.CharField(max_length=50, null=True)
     bio = models.TextField(null=True, blank=True)
     profile_picture = models.ImageField(
-        upload_to=user_profile_picture_path,
+        upload_to="profile_pics/",
         null=True,
         blank=True,
         default="profile_pics/default_profile.jpg",
     )
     header_picture = models.ImageField(
-        upload_to=user_header_picture_path,
+        upload_to="header_pics/",
         null=True,
         blank=True,
         default="header_pics/default_header.jpg",
@@ -182,35 +181,26 @@ class StartupProfile(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.name:
-            self.name = self.startup_user.username
+            self.name = self.base_user.username
         if not self.email:
-            self.email = self.startup_user.username.email
+            self.email = self.base_user.email
         super().save(*args, **kwargs)
 
-    def __str__(self) -> str:
-        return f"{self.name} - {self.startup_user.username}"
+    def __str__(self):
+        return f"{self.name} - {self.base_user.username}"
 
-# signal
-
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 @receiver(post_save, sender=BaseUser)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        if instance.user_type == "basic":
-            BasicUser.objects.create(username=instance)
-            # BasicUserProfile.objects.create(username=instance, email=instance.email)
-
-        elif instance.user_type == "investor":
-            InvestorUser.objects.create(username=instance)
-        elif instance.user_type == "startup":
-            from startup.models import StartupProfile
-
-            startup_user = StartupUser.objects.create(username=instance)
-            StartupProfile.objects.create(
-                startup_user=startup_user,
-                name=instance,
-                bio="",
-            )
+        BaseProfile.objects.create(
+            base_user=instance,
+            name=instance.username,  
+            email=instance.email,   
+            bio="",                 
+        )
 
 
 
@@ -220,7 +210,7 @@ def delete_user_profile(sender, instance, **kwargs):
     زمانی که یک BaseUser حذف می‌شود، پروفایل‌های مربوط به آن نیز حذف می‌شود.
     """
     try:
-        from startup.models import StartupProfile
+        from startup.models import BaseProfile
 
         if instance.user_type == "basic":
             instance.basic_user_profile.delete()
@@ -229,7 +219,7 @@ def delete_user_profile(sender, instance, **kwargs):
         elif instance.user_type == "startup":
             startup_user = instance.startup_user
             startup_user.delete()
-            startup_profile = StartupProfile.objects.get(startup_user=startup_user)
+            startup_profile = BaseProfile.objects.get(startup_user=startup_user)
             startup_profile.delete()
     except Exception as e:
         pass
