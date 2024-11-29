@@ -117,51 +117,80 @@ class StartupUser(models.Model):
         return self.username.username
 
 
-import os
 from django.core.files.storage import default_storage
+import os
+
+def delete_existing_images(username):
+    for ext in ["jpg", "jpeg", "png"]:
+        file_path = os.path.join("profile_pics", f"{username}.{ext}")
+        if default_storage.exists(file_path):
+            default_storage.delete(file_path)
 
 
 def user_profile_picture_path(instance, filename):
-    username = instance.username.username
+    username = instance.startup_user.username.username
     file_extension = filename.split(".")[-1]
     new_filename = f"{username}.{file_extension}"
     file_path = os.path.join("profile_pics", new_filename)
-    if default_storage.exists(file_path):
-        default_storage.delete(file_path)
+
+    delete_existing_images(username)
+
     return file_path
+
+
+def delete_existing_header_images(username):
+    for ext in ["jpg", "jpeg", "png"]:
+        file_path = os.path.join("header_pics", f"{username}.{ext}")
+        if default_storage.exists(file_path):
+            default_storage.delete(file_path)
 
 
 def user_header_picture_path(instance, filename):
-    username = instance.username.username
+    username = instance.startup_user.username.username
     file_extension = filename.split(".")[-1]
     new_filename = f"{username}.{file_extension}"
     file_path = os.path.join("header_pics", new_filename)
-    if default_storage.exists(file_path):
-        default_storage.delete(file_path)
+
+    delete_existing_header_images(username)
 
     return file_path
 
 
-class BasicUserProfile(models.Model):
-    username = models.OneToOneField(
-        BaseUser, on_delete=models.CASCADE, related_name="basic_user_profile"
+class StartupProfile(models.Model):
+    startup_user = models.OneToOneField(
+        StartupUser, on_delete=models.CASCADE, editable=False
     )
-    email = models.EmailField(unique=True)
+    name = models.CharField(max_length=50, editable=False, null=True)
+    email = models.EmailField(max_length=100, editable=False, null=True)
+    socials = models.JSONField(default=dict, null=True)
+    phone = models.CharField(max_length=15, blank=True, null=True)
+    first_name = models.CharField(max_length=50, null=True)
+    last_name = models.CharField(max_length=50, null=True)
+    bio = models.TextField(null=True, blank=True)
+    page = models.JSONField(null=True, blank=True)
+    categories = models.JSONField(null=True, blank=True)
     profile_picture = models.ImageField(
-        upload_to=user_profile_picture_path, null=True, blank=True
+        upload_to=user_profile_picture_path,
+        null=True,
+        blank=True,
+        default="profile_pics/default_profile.jpg",
     )
     header_picture = models.ImageField(
-        upload_to=user_header_picture_path, null=True, blank=True
+        upload_to=user_header_picture_path,
+        null=True,
+        blank=True,
+        default="header_pics/default_header.jpg",
     )
-    interests = models.CharField(max_length=500, blank=True)
-
-    def __str__(self):
-        return f"Profile of {self.username.username}"
 
     def save(self, *args, **kwargs):
-        self.email = self.username.email
-        super(BasicUserProfile, self).save(*args, **kwargs)
+        if not self.name:
+            self.name = self.startup_user.username
+        if not self.email:
+            self.email = self.startup_user.username.email
+        super().save(*args, **kwargs)
 
+    def __str__(self) -> str:
+        return f"{self.name} - {self.startup_user.username}"
 
 # signal
 
@@ -171,7 +200,7 @@ def create_user_profile(sender, instance, created, **kwargs):
     if created:
         if instance.user_type == "basic":
             BasicUser.objects.create(username=instance)
-            BasicUserProfile.objects.create(username=instance, email=instance.email)
+            # BasicUserProfile.objects.create(username=instance, email=instance.email)
 
         elif instance.user_type == "investor":
             InvestorUser.objects.create(username=instance)
@@ -187,15 +216,6 @@ def create_user_profile(sender, instance, created, **kwargs):
                 categories=[],
             )
 
-
-@receiver(post_save, sender=BaseUser)
-def update_basic_user_profile(sender, instance, **kwargs):
-    try:
-        profile = instance.basic_user_profile
-        profile.email = instance.email
-        profile.save()
-    except BasicUserProfile.DoesNotExist:
-        pass
 
 
 @receiver(post_delete, sender=BaseUser)

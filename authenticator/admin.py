@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.shortcuts import redirect
 from django.urls import reverse
 
-from .models import BaseUser, BasicUser, BasicUserProfile, InvestorUser, StartupUser
+from .models import BaseUser, BasicUser, InvestorUser, StartupUser
 
 
 class BaseUserAdmin(admin.ModelAdmin):
@@ -71,10 +71,6 @@ class StartupUserAdmin(admin.ModelAdmin):
             reverse("admin:authenticator_baseuser_change", args=[base_user_id])
         )
 
-
-@admin.register(BasicUserProfile)
-class BasicUserProfileAdmin(admin.ModelAdmin):
-    list_display = ["username", "email", "interests", "profile_picture"]
 
 
 admin.site.register(BaseUser, BaseUserAdmin)
