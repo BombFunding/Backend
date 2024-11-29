@@ -1,6 +1,7 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.http import urlsafe_base64_decode
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from .models import BaseUser
@@ -19,7 +20,7 @@ class LoginSerializer(serializers.Serializer):
 
     def validate(self, data):
         if "username" not in data and "email" not in data:
-            raise serializers.ValidationError("نام کاربری یا ایمیل الزامی است.")
+            raise serializers.ValidationError({str(_("error")): _("Username or email is required.")})
 
         if "username" in data:
             user = authenticate(username=data["username"], password=data["password"])
@@ -29,14 +30,14 @@ class LoginSerializer(serializers.Serializer):
                 user = BaseUser.objects.get(email=data["email"])
                 user = authenticate(username=user.username, password=data["password"])
             except BaseUser.DoesNotExist:
-                raise serializers.ValidationError("نام کاربری یا رمز عبور نامعتبر است.")
+                raise serializers.ValidationError({str(_("error")): _("Invalid username or password.")})
 
         if user and user.is_confirmed and user.is_active:
             return user
         elif user and not user.is_confirmed:
-            raise serializers.ValidationError("ایمیل تایید نشده است.")
+            raise serializers.ValidationError({str(str(_("error"))): _("Email is not confirmed.")})
 
-        raise serializers.ValidationError("نام کاربری یا رمز عبور نامعتبر است.")
+        raise serializers.ValidationError({str(_("error")): _("Invalid username or password.")})
 
 
 class EmailSerializer(serializers.Serializer):
@@ -44,10 +45,10 @@ class EmailSerializer(serializers.Serializer):
 
     def validate(self, data):
         try:
-            user = BaseUser.objects.get(email=data["email"])
+            user = BaseUser.objects.get(email=(data["email"]))
             return user
         except BaseUser.DoesNotExist:
-            raise serializers.ValidationError("ایمیل وجود ندارد.")
+            raise serializers.ValidationError({str(_("error")): _("Email does not exist.")})
 
 
 class ResetPasswordSerializer(serializers.Serializer):
@@ -65,4 +66,4 @@ class ResetPasswordSerializer(serializers.Serializer):
         except (TypeError, ValueError, OverflowError, BaseUser.DoesNotExist):
             pass
 
-        raise serializers.ValidationError("لینک بازنشانی نامعتبر است.")
+        raise serializers.ValidationError({str(_("error")): _("Invalid reset link.")})

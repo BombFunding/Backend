@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from django.utils.translation import gettext as _
 
 from .models import BaseUser, BasicUserProfile
 from .serializers import (
@@ -37,7 +38,7 @@ class LoginView(GenericAPIView):
     @swagger_auto_schema(
         request_body=LoginSerializer,
         operation_description="Login to the application and get tokens to authenticate future requests.",
-        responses={200: openapi.Response("ورود موفقیت آمیز"), 400: "نام کاربری یا رمز عبور نامعتبر است."},
+        responses={200: openapi.Response(_("Login successful")), 400: _("Invalid username or password.")},
         tags=["auth"],
     )
     def post(self, request, *args, **kwargs):
@@ -67,7 +68,7 @@ class ForgetPasswordEmailView(GenericAPIView):
     @swagger_auto_schema(
         operation_description="Sends an email to the user with a link to reset their password.",
         request_body=EmailSerializer,
-        responses={200: "ایمیل ارسال شد", 400: "ایمیل وجود ندارد."},
+        responses={200: _("Email sent"), 400: _("Email does not exist.")},
         tags=["auth"],
     )
     def post(self, request, *args, **kwargs):
@@ -83,13 +84,13 @@ class ForgetPasswordEmailView(GenericAPIView):
         reset_url = f"http://localhost:3000/reset-password/{uid}/{token}"
 
         send_mail(
-            subject="عوض کردن رمز عبور",
-            message=f"روی لینک روبرو کلیک کنید تا رمز عبور خود را عوض کنید. {reset_url}",
+            subject=_("Reset your password"),
+            message=_("Click the link below to reset your password.") + reset_url,
             from_email="sendemailviapython3@gmail.com",
             recipient_list=[user.email],
         )
 
-        return Response({"پیام": "ایمیلی به شما برای عوض کردن رمز عبورتون ارسال شد."}, status=status.HTTP_200_OK)
+        return Response({_("message"): _("An email has been sent to reset your password.")}, status=status.HTTP_200_OK)
 
 
 class ResetPasswordView(generics.GenericAPIView):
@@ -104,11 +105,11 @@ class ResetPasswordView(generics.GenericAPIView):
             user.change_password(serializer.validated_data["password"])
         except DjangoValidationError as e:
             return Response(
-                {"message": e.message_dict}, status=status.HTTP_400_BAD_REQUEST
+                {_("message"): e.message_dict}, status=status.HTTP_400_BAD_REQUEST
             )
 
         return Response(
-            {"پیام": "رمز عبور با موفقیت عوض شد."}, status=status.HTTP_200_OK
+            {_("message"): _("Password successfully changed.")}, status=status.HTTP_200_OK
         )
 
 
@@ -118,7 +119,7 @@ class ViewOwnBasicUserProfileView(GenericAPIView):
 
     @swagger_auto_schema(
         operation_description="View the authenticated user's basic profile.",
-        responses={200: "پروفایل با موفقیت بازیابی شد", 404: "پروفایل یافت نشد"},
+        responses={200: _("Profile successfully retrieved"), 404: _("Profile not found")},
         tags=["profile"],
         manual_parameters=[
             openapi.Parameter(
@@ -162,11 +163,11 @@ class ViewOwnBasicUserProfileView(GenericAPIView):
 
         except BasicUserProfile.DoesNotExist:
             return Response(
-                {"خطا": "پروفایل کاربر پایه یافت نشد."},
+                {str(_("error")): _("Basic user profile not found.")},
                 status=status.HTTP_404_NOT_FOUND,
             )
         except Exception as e:
-            return Response({"خطا": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({str(_("error")): str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ViewBasicUserProfileView(GenericAPIView):
@@ -174,7 +175,7 @@ class ViewBasicUserProfileView(GenericAPIView):
 
     @swagger_auto_schema(
         operation_description="View a user's basic profile by username.",
-        responses={200: "پروفایل با موفقیت بازیابی شد", 404: "پروفایل یافت نشد"},
+        responses={200: _("Profile successfully retrieved"), 404: _("Profile not found")},
         tags=["profile"],
     )
     def get(self, request, username, *args, **kwargs):
@@ -207,18 +208,18 @@ class ViewBasicUserProfileView(GenericAPIView):
 
         except BasicUserProfile.DoesNotExist:
             return Response(
-                {"خطا": "پروفایل کاربر پایه یافت نشد."},
+                {str(_("error")): _("Basic user profile not found.")},
                 status=status.HTTP_404_NOT_FOUND,
             )
         except Exception as e:
-            return Response({"خطا": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({str(_("error")): str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class UpdateBasicUserProfileView(GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
         operation_description="Update the authenticated user's basic profile.",
-        responses={200: "پروفایل با موفقیت به روز شد", 400: "درخواست نامعتبر"},
+        responses={200: _("Profile successfully updated"), 400: _("Invalid request")},
         tags=["profile"],
     )
     def patch(self, request, *args, **kwargs):
@@ -246,11 +247,11 @@ class UpdateBasicUserProfileView(GenericAPIView):
             basic_user_profile.save()
 
             return Response(
-                {"خطا": "پروفایل با موفقیت به روز شد."}, status=status.HTTP_200_OK
+                {_("message"): _("Profile successfully updated.")}, status=status.HTTP_200_OK
             )
 
         except Exception as e:
-            return Response({"خطا": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({str(_("error")): str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ChangeUserPasswordView(GenericAPIView):
@@ -258,7 +259,7 @@ class ChangeUserPasswordView(GenericAPIView):
 
     @swagger_auto_schema(
         operation_description="Change the authenticated user's password.",
-        responses={200: "رمز عبور با موفقیت به روز شد", 400: "درخواست نامعتبر"},
+        responses={200: _("Password successfully updated"), 400: _("Invalid request")},
         tags=["auth"],
         manual_parameters=[
             openapi.Parameter(
@@ -276,11 +277,11 @@ class ChangeUserPasswordView(GenericAPIView):
 
         if not new_password:
             return Response(
-                {"خطا": "رمز عبور جدید مورد نیاز است."}, status=status.HTTP_400_BAD_REQUEST
+                {str(_("error")): _("New password is required.")}, status=status.HTTP_400_BAD_REQUEST
             )
 
         user.change_password(new_password)
 
         return Response(
-            {"خطا": "رمز عبور با موفقیت به روز شد."}, status=status.HTTP_200_OK
+            {_("message"): _("Password successfully updated.")}, status=status.HTTP_200_OK
         )
