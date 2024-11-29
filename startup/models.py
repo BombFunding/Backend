@@ -20,7 +20,7 @@ class StartupProfile(models.Model):
             ("Education", "Education"),
             ("Finance", "Finance"),
         ],
-        default="Technology",
+        default="Art",
     )  
     startup_starting_date = models.DateField(null=True, blank=True)  
     startup_profile_visit_count = models.PositiveIntegerField(default=0)  
