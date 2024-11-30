@@ -34,7 +34,8 @@ class StartupProfile(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.base_profile.name}"
+        return f"{self.startup_user.username}"
+
 
     @property
     def positions(self):

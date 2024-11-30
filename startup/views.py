@@ -8,12 +8,14 @@ from rest_framework.response import Response
 
 from authenticator.serializers import BaseProfileSerializer
 from .models import (
+    StartupProfile,
     StartupPosition,
     BaseProfile,
     StartupUser,
 )
 from .serializers import (
     StartupPositionSerializer,
+    StartupProfileSerializer
 )
 
 @api_view(["POST"])
@@ -66,4 +68,26 @@ def create_update_position(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def get_startup_profile(request, username):
+    try:
+        
+        startup_user = StartupUser.objects.get(username__username=username)
+    except StartupUser.DoesNotExist:
+        return JsonResponse(
+            {"detail": "Startup user not found."}, status=status.HTTP_404_NOT_FOUND
+        )
 
+    
+    startup_profile = StartupProfile.objects.filter(startup_user=startup_user).first()
+
+    if not startup_profile:
+        return JsonResponse(
+            {"detail": "Startup profile not found."}, status=status.HTTP_404_NOT_FOUND
+        )
+
+    serializer = StartupProfileSerializer(startup_profile)
+    return JsonResponse(
+        {"profile": serializer.data}, status=status.HTTP_200_OK
+    )

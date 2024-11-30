@@ -7,5 +7,8 @@ urlpatterns = [
         "create_update_position/",
         views.create_update_position,
         name="create_update_position",
-    )
+    ),
+    
+    path('get_startup_profile/<str:username>/', views.get_startup_profile, name='get-startup-profile'),
+
 ]
