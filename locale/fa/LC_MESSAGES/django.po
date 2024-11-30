@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-30 14:16+0000\n"
+"POT-Creation-Date: 2024-11-30 14:35+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -62,8 +62,8 @@ msgid "Click the link below to reset your password."
 msgstr "برای بازنشانی رمز عبور خود روی لینک زیر کلیک کنید."
 
 #: authenticator/views.py:102 authenticator/views.py:117
-#: authenticator/views.py:121 authenticator/views.py:151
-#: authenticator/views.py:155 startup/views.py:66
+#: authenticator/views.py:121 authenticator/views.py:140
+#: authenticator/views.py:144 startup/views.py:66
 msgid "message"
 msgstr "پیام"
 
@@ -71,15 +71,134 @@ msgstr "پیام"
 msgid "An email has been sent to reset your password."
 msgstr "ایمیلی برای بازنشانی رمز عبور شما ارسال شده است."
 
-#: authenticator/views.py:121 authenticator/views.py:155
+#: authenticator/views.py:121 authenticator/views.py:144
 msgid "Password successfully changed."
 msgstr "رمز عبور با موفقیت تغییر یافت."
 
+#: authenticator/views.py:133 authenticator/views.py:179
+#: authenticator/views.py:183 authenticator/views.py:186
+#: authenticator/views.py:223 authenticator/views.py:227
+#: authenticator/views.py:230 authenticator/views.py:242
+#: authenticator/views.py:264 authenticator/views.py:298
+#: authenticator/views.py:317 authenticator/views.py:320
+#: authenticator/views.py:330 authenticator/views.py:335
+#: authenticator/views.py:342 authenticator/views.py:352
+#: authenticator/views.py:356 authenticator/views.py:366
+#: authenticator/views.py:370 authenticator/views.py:384
+#: authenticator/views.py:399 authenticator/views.py:404
+#: authenticator/views.py:411 authenticator/views.py:418
+#: authenticator/views.py:426
+msgid "detail"
+msgstr "جزئیات"
+
+#: authenticator/views.py:133
+msgid "New password is required."
+msgstr "رمز عبور جدید مورد نیاز است."
+
+#: authenticator/views.py:179
+#, fuzzy
+#| msgid "Basic user profile not found."
+msgid "Baseuser user not found."
+msgstr "کاربر استارتاپ یافت نشد."
+
+#: authenticator/views.py:183 authenticator/views.py:317
+#: authenticator/views.py:352
+#, fuzzy
+#| msgid "Basic user profile not found."
+msgid "Baseuser profile not found."
+msgstr "پروفایل کاربری پایه یافت نشد."
+
+#: authenticator/views.py:223
+#, fuzzy
+#| msgid "Basic user profile not found."
+msgid "Base user not found."
+msgstr "کاربر استارتاپ یافت نشد."
+
+#: authenticator/views.py:227
+#, fuzzy
+#| msgid "Basic user profile not found."
+msgid "Base profile not found."
+msgstr "پروفایل کاربری پایه یافت نشد."
+
+#: authenticator/views.py:242
+#, fuzzy
+#| msgid "Related startup not found."
+msgid "No related base user found."
+msgstr "استارتاپ مرتبط یافت نشد."
+
+#: authenticator/views.py:255
+#, fuzzy
+#| msgid "Profile successfully updated."
+msgid "Profile updated successfully."
+msgstr "پروفایل با موفقیت به‌روزرسانی شد."
+
+#: authenticator/views.py:258
+#, fuzzy
+#| msgid "Profile successfully updated."
+msgid "Profile created successfully."
+msgstr "پروفایل با موفقیت به‌روزرسانی شد."
+
+#: authenticator/views.py:298
+msgid "No comments found for this profile."
+msgstr "هیچ نظری برای این پروفایل یافت نشد."
+
+#: authenticator/views.py:330 authenticator/views.py:399
+#, fuzzy
+#| msgid "Profile not found"
+msgid "Comment not found."
+msgstr "نظر یافت نشد."
+
+#: authenticator/views.py:335
+msgid "You do not have permission to delete this comment."
+msgstr "شما اجازه حذف این نظر را ندارید."
+
+#: authenticator/views.py:342
+#, fuzzy
+#| msgid "Profile successfully updated."
+msgid "Comment deleted successfully."
+msgstr "نظر با موفقیت اضافه شد."
+
+#: authenticator/views.py:356
+#, fuzzy
+#| msgid "No comments found for this profile."
+msgid "Cannot add comments to basic user profiles."
+msgstr "هیچ نظری برای این پروفایل یافت نشد."
+
+#: authenticator/views.py:366
+#, fuzzy
+#| msgid "New password is required."
+msgid "Comment is required."
+msgstr "نظر مورد نیاز است."
+
+#: authenticator/views.py:370 authenticator/views.py:418
+msgid "Comment contains inappropriate language."
+msgstr "نظر حاوی زبان نامناسب است."
+
+#: authenticator/views.py:384
+#, fuzzy
+#| msgid "Profile successfully updated."
+msgid "Comment added successfully."
+msgstr "نظر با موفقیت اضافه شد."
+
+#: authenticator/views.py:404
+msgid "You do not have permission to edit this comment."
+msgstr "شما اجازه ویرایش این نظر را ندارید."
+
+#: authenticator/views.py:411
+#, fuzzy
+#| msgid "New password is required."
+msgid "New comment text is required."
+msgstr "متن نظر جدید مورد نیاز است."
+
+#: authenticator/views.py:426
+#, fuzzy
+#| msgid "Profile successfully updated."
+msgid "Comment updated successfully."
+msgstr "نظر با موفقیت اضافه شد."
+
 #: startup/views.py:30
 msgid "Only users with type 'startup' can create or update startup positions."
-msgstr ""
-"فقط کاربران با نوع 'استارتاپ' می‌توانند موقعیت‌های استارتاپ را ایجاد یا "
-"به‌روزرسانی کنند."
+msgstr "فقط کاربران با نوع 'استارتاپ' می‌توانند موقعیت‌های استارتاپ را ایجاد یا بروزرسانی کنند"
 
 #: startup/views.py:39
 msgid "Related startup not found."
@@ -1325,23 +1444,14 @@ msgstr ""
 #~ msgid "Profile not found"
 #~ msgstr "پروفایل یافت نشد"
 
-#~ msgid "Basic user profile not found."
-#~ msgstr "پروفایل کاربری پایه یافت نشد."
-
 #~ msgid "Profile successfully updated"
 #~ msgstr "پروفایل با موفقیت به‌روزرسانی شد"
 
 #~ msgid "Invalid request"
 #~ msgstr "درخواست نامعتبر است"
 
-#~ msgid "Profile successfully updated."
-#~ msgstr "پروفایل با موفقیت به‌روزرسانی شد."
-
 #~ msgid "Password successfully updated"
 #~ msgstr "رمز عبور با موفقیت به‌روزرسانی شد"
-
-#~ msgid "New password is required."
-#~ msgstr "رمز عبور جدید مورد نیاز است."
 
 #~ msgid "Password successfully updated."
 #~ msgstr "رمز عبور با موفقیت به‌روزرسانی شد."
@@ -1357,17 +1467,6 @@ msgstr ""
 #~ msgid "Invalid date format. Use YYYY-MM-DD."
 #~ msgstr "فرمت تاریخ نامعتبر است. از YYYY-MM-DD استفاده کنید."
 
-#~ msgid "No comments found for this profile."
-#~ msgstr "هیچ نظری برای این پروفایل یافت نشد."
-
-#, fuzzy
-#~| msgid "Profile not found"
-#~ msgid "Comment not found."
-#~ msgstr "نظر یافت نشد."
-
-#~ msgid "You do not have permission to delete this comment."
-#~ msgstr "شما اجازه حذف این نظر را ندارید."
-
 #, fuzzy
 #~| msgid "Profile successfully updated."
 #~ msgid "Comment successfully deleted."
@@ -1379,35 +1478,9 @@ msgstr ""
 #~ msgstr "پروفایل استارتاپ یافت نشد."
 
 #, fuzzy
-#~| msgid "New password is required."
-#~ msgid "Comment is required."
-#~ msgstr "نظر مورد نیاز است."
-
-#~ msgid "Comment contains inappropriate language."
-#~ msgstr "نظر حاوی زبان نامناسب است."
-
-#, fuzzy
-#~| msgid "Profile successfully updated."
-#~ msgid "Comment successfully added."
-#~ msgstr "نظر با موفقیت اضافه شد."
-
-#~ msgid "You do not have permission to edit this comment."
-#~ msgstr "شما اجازه ویرایش این نظر را ندارید."
-
-#, fuzzy
-#~| msgid "New password is required."
-#~ msgid "New comment text is required."
-#~ msgstr "متن نظر جدید مورد نیاز است."
-
-#, fuzzy
 #~| msgid "Profile successfully updated."
 #~ msgid "Comment successfully updated."
 #~ msgstr "نظر با موفقیت به‌روزرسانی شد."
-
-#, fuzzy
-#~| msgid "Basic user profile not found."
-#~ msgid "Startup user not found."
-#~ msgstr "کاربر استارتاپ یافت نشد."
 
 #~ msgid ""
 #~ "Only users with type 'startup' can create or update startup profiles."
