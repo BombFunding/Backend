@@ -77,10 +77,10 @@ class StartupProfileAdmin(admin.ModelAdmin):
     get_base_name.short_description = "Base Name"
 
 
-
 @admin.register(BaseuserComment)
 class BaseuserCommentAdmin(admin.ModelAdmin):
     list_display = [
+        "id",
         "get_commenter_username",
         "get_baseuser_profile_name",
         "comment",
