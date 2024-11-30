@@ -164,11 +164,11 @@ def baseuser_search_by_name(request, username):
 
     except BaseUser.DoesNotExist:
         return Response(
-            {"detail": "Startup user not found."}, status=status.HTTP_404_NOT_FOUND
+            {"detail": "baseuser user not found."}, status=status.HTTP_404_NOT_FOUND
         )
     except BaseProfile.DoesNotExist:
         return Response(
-            {"detail": "Startup profile not found."}, status=status.HTTP_404_NOT_FOUND
+            {"detail": "baseuser profile not found."}, status=status.HTTP_404_NOT_FOUND
         )
     except Exception as e:
         return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -271,13 +271,14 @@ def update_baseuser_profile(request):
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def get_comments_by_profile(request, profile_id):
+def get_comments_by_profile(request, username):
     try:
+        baseuser_profile = BaseProfile.objects.get(base_user__username=username)
+
         comments = BaseuserComment.objects.filter(
-            baseuser_profile__id=profile_id
+            baseuser_profile=baseuser_profile
         ).order_by("-time")
 
         if not comments.exists():
@@ -299,6 +300,10 @@ def get_comments_by_profile(request, profile_id):
             json_dumps_params={"ensure_ascii": False},
         )
 
+    except BaseProfile.DoesNotExist:
+        return JsonResponse(
+            {"detail": "Baseuser profile not found."}, status=404
+        )
     except Exception as e:
         return JsonResponse({"detail": f"Error: {str(e)}"}, status=500)
 
@@ -325,15 +330,19 @@ def delete_comment(request, comment_id):
         {"detail": "Comment deleted successfully."}, status=status.HTTP_200_OK
     )
 
-
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def add_comment(request, profile_id):
+def add_comment(request, username):
     try:
-        baseuser_profile = BaseProfile.objects.get(id=profile_id)
+        baseuser_profile = BaseProfile.objects.get(base_user__username=username)
     except BaseProfile.DoesNotExist:
         return Response(
-            {"detail": "Startup profile not found."}, status=status.HTTP_404_NOT_FOUND
+            {"detail": "Baseuser profile not found."}, status=status.HTTP_404_NOT_FOUND
+        )
+    if baseuser_profile.base_user.user_type == "basic":
+        return Response(
+            {"detail": "Cannot add comments to basic user profiles."},
+            status=status.HTTP_403_FORBIDDEN,
         )
 
     user = request.user
@@ -365,6 +374,7 @@ def add_comment(request, profile_id):
         },
         status=status.HTTP_201_CREATED,
     )
+
 
 
 from authenticator.PersianSwear import PersianSwear
