@@ -31,7 +31,7 @@ class StartupPositionAdmin(admin.ModelAdmin):
 @admin.register(StartupProfile)
 class StartupProfileAdmin(admin.ModelAdmin):
     list_display = [
-        "base_profile",
+        "startup_user",
         "startup_rank",
         "startup_categories",
         "startup_starting_date",
@@ -39,7 +39,7 @@ class StartupProfileAdmin(admin.ModelAdmin):
         "get_positions_count",
         "get_position_ids",
     ]
-    search_fields = ["base_profile__name", "startup_categories"]
+    search_fields = ["startup_categories"]
     list_filter = ["startup_rank", "startup_categories", "startup_starting_date"]
 
     def get_queryset(self, request):

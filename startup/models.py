@@ -4,8 +4,8 @@ from authenticator.models import BaseUser, StartupUser,BaseProfile
 from django.core.exceptions import ValidationError
 
 class StartupProfile(models.Model):
-    base_profile = models.OneToOneField(
-        BaseProfile, on_delete=models.CASCADE, editable=False
+    startup_user = models.OneToOneField(
+        StartupUser, on_delete=models.CASCADE, editable=False , null=True
     )
     startup_rank = models.PositiveSmallIntegerField(default=1)  
     startup_categories = models.CharField(

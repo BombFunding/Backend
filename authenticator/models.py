@@ -210,21 +210,19 @@ def create_user_profile(sender, instance, created, **kwargs):
             email=instance.email,
             bio="",
         )
-
-        if instance.user_type == "basic":
+        if instance.user_type == "startup": 
+            startup_user = StartupUser.objects.create(username=instance)
+            StartupProfile.objects.create(
+                startup_user=startup_user,
+                startup_categories="Technology",
+                startup_starting_date=None,
+                startup_rank=1,
+                startup_profile_visit_count=0,
+            )
+        elif instance.user_type == "basic":
             BasicUser.objects.create(username=instance)
         elif instance.user_type == "investor":
             InvestorUser.objects.create(username=instance)
-        elif instance.user_type == "startup":
-            StartupUser.objects.create(username=instance)
-            StartupProfile.objects.create(
-                base_profile=base_profile,
-                startup_categories="Technology", 
-                startup_starting_date=None,       
-                startup_rank=1,                  
-                baseuser_profile_visit_count=0,   
-            )
-
 @receiver(post_delete, sender=BaseUser)
 def delete_user_profile(sender, instance, **kwargs):
     """
