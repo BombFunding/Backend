@@ -36,9 +36,14 @@ class StartupProfile(models.Model):
     def __str__(self):
         return f"{self.base_profile.name}"
 
+    @property
+    def positions(self):
+        return StartupPosition.objects.filter(startup_profile=self)
+
+
 
 class StartupPosition(models.Model):
-    startup_profile = models.ForeignKey(BaseProfile, on_delete=models.CASCADE)
+    startup_profile = models.ForeignKey(StartupProfile, on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
     bio = models.TextField()
     total = models.IntegerField()
@@ -49,6 +54,10 @@ class StartupPosition(models.Model):
 
     def __str__(self) -> str:
         return f"{self.name} - {self.startup_profile.name} {self.funded}/{self.total}"
+
+    @property
+    def positions(self):
+        return StartupPosition.objects.filter(startup_profile=self)
 
 
 class StartupApplication(models.Model):

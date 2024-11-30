@@ -66,17 +66,6 @@ class BaseProfileAdmin(admin.ModelAdmin):
     get_startup_user_name.short_description = "Base Name"
 
 
-class StartupProfileAdmin(admin.ModelAdmin):
-    list_display = ["get_base_name", "startup_rank", "startup_categories", "startup_profile_visit_count"]
-    search_fields = ["base_profile__name", "startup_categories"]
-    list_filter = ["startup_categories", "startup_rank"]
-
-    def get_base_name(self, obj):
-        return obj.base_profile.name
-
-    get_base_name.short_description = "Base Name"
-
-
 @admin.register(BaseuserComment)
 class BaseuserCommentAdmin(admin.ModelAdmin):
     list_display = [
@@ -110,4 +99,3 @@ admin.site.register(BasicUser, BasicUserAdmin)
 admin.site.register(InvestorUser, InvestorUserAdmin)
 admin.site.register(StartupUser, StartupUserAdmin)
 admin.site.register(BaseProfile, BaseProfileAdmin)
-admin.site.register(StartupProfile, StartupProfileAdmin)
