@@ -117,7 +117,6 @@ class StartupUser(models.Model):
         return self.username.username
 
 
-
 from django.core.files.storage import default_storage
 import os
 
@@ -127,6 +126,8 @@ def delete_existing_images(username):
         if default_storage.exists(file_path):
             default_storage.delete(file_path)
 
+# TODO: Perhaps, we should move these functions to a separate file if they are used in multiple models.
+# TODO: These two functions are also very similar. Perhaps, we can combine them into one function.
 
 def user_profile_picture_path(instance, filename):
     username = instance.base_user.username

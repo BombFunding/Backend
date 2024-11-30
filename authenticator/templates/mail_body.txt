@@ -1,3 +1,3 @@
-You are almost there, {{ user.username }}!
-Please click the following link to confirm your account: {{ link }}
-The token expires on {{ expiry|time:"TIME_FORMAT" }}
+شما تقریباً آماده‌اید، {{ user.username }}!
+لطفاً برای تأیید حساب خود روی لینک زیر کلیک کنید: {{ link }}
+توکن در تاریخ {{ expiry|time:"TIME_FORMAT" }} منقضی می‌شود.

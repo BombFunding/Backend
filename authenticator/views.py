@@ -5,16 +5,22 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django_email_verification import send_email
 from rest_framework import generics, status
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.exceptions import ValidationError as RestValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.exceptions import ValidationError as RestValidationError
 from django.utils import timezone
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from django.http import JsonResponse
 from .models import BaseUser,BaseProfile,BaseuserComment
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from django.utils.translation import gettext as _
+
+from .models import BaseUser
 from .serializers import (
     EmailSerializer,
     LoginSerializer,
@@ -34,10 +40,16 @@ class RegisterView(generics.CreateAPIView):
         send_email(user)
 
 
-class LoginView(generics.CreateAPIView):
+class LoginView(GenericAPIView):
     serializer_class = LoginSerializer
     permission_classes = [AllowAny]
 
+    @swagger_auto_schema(
+        request_body=LoginSerializer,
+        operation_description="Login to the application and get tokens to authenticate future requests.",
+        responses={200: openapi.Response(_("Login successful")), 400: _("Invalid username or password.")},
+        tags=["auth"],
+    )
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -58,10 +70,16 @@ class LoginView(generics.CreateAPIView):
         )
 
 
-class ForgetPasswordEmailView(generics.CreateAPIView):
+class ForgetPasswordEmailView(GenericAPIView):
     serializer_class = EmailSerializer
     permission_classes = [AllowAny]
 
+    @swagger_auto_schema(
+        operation_description="Sends an email to the user with a link to reset their password.",
+        request_body=EmailSerializer,
+        responses={200: _("Email sent"), 400: _("Email does not exist.")},
+        tags=["auth"],
+    )
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -75,16 +93,16 @@ class ForgetPasswordEmailView(generics.CreateAPIView):
         reset_url = f"http://localhost:3000/reset-password/{uid}/{token}"
 
         send_mail(
-            subject="Reset your password",
-            message=f"Click the link to reset your password: {reset_url}",
+            subject=_("Reset your password"),
+            message=_("Click the link below to reset your password.") + reset_url,
             from_email="sendemailviapython3@gmail.com",
             recipient_list=[user.email],
         )
 
-        return Response({"message": "Email sent"}, status=status.HTTP_200_OK)
+        return Response({_("message"): _("An email has been sent to reset your password.")}, status=status.HTTP_200_OK)
 
 
-class ResetPasswordView(generics.CreateAPIView):
+class ResetPasswordView(generics.GenericAPIView):
     serializer_class = ResetPasswordSerializer
     permission_classes = [AllowAny]
 
@@ -96,11 +114,11 @@ class ResetPasswordView(generics.CreateAPIView):
             user.change_password(serializer.validated_data["password"])
         except DjangoValidationError as e:
             return Response(
-                {"message": e.message_dict}, status=status.HTTP_400_BAD_REQUEST
+                {_("message"): e.message_dict}, status=status.HTTP_400_BAD_REQUEST
             )
 
         return Response(
-            {"message": "Password reset successfully"}, status=status.HTTP_200_OK
+            {_("message"): _("Password successfully changed.")}, status=status.HTTP_200_OK
         )
 
 
@@ -115,22 +133,27 @@ def change_user_password(request):
             {"detail": "New password is required."}, status=status.HTTP_400_BAD_REQUEST
         )
 
-    password_field = BaseUser._meta.get_field("password")
+    # password_field = BaseUser._meta.get_field("password")
+
+    # try:
+    #     for validator in password_field.validators:
+    #         validator(new_password)
+    # except DjangoValidationError as e:
+    #     raise RestValidationError({"password": e.messages})
+
+    # user.set_password(new_password)
+    # user.save()
 
     try:
-        for validator in password_field.validators:
-            validator(new_password)
+        user.change_password(new_password)
     except DjangoValidationError as e:
-        raise RestValidationError({"password": e.messages})
-
-    user.set_password(new_password)
-    user.save()
+        return Response(
+            {_("message"): e.message_dict}, status=status.HTTP_400_BAD_REQUEST
+        )
 
     return Response(
-        {"detail": "Password updated successfully."}, status=status.HTTP_200_OK
+        {_("message"): _("Password successfully changed.")}, status=status.HTTP_200_OK
     )
-
-#######################################
 
 @api_view(["GET"])
 def baseuser_search_by_name(request, username):
