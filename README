@@ -35,3 +35,11 @@ username , email must be uniqe
 change names of endpoints
 category just for startup and is better to be in the page not in the account
 
+______________
+
+refactor todo: 
+patch method for update startupprofile
+create position by id
+update position by id
+delete position by id
+show id of positions in admin
