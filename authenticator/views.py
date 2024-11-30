@@ -136,25 +136,25 @@ def change_user_password(request):
 def baseuser_search_by_name(request, username):
     try:
         base_user = BaseUser.objects.get(username=username)
-        startup_profile = BaseProfile.objects.get(base_user=base_user)
+        baseuser_profile = BaseProfile.objects.get(base_user=base_user)
 
         return Response(
             {
-                "startup_profile": {
-                    "name": startup_profile.name,
-                    "bio": startup_profile.bio,
+                "baseuser_profile": {
+                    "name": baseuser_profile.name,
+                    "bio": baseuser_profile.bio,
                     "email": base_user.email, 
-                    "socials": startup_profile.socials,
-                    "first_name": startup_profile.first_name,
-                    "last_name": startup_profile.last_name,
+                    "socials": baseuser_profile.socials,
+                    "first_name": baseuser_profile.first_name,
+                    "last_name": baseuser_profile.last_name,
                     "profile_picture": (
-                        startup_profile.profile_picture.url
-                        if startup_profile.profile_picture
+                        baseuser_profile.profile_picture.url
+                        if baseuser_profile.profile_picture
                         else None
                     ),
                     "header_picture": (
-                        startup_profile.header_picture.url
-                        if startup_profile.header_picture
+                        baseuser_profile.header_picture.url
+                        if baseuser_profile.header_picture
                         else None
                     ),
                 },
@@ -277,7 +277,7 @@ def update_baseuser_profile(request):
 def get_comments_by_profile(request, profile_id):
     try:
         comments = BaseuserComment.objects.filter(
-            startup_profile__id=profile_id
+            baseuser_profile__id=profile_id
         ).order_by("-time")
 
         if not comments.exists():
@@ -289,7 +289,7 @@ def get_comments_by_profile(request, profile_id):
 
         comments_with_id = []
         for comment in serializer.data:
-            comment.pop("startup_profile", None)
+            comment.pop("baseuser_profile", None)
             comment["id"] = comment.get("id", None)
             comments_with_id.append(comment)
 
@@ -330,7 +330,7 @@ def delete_comment(request, comment_id):
 @permission_classes([IsAuthenticated])
 def add_comment(request, profile_id):
     try:
-        startup_profile = BaseProfile.objects.get(id=profile_id)
+        baseuser_profile = BaseProfile.objects.get(id=profile_id)
     except BaseProfile.DoesNotExist:
         return Response(
             {"detail": "Startup profile not found."}, status=status.HTTP_404_NOT_FOUND
@@ -351,7 +351,7 @@ def add_comment(request, profile_id):
         )
 
     new_comment = BaseuserComment.objects.create(
-        baseuser_profile=startup_profile,
+        baseuser_profile=baseuser_profile,
         username=user,
         comment=comment,
         time=timezone.now(),

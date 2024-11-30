@@ -120,8 +120,8 @@ class BaseProfileSerializer(serializers.ModelSerializer):
 class BaseuserCommentSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source="username.username")
 
-    startup_profile = serializers.CharField(source="startup_profile.name")
+    baseuser_profile = serializers.CharField(source="baseuser_profile.name")
 
     class Meta:
         model = BaseuserComment
-        fields = ["id", "startup_profile", "username", "comment", "time"]
+        fields = ["id", "baseuser_profile", "username", "comment", "time"]

@@ -77,26 +77,27 @@ class StartupProfileAdmin(admin.ModelAdmin):
     get_base_name.short_description = "Base Name"
 
 
+
 @admin.register(BaseuserComment)
 class BaseuserCommentAdmin(admin.ModelAdmin):
     list_display = [
         "get_commenter_username",
-        "get_startup_profile_name",
+        "get_baseuser_profile_name",
         "comment",
         "time",
     ]
-    search_fields = ["username__username", "startup_profile__name", "comment"]
+    search_fields = ["username__username", "baseuser_profile__name", "comment"]
     list_filter = ["time"]
     actions = ["delete_selected"]
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
-        return queryset.select_related("startup_profile", "username")
+        return queryset.select_related("baseuser_profile", "username")
 
-    def get_startup_profile_name(self, obj):
-        return obj.startup_profile.name
+    def get_baseuser_profile_name(self, obj):
+        return obj.baseuser_profile.name
 
-    get_startup_profile_name.short_description = "Startup Profile"
+    get_baseuser_profile_name.short_description = "Comment on Baseuser Profile"
 
     def get_commenter_username(self, obj):
         return obj.username.username
