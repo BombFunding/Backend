@@ -1,13 +1,10 @@
 from django.http import JsonResponse
-from django.utils import timezone
-from django.utils.dateparse import parse_datetime
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from django.utils.translation import gettext as _
 
-from authenticator.serializers import BaseProfileSerializer
 from .models import (
     StartupProfile,
     StartupPosition,
@@ -63,7 +60,7 @@ def create_update_position(request):
     if serializer.is_valid():
         serializer.save(startup_profile=startup_profile)
         return Response(
-            {str(_("message")): _("Position successfully updated."), "position": serializer.data}, status=status.HTTP_200_OK
+            {str(_("message")): _(message), "position": serializer.data}, status=status.HTTP_200_OK
         )
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -77,7 +74,7 @@ def get_startup_profile(request, username):
         startup_user = StartupUser.objects.get(username__username=username)
     except StartupUser.DoesNotExist:
         return JsonResponse(
-            {"detail": "Startup user not found."}, status=status.HTTP_404_NOT_FOUND
+            {_("detail"): _("Startup user not found.")}, status=status.HTTP_404_NOT_FOUND
         )
 
     
@@ -85,7 +82,7 @@ def get_startup_profile(request, username):
 
     if not startup_profile:
         return JsonResponse(
-            {"detail": "Startup profile not found."}, status=status.HTTP_404_NOT_FOUND
+            {_("detail"): _("Startup profile not found.")}, status=status.HTTP_404_NOT_FOUND
         )
 
     serializer = StartupProfileSerializer(startup_profile)
