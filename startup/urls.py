@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 
 from . import views
 
@@ -10,5 +10,5 @@ urlpatterns = [
     ),
     
     path('get_startup_profile/<str:username>/', views.get_startup_profile, name='get-startup-profile'),
-
+    path("profile/<int:startup_profile_id>/team/", include("team.urls")),
 ]
