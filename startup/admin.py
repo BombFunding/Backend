@@ -35,12 +35,13 @@ class StartupProfileAdmin(admin.ModelAdmin):
         "startup_rank",
         "startup_categories",
         "startup_starting_date",
+        "startup_ending_date",
         "startup_profile_visit_count",
         "get_positions_count",
         "get_position_ids",
     ]
     search_fields = ["startup_categories"]
-    list_filter = ["startup_rank", "startup_categories", "startup_starting_date"]
+    list_filter = ["startup_rank", "startup_categories", "startup_starting_date","startup_ending_date"]
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)

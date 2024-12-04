@@ -23,6 +23,7 @@ class StartupProfile(models.Model):
         default="Art",
     )  
     startup_starting_date = models.DateField(null=True, blank=True)  
+    startup_ending_date = models.DateField(null=True, blank=True)  
     startup_profile_visit_count = models.PositiveIntegerField(default=0)  
 
     def clean(self):

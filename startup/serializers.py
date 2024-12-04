@@ -11,5 +11,5 @@ class StartupProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StartupProfile
-        fields = ['id', 'startup_user', 'startup_rank', 'startup_categories', 'startup_starting_date', 
+        fields = ['id', 'startup_user', 'startup_rank', 'startup_categories', 'startup_starting_date', 'startup_ending_date',
                   'startup_profile_visit_count', 'positions']

@@ -10,5 +10,6 @@ urlpatterns = [
     ),
     
     path('get_startup_profile/<str:username>/', views.get_startup_profile, name='get-startup-profile'),
+    path('update_startup_profile/', views.update_startup_profile, name='update-startup-profile'),
 
 ]
