@@ -72,7 +72,6 @@ def create_update_position(request):
 @permission_classes([AllowAny])
 def get_startup_profile(request, username):
     try:
-        
         startup_user = StartupUser.objects.get(username__username=username)
     except StartupUser.DoesNotExist:
         return JsonResponse(
@@ -87,6 +86,10 @@ def get_startup_profile(request, username):
             {"detail": "Startup profile not found."}, status=status.HTTP_404_NOT_FOUND
         )
 
+    if request.user.username != username:
+        startup_profile.startup_profile_visit_count += 1
+        startup_profile.save()
+        
     serializer = StartupProfileSerializer(startup_profile)
     return JsonResponse(
         {"profile": serializer.data}, status=status.HTTP_200_OK
