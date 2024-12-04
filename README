@@ -38,9 +38,9 @@ category just for startup and is better to be in the page not in the account
 ______________
 
 refactor todo: 
-patch method for update startupprofile
+@REM patch method for update startupprofile
 create position by id
 update position by id
 delete position by id
 show id of positions in admin
-startup profile must increase whenever get methode has been called
+@REM startup profile must increase whenever get methode has been called

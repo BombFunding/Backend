@@ -24,7 +24,7 @@ class StartupPositionAdmin(admin.ModelAdmin):
         return queryset.select_related("startup_profile")
 
     def get_startup_profile_name(self, obj):
-        return obj.startup_profile.base_profile.name
+        return obj.startup_profile.startup_user.username
 
     get_startup_profile_name.short_description = "Startup Profile"
 

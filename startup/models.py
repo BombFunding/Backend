@@ -55,7 +55,7 @@ class StartupPosition(models.Model):
     end_time = models.DateTimeField()
 
     def __str__(self) -> str:
-        return f"{self.name} - {self.startup_profile.name} {self.funded}/{self.total}"
+        return f"{self.name} - {self.startup_profile.startup_user.username} {self.funded}/{self.total}"
 
     @property
     def positions(self):

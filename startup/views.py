@@ -18,55 +18,6 @@ from .serializers import (
     StartupProfileSerializer
 )
 
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
-def create_update_position(request):
-    user = request.user
-
-    if user.user_type != "startup":
-        return Response(
-            {
-                "detail": "Only users with 'startup' type can create or update a startup position."
-            },
-            status=status.HTTP_403_FORBIDDEN,
-        )
-
-    try:
-        startup_user = StartupUser.objects.get(username=user)
-    except StartupUser.DoesNotExist:
-        return Response(
-            {"detail": "No related startup found."}, status=status.HTTP_404_NOT_FOUND
-        )
-
-    try:
-        startup_profile = BaseProfile.objects.get(startup_user=startup_user)
-    except BaseProfile.DoesNotExist:
-        startup_profile = BaseProfile.objects.create(
-            startup_user=startup_user, name="Default Name", bio="Default bio"
-        )
-
-    position_name = request.data.get("name")
-    try:
-        position = StartupPosition.objects.get(
-            startup_profile=startup_profile, name=position_name
-        )
-
-        serializer = StartupPositionSerializer(
-            position, data=request.data, partial=True
-        )
-        message = "Position updated successfully."
-    except StartupPosition.DoesNotExist:
-        serializer = StartupPositionSerializer(data=request.data)
-        message = "Position created successfully."
-
-    if serializer.is_valid():
-        serializer.save(startup_profile=startup_profile)
-        return Response(
-            {"detail": message, "position": serializer.data}, status=status.HTTP_200_OK
-        )
-
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
@@ -138,6 +89,73 @@ def update_startup_profile(request):
         serializer.save()
         return Response(
             {"detail": "Startup profile updated successfully.", "profile": serializer.data},
+            status=status.HTTP_200_OK,
+        )
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_startup_position(request):
+    user = request.user
+
+    if user.user_type != "startup":
+        return Response(
+            {"detail": "Only users with 'startup' type can create positions."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    try:
+        startup_profile = StartupProfile.objects.get(startup_user=user.startupuser)
+    except StartupProfile.DoesNotExist:
+        return Response(
+            {"detail": "Startup profile not found."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    serializer = StartupPositionSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save(startup_profile=startup_profile)
+        return Response(
+            {"detail": "Position created successfully.", "position": serializer.data},
+            status=status.HTTP_201_CREATED,
+        )
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
+def update_startup_position(request, position_id):
+    user = request.user
+
+    if user.user_type != "startup":
+        return Response(
+            {"detail": "Only users with 'startup' type can update positions."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    try:
+        startup_profile = StartupProfile.objects.get(startup_user=user.startupuser)
+    except StartupProfile.DoesNotExist:
+        return Response(
+            {"detail": "Startup profile not found."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    try:
+        position = StartupPosition.objects.get(id=position_id, startup_profile=startup_profile)
+    except StartupPosition.DoesNotExist:
+        return Response(
+            {"detail": "Position not found or not owned by this startup."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    serializer = StartupPositionSerializer(position, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(
+            {"detail": "Position updated successfully.", "position": serializer.data},
             status=status.HTTP_200_OK,
         )
 
