@@ -6,6 +6,7 @@ from .models import StartupApplication, StartupPosition, StartupProfile
 @admin.register(StartupPosition)
 class StartupPositionAdmin(admin.ModelAdmin):
     list_display = [
+        "id",
         "startup_profile",
         "name",
         "total",
