@@ -47,7 +47,7 @@ class StartupProfile(models.Model):
 class StartupPosition(models.Model):
     startup_profile = models.ForeignKey(StartupProfile, on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
-    bio = models.TextField()
+    description = models.TextField()
     total = models.IntegerField()
     funded = models.IntegerField()
     is_done = models.BooleanField(default=False)

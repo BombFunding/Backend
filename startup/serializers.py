@@ -4,7 +4,7 @@ from .models import StartupProfile, StartupPosition
 class StartupPositionSerializer(serializers.ModelSerializer):
     class Meta:
         model = StartupPosition
-        fields = ['id', 'name', 'bio', 'total', 'funded', 'is_done', 'start_time', 'end_time']
+        fields = ['id', 'name', 'description', 'total', 'funded', 'is_done', 'start_time', 'end_time']
 
 class StartupProfileSerializer(serializers.ModelSerializer):
     positions = StartupPositionSerializer(many=True, read_only=True)
