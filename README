@@ -39,8 +39,8 @@ ______________
 
 refactor todo: 
 @REM patch method for update startupprofile
-create position by id
-update position by id
+@REM create position by id
+@REM update position by id
 delete position by id
-show id of positions in admin
+@REM show id of positions in admin
 @REM startup profile must increase whenever get methode has been called
