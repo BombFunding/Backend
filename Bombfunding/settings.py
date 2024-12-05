@@ -41,6 +41,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 INSTALLED_APPS = [
     "authenticator",
     "startup",
+    "landing",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
