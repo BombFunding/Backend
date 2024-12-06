@@ -32,9 +32,11 @@ def top_visited_startups(request):
         data.append({
             "username": username,
             "profile_picture": profile_picture,
+            "visit_count": startup.startup_profile_visit_count,  
         })
 
     return Response(data)
+
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
