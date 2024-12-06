@@ -9,6 +9,8 @@ from .permissions import IsStartupOwner
 class TeamSerializerContextMixin(TeamMixin):
     def get_serializer_context(self):
         context = super().get_serializer_context()
+        if getattr(self, 'swagger_fake_view', False):
+            return context
         context["team"] = self.get_team(self.kwargs["startup_profile_id"])
         return context
 
