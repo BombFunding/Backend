@@ -13,3 +13,4 @@ python manage.py runserver
 
 
 if bug in migrations -> remove all files in migrations folders except ___init___ files
+migrate by name -> Python manage.py makemigrations team
