@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django import forms
-from .models import BaseUser, BasicUser, InvestorUser, StartupUser, BaseProfile, StartupProfile, BaseuserComment
+from .models import BaseUser, BasicUser, InvestorUser, StartupUser, BaseProfile, BaseuserComment
+from startup.models import StartupProfile
 
 
 class BaseUserAdminForm(forms.ModelForm):

@@ -1,9 +1,13 @@
 from django.db.models.signals import post_save
+from django.db.models.signals import post_delete
 from django.dispatch import receiver
-from startup.models import StartupProfile
 from team.models import Team
+from startup.models import StartupProfile
 
-@receiver(post_save, sender=StartupProfile)
-def create_team_for_startup(sender, instance, created, **kwargs):
-    if created:
-        Team.objects.create(startup_profile=instance)
+@receiver(post_delete, sender=StartupProfile)
+def delete_team_for_startup(sender, instance, **kwargs):
+    try:
+        team = Team.objects.get(startup_profile=instance)
+        team.delete()
+    except Team.DoesNotExist:
+        pass        

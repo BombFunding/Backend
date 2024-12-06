@@ -1,5 +1,6 @@
 from django.urls import path
 from .views import StartupProfileViews, StartupPositionViews
+from django.urls import include, path
 
 urlpatterns = [
     path('get_startup_profile/<str:username>/', StartupProfileViews.get_startup_profile, name='get-startup-profile'),
