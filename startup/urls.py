@@ -6,4 +6,5 @@ urlpatterns = [
     path('update_startup_profile/', StartupProfileViews.update_startup_profile, name='update-startup-profile'),
     path("position/create/", StartupPositionViews.create_startup_position, name="create_startup_position"),
     path("position/update/<int:position_id>/", StartupPositionViews.update_startup_position, name="update_startup_position"),
+    path("position/delete/<int:position_id>/", StartupPositionViews.delete_startup_position, name="delete_startup_position"),
 ]

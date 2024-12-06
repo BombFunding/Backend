@@ -148,3 +148,37 @@ class StartupPositionViews:
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @staticmethod
+    @api_view(["DELETE"])
+    @permission_classes([IsAuthenticated])
+    def delete_startup_position(request, position_id):
+        user = request.user
+
+        if user.user_type != "startup":
+            return Response(
+                {"detail": "Only users with 'startup' type can delete positions."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            startup_profile = StartupProfile.objects.get(startup_user=user.startupuser)
+        except StartupProfile.DoesNotExist:
+            return Response(
+                {"detail": "Startup profile not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        try:
+            position = StartupPosition.objects.get(id=position_id, startup_profile=startup_profile)
+        except StartupPosition.DoesNotExist:
+            return Response(
+                {"detail": "Position not found or not owned by this startup."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        position.delete()
+        return Response(
+            {"detail": "Position deleted successfully."},
+            status=status.HTTP_200_OK,
+        )
