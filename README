@@ -3,44 +3,13 @@ python manage.py createsuperuser --username admin --email admin@gmail.com --user
 ______________
 windows:
 
-python -m venv 
-venv/venv\Scripts\activate
-pip install django
-pip install djangorestframework
-pip install djangorestframework-simplejwt
-pip install pip install django-filter
-pip install pillow
-
+python -m venv venv/
+venv\Scripts\activate
+pip install -r requirements.txt
 python manage.py makemigrations
 python manage.py migrate
+python manage.py createsuperuser --username admin --email admin@gmail.com --user_type basic --password !ADMIN00admin
 python manage.py runserver
 
+
 if bug in migrations -> remove all files in migrations folders except ___init___ files
-
-_______________
-TODO
-profile:
-- own:
-name
-lname
-email
-phone
-bio
-social links
-
-others:
-just name , phone is hidden
-
-username , email must be uniqe
-change names of endpoints
-category just for startup and is better to be in the page not in the account
-
-______________
-
-refactor todo: 
-@REM patch method for update startupprofile
-@REM create position by id
-@REM update position by id
-delete position by id
-@REM show id of positions in admin
-@REM startup profile must increase whenever get methode has been called
