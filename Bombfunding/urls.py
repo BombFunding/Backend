@@ -43,6 +43,7 @@ urlpatterns = [
         name="schema-swagger-ui",
     ),
     path("startup/", include("startup.urls")),
+    path("landing/", include("landing.urls")),
 ]
 
 if settings.DEBUG:

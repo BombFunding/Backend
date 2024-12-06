@@ -24,9 +24,10 @@ class StartupProfile(models.Model):
         ],
         default="Art",
     )
-    startup_starting_date = models.DateField(null=True, blank=True)
-    startup_profile_visit_count = models.PositiveIntegerField(default=0)
     score = models.IntegerField(default=0)
+    startup_starting_date = models.DateField(null=True, blank=True)  
+    startup_ending_date = models.DateField(null=True, blank=True)  
+    startup_profile_visit_count = models.PositiveIntegerField(default=0)  
 
     def clean(self):
         if not (1 <= self.startup_rank <= 5):
@@ -47,7 +48,7 @@ class StartupProfile(models.Model):
 class StartupPosition(models.Model):
     startup_profile = models.ForeignKey(StartupProfile, on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
-    bio = models.TextField()
+    description = models.TextField()
     total = models.IntegerField()
     funded = models.IntegerField()
     is_done = models.BooleanField(default=False)
@@ -55,7 +56,7 @@ class StartupPosition(models.Model):
     end_time = models.DateTimeField()
 
     def __str__(self) -> str:
-        return f"{self.name} - {self.startup_profile.name} {self.funded}/{self.total}"
+        return f"{self.name} - {self.startup_profile.startup_user.username} {self.funded}/{self.total}"
 
     @property
     def positions(self):

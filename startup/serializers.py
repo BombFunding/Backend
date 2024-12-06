@@ -16,7 +16,6 @@ class StartupPositionSerializer(serializers.ModelSerializer):
             "end_time",
         ]
 
-
 class StartupProfileSerializer(serializers.ModelSerializer):
     positions = StartupPositionSerializer(many=True, read_only=True)
 

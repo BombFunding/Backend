@@ -217,6 +217,7 @@ def create_user_profile(sender, instance, created, **kwargs):
                 startup_user=startup_user,
                 startup_categories="Technology",
                 startup_starting_date=None,
+                startup_ending_date=None,
                 startup_rank=1,
                 startup_profile_visit_count=0,
             )
