@@ -76,7 +76,7 @@ class BaseUser(AbstractBaseUser):
         return self.is_superuser
 
     def __str__(self) -> str:
-        return f"{self.username}"
+        return f"{self.username} - {self.user_type}"
 
 
 class BasicUser(models.Model):
