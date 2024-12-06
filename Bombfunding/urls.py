@@ -44,6 +44,7 @@ urlpatterns = [
     ),
     path("startup/", include("startup.urls")),
     path("landing/", include("landing.urls")),
+    path("search/", include("search.urls")),
 ]
 
 if settings.DEBUG:
