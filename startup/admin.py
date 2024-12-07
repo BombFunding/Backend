@@ -32,6 +32,7 @@ class StartupPositionAdmin(admin.ModelAdmin):
 @admin.register(StartupProfile)
 class StartupProfileAdmin(admin.ModelAdmin):
     list_display = [
+        "id",
         "startup_user",
         "startup_rank",
         "startup_categories",
