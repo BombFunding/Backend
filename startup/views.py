@@ -25,7 +25,43 @@ class StartupProfileRetrieveView(mixins.RetrieveModelMixin, generics.GenericAPIV
 
     @swagger_auto_schema(
         operation_description="Get the profile of a startup user",
-        responses={200: StartupProfileSerializer, 404: 'Not Found'},
+        responses={
+            200: openapi.Response(
+                description="Profile retrieved successfully.",
+                examples={
+                    "application/json": {
+                        "profile": {
+                            "id": 2,
+                            "startup_user": 3,
+                            "startup_rank": 1,
+                            "startup_categories": "Technology",
+                            "startup_starting_date": None,
+                            "startup_profile_visit_count": 2,
+                            "positions": [
+                                {
+                                    "id": 1,
+                                    "name": "string",
+                                    "description": "string",
+                                    "total": 9223372854776000,
+                                    "funded": 922337203776000,
+                                    "is_done": True,
+                                    "start_time": "2024-12-06T23:50:23.585000Z",
+                                    "end_time": "2024-12-06T23:50:23.585000Z"
+                                }
+                            ]
+                        }
+                    }
+                },
+            ),
+            404: openapi.Response(
+                description="Not Found",
+                examples={
+                    "application/json": {
+                        "detail": "Profile not found."
+                    }
+                },
+            ),
+        },
     )
     def get(self, request, username):
         try:
