@@ -8,7 +8,7 @@ class StartupPositionSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "name",
-            "bio",
+            "description",
             "total",
             "funded",
             "is_done",
