@@ -122,6 +122,46 @@ class ResetPasswordView(generics.GenericAPIView):
         )
 
 
+@swagger_auto_schema(
+    method="post",
+    manual_parameters=[
+        openapi.Parameter(
+            "Authorization",
+            openapi.IN_HEADER,
+            description="Bearer Token for authentication",
+            type=openapi.TYPE_STRING,
+            required=True,
+            example="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        )
+    ],
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "new_password": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="The new password for the user.",
+                example="SecureNewPassword123!"
+            ),
+        },
+        required=["new_password"],
+    ),
+    responses={
+        200: openapi.Response(
+            description="Password successfully changed.",
+            examples={
+                "application/json": {"message": "Password successfully changed."}
+            },
+        ),
+        400: openapi.Response(
+            description="Invalid input or validation error.",
+            examples={
+                "application/json": {
+                    "detail": "New password is required."
+                }
+            },
+        ),
+    },
+)
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def change_user_password(request):
@@ -144,6 +184,28 @@ def change_user_password(request):
         {_("message"): _("Password successfully changed.")}, status=status.HTTP_200_OK
     )
 
+@swagger_auto_schema(
+    method="get",
+    responses={
+        200: openapi.Response(
+            description="Baseuser profile found successfully.",
+            examples={
+                "application/json": {
+                    "base_profile": {
+                        "name": "admin",
+                        "bio": "",
+                        "email": "admin@gmail.com",
+                        "socials": {},
+                        "first_name": None,
+                        "last_name": None,
+                        "profile_picture": "/media/profile_pics/default_profile.jpg",
+                        "header_picture": "/media/header_pics/default_header.jpg"
+                    }
+                }
+            },
+        )
+    },
+)
 @api_view(["GET"])
 def baseuser_search_by_name(request, username):
     try:
@@ -185,6 +247,47 @@ def baseuser_search_by_name(request, username):
     except Exception as e:
         return Response({_("detail"): str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+@swagger_auto_schema(
+    method="get",
+    manual_parameters=[
+        openapi.Parameter(
+            "Authorization",
+            openapi.IN_HEADER,
+            description="Bearer Token for authentication",
+            type=openapi.TYPE_STRING,
+            required=True,
+            example="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        )
+    ],
+    responses={
+        200: openapi.Response(
+            description="User profile retrieved successfully.",
+            examples={
+                "application/json": {
+                    "base_profile": {
+                        "name": "admin",
+                        "bio": "",
+                        "email": "admin@gmail.com",
+                        "socials": {},
+                        "phone": None,
+                        "first_name": None,
+                        "last_name": None,
+                        "profile_picture": "/media/profile_pics/default_profile.jpg",
+                        "header_picture": "/media/header_pics/default_header.jpg"
+                    }
+                }
+            },
+        ),
+        401: openapi.Response(
+            description="Authentication credentials were not provided or invalid.",
+            examples={
+                "application/json": {
+                    "detail": "Authentication credentials were not provided."
+                }
+            },
+        ),
+    },
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def view_own_baseuser_profile(request):
@@ -229,7 +332,102 @@ def view_own_baseuser_profile(request):
     except Exception as e:
         return Response({_("detail"): str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-
+@swagger_auto_schema(
+    method="post",
+    manual_parameters=[
+        openapi.Parameter(
+            "Authorization",
+            openapi.IN_HEADER,
+            description="Bearer Token for authentication",
+            type=openapi.TYPE_STRING,
+            required=True,
+            example="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        )
+    ],
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "phone": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="Phone number of the user",
+                example="+0"
+            ),
+            "first_name": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="First name of the user",
+                example="!"
+            ),
+            "last_name": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="Last name of the user",
+                example="!"
+            ),
+            "bio": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="A short bio about the user",
+                example="!"
+            ),
+            "page": openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                description="Web page and social media links",
+                properties={
+                    "website": openapi.Schema(
+                        type=openapi.TYPE_STRING,
+                        format="url",
+                        description="Website link",
+                        example="https://www.newstartup.com"
+                    ),
+                    "facebook": openapi.Schema(
+                        type=openapi.TYPE_STRING,
+                        format="url",
+                        description="Facebook page link",
+                        example="https://facebook.com/newstartup"
+                    )
+                },
+            ),
+            "categories": openapi.Schema(
+                type=openapi.TYPE_ARRAY,
+                items=openapi.Items(type=openapi.TYPE_STRING),
+                description="List of categories",
+                example=["Technology", "AI", "Innovation"]
+            ),
+            "socials": openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                description="Social media links",
+                properties={
+                    "linkedin": openapi.Schema(
+                        type=openapi.TYPE_STRING,
+                        format="url",
+                        description="LinkedIn profile link",
+                        example="https://linkedin.com/company/newstartup"
+                    ),
+                    "twitter": openapi.Schema(
+                        type=openapi.TYPE_STRING,
+                        format="url",
+                        description="Twitter profile link",
+                        example="https://twitter.com/newstartup"
+                    )
+                }
+            ),
+        },
+        required=["phone", "first_name", "last_name", "bio", "page", "categories", "socials"],
+        example={
+            "phone": "+0",
+            "first_name": "!",
+            "last_name": "!",
+            "bio": "!",
+            "page": {
+                "website": "https://www.newstartup.com",
+                "facebook": "https://facebook.com/newstartup"
+            },
+            "categories": ["Technology", "AI", "Innovation"],
+            "socials": {
+                "linkedin": "https://linkedin.com/company/newstartup",
+                "twitter": "https://twitter.com/newstartup"
+            }
+        }
+    )
+)
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def update_baseuser_profile(request):
@@ -266,22 +464,13 @@ def update_baseuser_profile(request):
                     "username": user.username,
                     "email": user.email,
                     **serializer.data,
-                    "profile_picture": (
-                        base_profile.profile_picture.url
-                        if base_profile and base_profile.profile_picture
-                        else None
-                    ),
-                    "header_picture": (
-                        base_profile.header_picture.url
-                        if base_profile and base_profile.header_picture
-                        else None
-                    ),
                 },
             },
             status=status.HTTP_200_OK,
         )
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
@@ -320,6 +509,45 @@ def get_comments_by_profile(request, username):
         return JsonResponse({_("detail"): f"Error: {str(e)}"}, status=500)
 
 
+@swagger_auto_schema(
+    method="delete",
+    manual_parameters=[
+        openapi.Parameter(
+            "Authorization",
+            openapi.IN_HEADER,
+            description="Bearer Token for authentication",
+            type=openapi.TYPE_STRING,
+            required=True,
+            example="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        )
+    ],
+    responses={
+        200: openapi.Response(
+            description="Comment deleted successfully.",
+            examples={
+                "application/json": {
+                    "detail": "Comment deleted successfully."
+                }
+            }
+        ),
+        403: openapi.Response(
+            description="Permission denied.",
+            examples={
+                "application/json": {
+                    "detail": "You do not have permission to delete this comment."
+                }
+            }
+        ),
+        404: openapi.Response(
+            description="Comment not found.",
+            examples={
+                "application/json": {
+                    "detail": "Comment not found."
+                }
+            }
+        ),
+    },
+)
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
 def delete_comment(request, comment_id):
@@ -342,6 +570,35 @@ def delete_comment(request, comment_id):
         {_("detail"): _("Comment deleted successfully.")}, status=status.HTTP_200_OK
     )
 
+@swagger_auto_schema(
+    method="post",
+    manual_parameters=[
+        openapi.Parameter(
+            "Authorization",
+            openapi.IN_HEADER,
+            description="Bearer Token for authentication",
+            type=openapi.TYPE_STRING,
+            required=True,
+            example="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        )
+    ],
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "comment": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="The comment text",
+                example="i'm a nigga"
+            )
+        },
+        required=["comment"],
+    ),
+    responses={
+        201: openapi.Response(description="Comment added successfully."),
+        403: openapi.Response(description="Cannot add comments to basic user profiles."),
+        404: openapi.Response(description="Baseuser profile not found."),
+    },
+)
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def add_comment(request, username):
@@ -389,6 +646,35 @@ def add_comment(request, username):
 
 
 from authenticator.PersianSwear import PersianSwear
+@swagger_auto_schema(
+    method="put",
+    manual_parameters=[
+        openapi.Parameter(
+            "Authorization",
+            openapi.IN_HEADER,
+            description="Bearer Token for authentication",
+            type=openapi.TYPE_STRING,
+            required=True,
+            example="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        )
+    ],
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "comment": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="The updated comment text",
+                example="i'm a nigga"
+            )
+        },
+        required=["comment"],
+    ),
+    responses={
+        200: openapi.Response(description="Comment updated successfully."),
+        403: openapi.Response(description="You do not have permission to edit this comment."),
+        404: openapi.Response(description="Comment not found."),
+    },
+)
 @api_view(["PUT"])
 @permission_classes([IsAuthenticated])
 def edit_comment(request, comment_id):
