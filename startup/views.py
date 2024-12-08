@@ -122,6 +122,75 @@ class StartupProfileUpdateView(mixins.UpdateModelMixin, generics.GenericAPIView)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+from rest_framework import generics, mixins, status
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from .models import StartupPosition
+from .serializers import StartupPositionSerializer
+
+class StartupPositionListView(mixins.ListModelMixin, generics.GenericAPIView):
+    queryset = StartupPosition.objects.all()
+    serializer_class = StartupPositionSerializer
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Retrieve all positions of the authenticated startup user.",
+        responses={
+            200: openapi.Response(
+                description="List of startup positions.",
+                examples={
+                    "application/json": [
+                        {
+                            "id": 1,
+                            "startup_profile": 2,
+                            "name": "Tech Innovators Fund",
+                            "description": "Funding for a groundbreaking tech startup.",
+                            "total": 100000,
+                            "funded": 50000,
+                            "is_done": False,
+                            "start_time": "2024-12-01T09:00:00Z",
+                            "end_time": "2024-12-31T18:00:00Z"
+                        },
+                        {
+                            "id": 2,
+                            "startup_profile": 2,
+                            "name": "Green Energy Ventures",
+                            "description": "Fundraising for sustainable energy solutions.",
+                            "total": 200000,
+                            "funded": 180000,
+                            "is_done": False,
+                            "start_time": "2024-11-01T09:00:00Z",
+                            "end_time": "2024-12-15T18:00:00Z"
+                        }
+                    ]
+                }
+            ),
+            403: openapi.Response(description="Forbidden - User is not a startup."),
+        },
+        manual_parameters=[
+            openapi.Parameter(
+                'Authorization',
+                openapi.IN_HEADER,
+                description="Bearer token for authentication",
+                type=openapi.TYPE_STRING,
+                required=True
+            )
+        ]
+    )
+    def get(self, request):
+        user = request.user
+
+        if user.user_type != "startup":
+            return Response({"detail": "Only users with 'startup' type can view positions."},
+                            status=status.HTTP_403_FORBIDDEN)
+
+        positions = StartupPosition.objects.filter(startup_profile__startup_user=user.startupuser)
+        serializer = self.get_serializer(positions, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 class StartupPositionCreateView(mixins.CreateModelMixin, generics.GenericAPIView):
     queryset = StartupPosition.objects.all()
     serializer_class = StartupPositionSerializer
