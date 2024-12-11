@@ -1,6 +1,10 @@
 from rest_framework import generics
 from .models import TeamMember
-from .serializers import TeamMemberSerializer, TeamMemberListSerializer, TeamMemberUpdateSerializer
+from .serializers import (
+    TeamMemberSerializer,
+    TeamMemberListSerializer,
+    TeamMemberUpdateSerializer,
+)
 from rest_framework import permissions
 from .mixins import TeamMixin
 from .permissions import IsStartupOwner
@@ -9,7 +13,7 @@ from .permissions import IsStartupOwner
 class TeamSerializerContextMixin(TeamMixin):
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        if getattr(self, 'swagger_fake_view', False):
+        if getattr(self, "swagger_fake_view", False):
             return context
         context["team"] = self.get_team(self.kwargs["startup_profile_id"])
         return context
@@ -37,7 +41,9 @@ class RemoveTeamMember(TeamMixin, TeamQuerysetMixin, generics.DestroyAPIView):
     lookup_field = "user"
 
 
-class UpdateTeamMember(TeamSerializerContextMixin, TeamQuerysetMixin, TeamMixin, generics.UpdateAPIView):
+class UpdateTeamMember(
+    TeamSerializerContextMixin, TeamQuerysetMixin, TeamMixin, generics.UpdateAPIView
+):
     permission_classes = [permissions.IsAuthenticated, IsStartupOwner]
     serializer_class = TeamMemberUpdateSerializer
     lookup_field = "user"

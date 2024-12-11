@@ -45,6 +45,7 @@ urlpatterns = [
     path("startup/", include("startup.urls")),
     path("landing/", include("landing.urls")),
     path("search/", include("search.urls")),
+    path("balance/", include("balance.urls")),
 ]
 
 if settings.DEBUG:

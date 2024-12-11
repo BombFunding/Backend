@@ -41,6 +41,7 @@ class BaseUser(AbstractBaseUser):
     is_confirmed = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
+    balance = models.IntegerField(default=0)
 
     password = models.CharField(
         max_length=128,
@@ -120,14 +121,17 @@ class StartupUser(models.Model):
 from django.core.files.storage import default_storage
 import os
 
+
 def delete_existing_images(username):
     for ext in ["jpg", "jpeg", "png"]:
         file_path = os.path.join("profile_pics", f"{username}.{ext}")
         if default_storage.exists(file_path):
             default_storage.delete(file_path)
 
+
 # TODO: Perhaps, we should move these functions to a separate file if they are used in multiple models.
 # TODO: These two functions are also very similar. Perhaps, we can combine them into one function.
+
 
 def user_profile_picture_path(instance, filename):
     username = instance.base_user.username
@@ -157,10 +161,9 @@ def user_header_picture_path(instance, filename):
 
     return file_path
 
+
 class BaseProfile(models.Model):
-    base_user = models.OneToOneField(
-        BaseUser, on_delete=models.CASCADE, editable=False
-    )
+    base_user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, editable=False)
     name = models.CharField(max_length=50, editable=False, null=True)
     email = models.EmailField(max_length=100, editable=False, null=True)
     socials = models.JSONField(default=dict, null=True)
@@ -168,9 +171,18 @@ class BaseProfile(models.Model):
     first_name = models.CharField(max_length=50, null=True)
     last_name = models.CharField(max_length=50, null=True)
     bio = models.TextField(null=True, blank=True)
-    profile_picture = models.ImageField(upload_to=user_profile_picture_path, null=True, blank=True, default='profile_pics/default_profile.jpg')  
-    header_picture = models.ImageField(upload_to=user_header_picture_path, null=True, blank=True, default='header_pics/default_header.jpg')  
-
+    profile_picture = models.ImageField(
+        upload_to=user_profile_picture_path,
+        null=True,
+        blank=True,
+        default="profile_pics/default_profile.jpg",
+    )
+    header_picture = models.ImageField(
+        upload_to=user_header_picture_path,
+        null=True,
+        blank=True,
+        default="header_pics/default_header.jpg",
+    )
 
     def save(self, *args, **kwargs):
         if not self.name:
@@ -196,4 +208,3 @@ class BaseuserComment(models.Model):
 
     def __str__(self) -> str:
         return f"{self.username} - {self.baseuser_profile.name}"
-
