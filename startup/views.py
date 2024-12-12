@@ -255,7 +255,15 @@ class StartupPositionDeleteView(mixins.DestroyModelMixin, generics.GenericAPIVie
 
 
 class VoteProfile(GenericAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
+
+    def get_permissions(self):
+        """
+        diffrent permission classes for functions
+        """
+        if self.request.method in ["POST", "DELETE"]:
+            return [IsAuthenticated()]
+        return super().get_permissions()
 
     @swagger_auto_schema(
         request_body=VoteSerializer,
