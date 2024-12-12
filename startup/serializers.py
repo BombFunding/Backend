@@ -24,7 +24,6 @@ class StartupProfileSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "startup_user",
-            "startup_rank",
             "startup_categories",
             "startup_starting_date",
             "startup_profile_visit_count",

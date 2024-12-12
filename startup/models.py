@@ -9,7 +9,6 @@ class StartupProfile(models.Model):
     startup_user = models.OneToOneField(
         StartupUser, on_delete=models.CASCADE, editable=False, null=True
     )
-    startup_rank = models.PositiveSmallIntegerField(default=1)
     startup_categories = models.CharField(
         max_length=50,
         choices=[
@@ -29,9 +28,6 @@ class StartupProfile(models.Model):
     startup_ending_date = models.DateField(null=True, blank=True)  
     startup_profile_visit_count = models.PositiveIntegerField(default=0)  
 
-    def clean(self):
-        if not (1 <= self.startup_rank <= 5):
-            raise ValidationError({"startup_rank": "Rank must be between 1 and 5."})
 
     def save(self, *args, **kwargs):
         self.full_clean()

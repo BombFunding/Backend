@@ -13,6 +13,7 @@ class BaseUserAdminForm(forms.ModelForm):
 class BaseUserAdmin(admin.ModelAdmin):
     form = BaseUserAdminForm
     list_display = (
+        "id",
         "username",
         "email",
         "user_type",

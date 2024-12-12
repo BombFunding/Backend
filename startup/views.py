@@ -33,7 +33,6 @@ class StartupProfileRetrieveView(mixins.RetrieveModelMixin, generics.GenericAPIV
                         "profile": {
                             "id": 2,
                             "startup_user": 3,
-                            "startup_rank": 1,
                             "startup_categories": "Technology",
                             "startup_starting_date": None,
                             "startup_profile_visit_count": 2,
@@ -103,7 +102,7 @@ class StartupProfileUpdateView(mixins.UpdateModelMixin, generics.GenericAPIView)
         except StartupProfile.DoesNotExist:
             return Response({"detail": "Startup profile not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        excluded_fields = ["startup_profile_visit_count", "startupposition_set", "startup_rank"]
+        excluded_fields = ["startup_profile_visit_count", "startupposition_set"]
         update_data = {key: value for key, value in request.data.items() if key not in excluded_fields}
 
         serializer = self.get_serializer(startup_profile, data=update_data, partial=True)
