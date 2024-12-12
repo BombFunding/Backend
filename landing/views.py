@@ -10,6 +10,35 @@ from rest_framework.decorators import api_view, permission_classes
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
+def top_liked_startups(request):
+    top_startups = (
+        StartupProfile.objects.select_related('startup_user__username')
+        .order_by('-score')[:10]
+    )
+
+    data = []
+
+    for startup in top_startups:
+        username = startup.startup_user.username.username
+        profile_picture = None
+
+        try:
+            base_profile = BaseProfile.objects.get(base_user__username=username)
+            if base_profile.profile_picture:
+                profile_picture = base_profile.profile_picture.url
+        except BaseProfile.DoesNotExist:
+            profile_picture = None
+
+        data.append({
+            "username": username,
+            "profile_picture": profile_picture,
+            "score": startup.score,  
+        })
+
+    return Response(data)
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
 def top_visited_startups(request):
     top_startups = (
         StartupProfile.objects.select_related('startup_user__username')
