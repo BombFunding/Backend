@@ -124,16 +124,6 @@ class ResetPasswordView(generics.GenericAPIView):
 
 @swagger_auto_schema(
     method="post",
-    manual_parameters=[
-        openapi.Parameter(
-            "Authorization",
-            openapi.IN_HEADER,
-            description="Bearer Token for authentication",
-            type=openapi.TYPE_STRING,
-            required=True,
-            example="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-        )
-    ],
     request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
@@ -249,16 +239,6 @@ def baseuser_search_by_name(request, username):
 
 @swagger_auto_schema(
     method="get",
-    manual_parameters=[
-        openapi.Parameter(
-            "Authorization",
-            openapi.IN_HEADER,
-            description="Bearer Token for authentication",
-            type=openapi.TYPE_STRING,
-            required=True,
-            example="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-        )
-    ],
     responses={
         200: openapi.Response(
             description="User profile retrieved successfully.",
@@ -334,16 +314,6 @@ def view_own_baseuser_profile(request):
 
 @swagger_auto_schema(
     method="post",
-    manual_parameters=[
-        openapi.Parameter(
-            "Authorization",
-            openapi.IN_HEADER,
-            description="Bearer Token for authentication",
-            type=openapi.TYPE_STRING,
-            required=True,
-            example="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-        )
-    ],
     request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
@@ -511,16 +481,6 @@ def get_comments_by_profile(request, username):
 
 @swagger_auto_schema(
     method="delete",
-    manual_parameters=[
-        openapi.Parameter(
-            "Authorization",
-            openapi.IN_HEADER,
-            description="Bearer Token for authentication",
-            type=openapi.TYPE_STRING,
-            required=True,
-            example="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-        )
-    ],
     responses={
         200: openapi.Response(
             description="Comment deleted successfully.",
@@ -572,16 +532,6 @@ def delete_comment(request, comment_id):
 
 @swagger_auto_schema(
     method="post",
-    manual_parameters=[
-        openapi.Parameter(
-            "Authorization",
-            openapi.IN_HEADER,
-            description="Bearer Token for authentication",
-            type=openapi.TYPE_STRING,
-            required=True,
-            example="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-        )
-    ],
     request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
@@ -648,16 +598,6 @@ def add_comment(request, username):
 from authenticator.PersianSwear import PersianSwear
 @swagger_auto_schema(
     method="put",
-    manual_parameters=[
-        openapi.Parameter(
-            "Authorization",
-            openapi.IN_HEADER,
-            description="Bearer Token for authentication",
-            type=openapi.TYPE_STRING,
-            required=True,
-            example="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-        )
-    ],
     request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={

@@ -86,14 +86,6 @@ class StartupProfileUpdateView(mixins.UpdateModelMixin, generics.GenericAPIView)
     serializer_class = StartupProfileSerializer
     permission_classes = [IsAuthenticated]
 
-    @swagger_auto_schema(
-        operation_description="Update the startup profile",
-        request_body=StartupProfileSerializer,
-        responses={200: StartupProfileSerializer, 400: 'Bad Request', 403: 'Forbidden'},
-        manual_parameters=[
-            openapi.Parameter('Authorization', openapi.IN_HEADER, description="Bearer token for authentication", type=openapi.TYPE_STRING)
-        ]
-    )
     def patch(self, request):
         user = request.user
 
@@ -168,16 +160,7 @@ class StartupPositionListView(mixins.ListModelMixin, generics.GenericAPIView):
                 }
             ),
             403: openapi.Response(description="Forbidden - User is not a startup."),
-        },
-        manual_parameters=[
-            openapi.Parameter(
-                'Authorization',
-                openapi.IN_HEADER,
-                description="Bearer token for authentication",
-                type=openapi.TYPE_STRING,
-                required=True
-            )
-        ]
+        }
     )
     def get(self, request):
         user = request.user
@@ -196,14 +179,6 @@ class StartupPositionCreateView(mixins.CreateModelMixin, generics.GenericAPIView
     serializer_class = StartupPositionSerializer
     permission_classes = [IsAuthenticated]
 
-    @swagger_auto_schema(
-        operation_description="Create a new startup position",
-        request_body=StartupPositionSerializer,
-        responses={201: StartupPositionSerializer, 400: 'Bad Request', 403: 'Forbidden'},
-        manual_parameters=[
-            openapi.Parameter('Authorization', openapi.IN_HEADER, description="Bearer token for authentication", type=openapi.TYPE_STRING)
-        ]
-    )
     def post(self, request):
         user = request.user
 
@@ -229,14 +204,6 @@ class StartupPositionUpdateView(mixins.UpdateModelMixin, generics.GenericAPIView
     serializer_class = StartupPositionSerializer
     permission_classes = [IsAuthenticated]
 
-    @swagger_auto_schema(
-        operation_description="Update an existing startup position",
-        request_body=StartupPositionSerializer,
-        responses={200: StartupPositionSerializer, 400: 'Bad Request', 403: 'Forbidden'},
-        manual_parameters=[
-            openapi.Parameter('Authorization', openapi.IN_HEADER, description="Bearer token for authentication", type=openapi.TYPE_STRING)
-        ]
-    )
     def patch(self, request, position_id):
         user = request.user
 
@@ -267,13 +234,6 @@ class StartupPositionDeleteView(mixins.DestroyModelMixin, generics.GenericAPIVie
     serializer_class = StartupPositionSerializer
     permission_classes = [IsAuthenticated]
 
-    @swagger_auto_schema(
-        operation_description="Delete an existing startup position",
-        responses={200: 'Position deleted successfully.', 403: 'Forbidden', 404: 'Not Found'},
-        manual_parameters=[
-            openapi.Parameter('Authorization', openapi.IN_HEADER, description="Bearer token for authentication", type=openapi.TYPE_STRING)
-        ]
-    )
     def delete(self, request, position_id):
         user = request.user
 
