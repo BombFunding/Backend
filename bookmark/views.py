@@ -68,4 +68,6 @@ class DestroyBookmarkView(generics.DestroyAPIView):
     permission_classes = [permissions.IsAuthenticated, IsBookmarkOwner]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return BookmarkUser.objects.none()
         return self.queryset.filter(owner=self.request.user)
