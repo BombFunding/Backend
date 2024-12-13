@@ -13,11 +13,8 @@ class RetrieveInstanceMixin:
 
 
 class TeamMixin(RetrieveInstanceMixin):
-    def get_team(self, startup_profile_id):
-        return self.get_instance(Team, startup_profile=startup_profile_id)
-
-    def get_startup_profile(self, startup_profile_id):
-        return self.get_instance(StartupProfile, id=startup_profile_id)
+    def get_team(self, startup_user):
+        return self.get_instance(Team, startup_user=startup_user)
 
     def get_team_member(self, user, team):
         return self.get_instance(TeamMember, user=user, team=team)

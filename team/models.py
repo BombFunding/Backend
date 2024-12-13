@@ -1,10 +1,10 @@
 from django.db import models
 
-from startup.models import StartupProfile
+from startup.models import StartupUser
 from authenticator.models import BaseUser
 
 class Team(models.Model):
-    startup_profile = models.OneToOneField(StartupProfile, on_delete=models.CASCADE)
+    startup_user = models.OneToOneField(StartupUser, on_delete=models.CASCADE, default=None)
 
 class TeamMember(models.Model):
     team = models.ForeignKey(Team, on_delete=models.CASCADE)

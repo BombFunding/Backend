@@ -16,6 +16,6 @@ urlpatterns = [
     path("position/update/<int:position_id>/", StartupPositionUpdateView.as_view(), name="update_startup_position"),
     path("position/delete/<int:position_id>/", StartupPositionDeleteView.as_view(), name="delete_startup_position"),
     path("position/list/", StartupPositionListView.as_view(), name="list_startup_positions"),  
-    path("profile/<int:startup_profile_id>/team/", include("team.urls")),
+    path("profile/team/", include("team.urls")),
     path("profile/<int:startup_profile_id>/vote/", VoteProfile.as_view(), name="like-profile"),
 ]

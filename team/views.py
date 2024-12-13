@@ -11,14 +11,13 @@ class TeamSerializerContextMixin(TeamMixin):
         context = super().get_serializer_context()
         if getattr(self, 'swagger_fake_view', False):
             return context
-        context["team"] = self.get_team(self.kwargs["startup_profile_id"])
+        context["team"] = self.get_team(self.request.user)
         return context
 
 
 class TeamQuerysetMixin:
     def get_queryset(self):
-        startup_profile_id = self.kwargs["startup_profile_id"]
-        team = self.get_team(startup_profile_id)
+        team = self.get_team(self.request.user)
         return TeamMember.objects.filter(team=team)
 
 
