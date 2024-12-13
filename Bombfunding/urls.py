@@ -45,6 +45,7 @@ urlpatterns = [
     path("startup/", include("startup.urls")),
     path("landing/", include("landing.urls")),
     path("search/", include("search.urls")),
+    path("bookmark/", include("bookmark.urls")),
 ]
 
 if settings.DEBUG:
