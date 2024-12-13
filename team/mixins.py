@@ -1,6 +1,8 @@
-from startup.models import StartupProfile
+from startup.models import StartupUser
 from .models import Team, TeamMember
 from authenticator.models import BaseUser
+from startup.utils import is_startup_user
+from rest_framework.exceptions import ValidationError
 
 
 class RetrieveInstanceMixin:
@@ -13,7 +15,10 @@ class RetrieveInstanceMixin:
 
 
 class TeamMixin(RetrieveInstanceMixin):
-    def get_team(self, startup_user):
+    def get_team(self, user_id):
+        startup_user = self.get_instance(StartupUser, username=user_id)
+        if not is_startup_user(user_id):
+            raise ValidationError({"error": "The specified user is not a startup user."})
         return self.get_instance(Team, startup_user=startup_user)
 
     def get_team_member(self, user, team):

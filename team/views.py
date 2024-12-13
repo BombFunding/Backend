@@ -4,6 +4,8 @@ from .serializers import TeamMemberSerializer, TeamMemberListSerializer, TeamMem
 from rest_framework import permissions
 from .mixins import TeamMixin
 from .permissions import IsStartupOwner
+from authenticator.utils import get_user_id_from_username
+from startup.utils import is_startup_user
 
 
 class TeamSerializerContextMixin(TeamMixin):
@@ -26,9 +28,13 @@ class AddTeamMember(TeamSerializerContextMixin, generics.CreateAPIView):
     serializer_class = TeamMemberSerializer
 
 
-class ListTeamMembers(TeamQuerysetMixin, TeamMixin, generics.ListAPIView):
+class ListTeamMembers(TeamMixin, generics.ListAPIView):
     serializer_class = TeamMemberListSerializer
 
+    def get_queryset(self):
+        user_id = get_user_id_from_username(self.kwargs["username"])
+        team = self.get_team(user_id)
+        return TeamMember.objects.filter(team=team)
 
 class RemoveTeamMember(TeamMixin, TeamQuerysetMixin, generics.DestroyAPIView):
     permission_classes = [permissions.IsAuthenticated, IsStartupOwner]
