@@ -5,8 +5,8 @@ from .models import Team, TeamMember
 
 @admin.register(Team)
 class TeamAdmin(admin.ModelAdmin):
-    list_display = ("startup_profile",)
-    search_fields = ("startup_profile",)
+    list_display = ("startup_user",)
+    search_fields = ("startup_user",)
 
 @admin.register(TeamMember)
 class TeamMemberAdmin(admin.ModelAdmin):
