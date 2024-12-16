@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "team",
     "landing",
     "search",
+    "bookmark",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
