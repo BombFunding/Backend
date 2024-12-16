@@ -47,6 +47,7 @@ urlpatterns = [
     path("search/", include("search.urls")),
     path("bookmark/", include("bookmark.urls")),
     path("balance/", include("balance.urls")),
+    path("promotion/", include("promotion.urls")),
 ]
 
 if settings.DEBUG:
