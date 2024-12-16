@@ -17,6 +17,9 @@ from .models import StartupProfile, StartupPosition, StartupUser, StartupVote
 from .serializers import StartupProfileSerializer, StartupPositionSerializer, VoteSerializer
 from django.utils.translation import gettext as _
 from drf_yasg.utils import swagger_auto_schema
+from balance.utils import UserBalanceMixin
+
+POSITION_CREATION_COST = 100000
 
 class StartupProfileRetrieveView(mixins.RetrieveModelMixin, generics.GenericAPIView):
     queryset = StartupProfile.objects.all()
@@ -173,7 +176,7 @@ class StartupPositionListView(mixins.ListModelMixin, generics.GenericAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class StartupPositionCreateView(mixins.CreateModelMixin, generics.GenericAPIView):
+class StartupPositionCreateView(mixins.CreateModelMixin, generics.GenericAPIView, UserBalanceMixin):
     queryset = StartupPosition.objects.all()
     serializer_class = StartupPositionSerializer
     permission_classes = [IsAuthenticated]
@@ -193,6 +196,7 @@ class StartupPositionCreateView(mixins.CreateModelMixin, generics.GenericAPIView
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             serializer.save(startup_profile=startup_profile)
+            self.reduce_balance(user, POSITION_CREATION_COST)
             return Response({"detail": "Position created successfully.", "position": serializer.data},
                             status=status.HTTP_201_CREATED)
 

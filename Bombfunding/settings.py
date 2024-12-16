@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "landing",
     "search",
     "bookmark",
+    "balance",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
