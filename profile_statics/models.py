@@ -20,6 +20,18 @@ class ProfileStatics(models.Model):
             self.views[today] = 1  
         self.save()  
 
+    def increment_like(self, vote_type):
+        """
+        Increment the like or dislike count for today's date.
+        vote_type should be 1 for like, and -1 for dislike.
+        """
+        today = date.today().isoformat()
+        if today in self.likes:
+            self.likes[today] += vote_type  
+        else:
+            self.likes[today] = vote_type  
+        self.save()
+
     class Meta:
         verbose_name = "Profile Statistic"
         verbose_name_plural = "Profile Statistics"

@@ -296,33 +296,46 @@ class VoteProfile(GenericAPIView):
             )
 
         try:
+            
             startup_profile = StartupProfile.objects.get(pk=startup_profile_id)
         except StartupProfile.DoesNotExist:
             return Response(
                 {"detail": "Startup profile not found."},
                 status=status.HTTP_404_NOT_FOUND,
             )
+
         try:
+            
             startup_vote, created = StartupVote.objects.update_or_create(
                 user=user, startup_profile=startup_profile, defaults={"vote": vote_type}
             )
+
+            
             profile_statics, created = ProfileStatics.objects.get_or_create(
                 user=startup_profile.user
             )
+
+            
             today = date.today().isoformat()
+
+            
             if vote_type == 1:
                 if today in profile_statics.likes:
-                    profile_statics.likes[today] += 1
+                    profile_statics.likes[today] += 1  
                 else:
-                    profile_statics.likes[today] = 1
+                    profile_statics.likes[today] = 1  
+
             
             elif vote_type == -1:
                 if today in profile_statics.likes:
-                    profile_statics.likes[today] -= 1
+                    profile_statics.likes[today] -= 1  
                 else:
                     profile_statics.likes[today] = -1  
+
+            
             profile_statics.save()
 
+            
             if created:
                 return Response(
                     {"detail": "Vote added successfully."},
@@ -337,8 +350,7 @@ class VoteProfile(GenericAPIView):
                 {"detail": "You have already voted on this profile."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-
+        
     @swagger_auto_schema(
         responses={
             204: "Vote removed successfully.",
