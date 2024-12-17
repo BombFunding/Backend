@@ -8,6 +8,8 @@ venv\Scripts\activate
 pip install -r requirements.txt
 python manage.py makemigrations
 python manage.py migrate
+Python manage.py makemigrations team
+Python manage.py makemigrations bookmark
 python manage.py createsuperuser --username admin --email admin@gmail.com --user_type basic --password !ADMIN00admin
 python manage.py runserver
 
