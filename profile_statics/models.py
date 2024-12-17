@@ -11,6 +11,7 @@ class ProfileStatics(models.Model):
     )
     likes = models.JSONField(default=dict, blank=True)
     views = models.JSONField(default=dict, blank=True)
+    fund = models.JSONField(default=dict, blank=True)
 
     def increment_view(self):
         today = date.today().isoformat()  
@@ -36,7 +37,14 @@ class ProfileStatics(models.Model):
             self.likes[today] = -1
         self.save()
 
-
+    def increment_fund(self, amount):
+        today = date.today().isoformat()
+        if today in self.fund:
+            self.fund[today] += amount
+        else:
+            self.fund[today] = amount
+        self.save()
+        
     class Meta:
         verbose_name = "Profile Statistic"
         verbose_name_plural = "Profile Statistics"
