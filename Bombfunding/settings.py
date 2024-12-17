@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "startup",
     "team",
     "landing",
+    "profile_statics",
     "search",
     "bookmark",
     "balance",

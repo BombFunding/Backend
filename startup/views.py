@@ -18,6 +18,8 @@ from .serializers import StartupProfileSerializer, StartupPositionSerializer, Vo
 from django.utils.translation import gettext as _
 from drf_yasg.utils import swagger_auto_schema
 from balance.utils import UserBalanceMixin
+from datetime import date
+from profile_statics.models import ProfileStatics
 
 POSITION_CREATION_COST = 100000
 
@@ -79,6 +81,8 @@ class StartupProfileRetrieveView(mixins.RetrieveModelMixin, generics.GenericAPIV
         if request.user.username != username:
             startup_profile.startup_profile_visit_count += 1
             startup_profile.save()
+            profile_statics = ProfileStatics.objects.get(user=startup_user.username)
+            profile_statics.increment_view() 
 
         serializer = self.get_serializer(startup_profile)
         return Response({"profile": serializer.data}, status=status.HTTP_200_OK)
