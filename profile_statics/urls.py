@@ -1,6 +1,6 @@
 from django.urls import path
-from .views import WeeklyStatsView
+from .views import ProfileStaticsLast7DaysView
 
 urlpatterns = [
-    path('weekly-stats/', WeeklyStatsView.as_view(), name='weekly-stats'),
+    path('profile-statistics/last-7-days/', ProfileStaticsLast7DaysView.as_view(), name='profile-statistics-last-7-days'),
 ]
