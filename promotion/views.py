@@ -35,7 +35,6 @@ class PromotionToStartupView(GenericAPIView):
         StartupProfile.objects.create(
             startup_user=new_startup_user,
             startup_starting_date=None,
-            startup_ending_date=None,
         )
         return Response({"message": "Promotion to startup successful"})
 

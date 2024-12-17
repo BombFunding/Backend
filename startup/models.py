@@ -25,7 +25,6 @@ class StartupProfile(models.Model):
     )
     score = models.IntegerField(default=0)
     startup_starting_date = models.DateField(null=True, blank=True)  
-    startup_ending_date = models.DateField(null=True, blank=True)  
     startup_profile_visit_count = models.PositiveIntegerField(default=0)  
 
 
