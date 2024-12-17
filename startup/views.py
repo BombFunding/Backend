@@ -314,8 +314,10 @@ class VoteProfile(GenericAPIView):
                 user=startup_profile.startup_user.username
             )
 
-            
-            profile_statics.increment_like(vote_type)
+            if vote_type == 1:
+                profile_statics.increment_like()
+            elif vote_type == -1:
+                profile_statics.decrement_like()
 
             if created:
                 return Response(
