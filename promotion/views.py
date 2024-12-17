@@ -29,6 +29,7 @@ class PromotionToStartupView(GenericAPIView):
     def post(self, request):
         user = request.user
         change_balance(user, -STARTUP_PROMOTION_COST)
+        user.category = "startup"
         BasicUser.objects.filter(username=user).delete()
         new_startup_user = StartupUser.objects.create(username=user)
         StartupProfile.objects.create(
@@ -55,6 +56,7 @@ class PromotionToInvestorView(GenericAPIView):
     def post(self, request):
         user = request.user
         change_balance(user, -STARTUP_PROMOTION_COST)
+        user.category = "investor"
         BasicUser.objects.filter(username=user).delete()
         new_investor_user = InvestorUser.objects.create(username=user)
         return Response({"message": "Promotion to investor successful"})
