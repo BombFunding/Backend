@@ -48,6 +48,7 @@ urlpatterns = [
     path("bookmark/", include("bookmark.urls")),
     path("balance/", include("balance.urls")),
     path("promotion/", include("promotion.urls")),
+    path("position/", include("position.urls")),
     path("investor/", include("investor.urls")),
     path("profile_statics/", include("profile_statics.urls")),
 ]
