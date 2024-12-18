@@ -1,6 +1,8 @@
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+
 from django.core.validators import RegexValidator
+from django.contrib.auth.password_validation import validate_password
 from django.db import models
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
@@ -13,8 +15,14 @@ class BaseUserManager(BaseUserManager):
             raise RestValidationError("Email is required.")
         email = self.normalize_email(email)
         user = self.model(
-            username=username, email=email, user_type=user_type, password=password
+            username=username, email=email, user_type=user_type
         )
+        if password:
+            validate_password(password)
+            user.password = make_password(password)
+        else:
+            raise RestValidationError("Password is required")
+
         user.save(using=self._db)
         return user
 
@@ -45,29 +53,16 @@ class BaseUser(AbstractBaseUser):
 
     password = models.CharField(
         max_length=128,
-        validators=[
-            RegexValidator(
-                regex=r"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$",
-                message="Password must be at least 8 characters long, contain an uppercase letter, a lowercase letter, a number, and a special character.",
-                code="invalid_password",
-            )
-        ],
     )
     objects = BaseUserManager()
 
     USERNAME_FIELD = "username"
     REQUIRED_FIELDS = ["email", "password", "user_type"]
 
-    def save(self, *args, **kwargs):
-        if not self.pk:
-            self.full_clean()
-            self.password = make_password(self.password)
-        super(BaseUser, self).save(*args, **kwargs)
-
     def change_password(self, new_password):
-        self.password = new_password
-        self.full_clean()
+        validate_password(new_password)
         self.password = make_password(self.password)
+        print(self.password)
         self.save()
 
     def has_perm(self, perm, obj=None):

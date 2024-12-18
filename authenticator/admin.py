@@ -7,7 +7,15 @@ from startup.models import StartupProfile
 class BaseUserAdminForm(forms.ModelForm):
     class Meta:
         model = BaseUser
-        exclude = ["password"]  
+        fields = "__all__"
+
+    def clean(self):
+        if "password" in self.changed_data:
+            try:
+                self.instance.change_password(self.cleaned_data["password"])
+            except Exception as e:
+                self.add_error("password", e)
+        return super().clean()
 
 
 class BaseUserAdmin(admin.ModelAdmin):
@@ -20,9 +28,17 @@ class BaseUserAdmin(admin.ModelAdmin):
         "is_staff",
         "is_confirmed",
         "is_superuser",
+        "password"
     )
     search_fields = ("username", "email")
     list_filter = ("user_type", "is_staff", "is_superuser")
+
+    def save_model(self, request, obj, form, change):
+        if "password" in form.changed_data:
+            obj.change_password(form.cleaned_data["password"])
+            print("password changed")
+        super().save_model(request, obj, form, change)
+
 
 
 class BasicUserAdmin(admin.ModelAdmin):
