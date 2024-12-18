@@ -35,9 +35,16 @@ class RegisterView(generics.CreateAPIView):
     queryset = BaseUser.objects.all()
     serializer_class = RegisterSerializer
 
-    def perform_create(self, serializer):
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         user = serializer.save()
+
         send_email(user)
+
+        return Response(
+            {_("message"): _("User created successfully.")}, status=status.HTTP_201_CREATED
+        )
 
 
 class LoginView(GenericAPIView):

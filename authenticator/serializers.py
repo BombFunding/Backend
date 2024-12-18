@@ -1,5 +1,6 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.contrib.auth.password_validation import validate_password
 from django.utils.http import urlsafe_base64_decode
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
@@ -11,6 +12,19 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = BaseUser
         fields = ["email", "username", "password", "user_type"]
+
+    def validate(self, attrs):
+        validate_password(attrs["password"])
+        return attrs
+
+    def create(self, validated_data):
+        user = BaseUser.objects.create_user(
+            email=validated_data["email"],
+            username=validated_data["username"],
+            password=validated_data["password"],
+            user_type=validated_data["user_type"],
+        )
+        return user
 
 
 class LoginSerializer(serializers.Serializer):
