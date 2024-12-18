@@ -1,14 +1,14 @@
 from rest_framework import serializers
-from .models import StartupProfile, StartupPosition, StartupVote
+from .models import StartupProfile, Position, StartupVote
 from rest_framework import serializers
 from datetime import datetime
 
-class StartupPositionSerializer(serializers.ModelSerializer):
+class PositionSerializer(serializers.ModelSerializer):
     percent_funded = serializers.SerializerMethodField()
     days_remaining = serializers.SerializerMethodField()
 
     class Meta:
-        model = StartupPosition
+        model = Position
         fields = [
             "id",
             "name",
@@ -35,7 +35,7 @@ class StartupPositionSerializer(serializers.ModelSerializer):
         return 0  
 
 class StartupProfileSerializer(serializers.ModelSerializer):
-    positions = StartupPositionSerializer(many=True, read_only=True)
+    positions = PositionSerializer(many=True, read_only=True)
 
     class Meta:
         model = StartupProfile

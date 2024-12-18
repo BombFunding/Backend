@@ -1,10 +1,10 @@
 from django import forms
 from django.contrib import admin
 
-from .models import StartupApplication, StartupPosition, StartupProfile
+from .models import StartupApplication, Position, StartupProfile
 
-@admin.register(StartupPosition)
-class StartupPositionAdmin(admin.ModelAdmin):
+@admin.register(Position)
+class PositionAdmin(admin.ModelAdmin):
     list_display = [
         "id",
         "startup_profile",
@@ -46,15 +46,15 @@ class StartupProfileAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
-        return queryset.prefetch_related("startupposition_set")
+        return queryset.prefetch_related("Position_set")
 
     def get_positions_count(self, obj):
-        return obj.startupposition_set.count()
+        return obj.Position_set.count()
 
     get_positions_count.short_description = "Number of Positions"
 
     def get_position_ids(self, obj):
-        position_ids = [position.id for position in obj.startupposition_set.all()]
+        position_ids = [position.id for position in obj.Position_set.all()]
         return ", ".join(map(str, position_ids))
 
     get_position_ids.short_description = "Position IDs"

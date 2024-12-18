@@ -1,8 +1,8 @@
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from .models import StartupProfile, StartupPosition, StartupUser
-from .serializers import StartupProfileSerializer, StartupPositionSerializer
+from .models import StartupProfile, Position, StartupUser
+from .serializers import StartupProfileSerializer, PositionSerializer
 from rest_framework import mixins, generics
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -13,8 +13,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView
-from .models import StartupProfile, StartupPosition, StartupUser, StartupVote
-from .serializers import StartupProfileSerializer, StartupPositionSerializer, VoteSerializer
+from .models import StartupProfile, Position, StartupUser, StartupVote
+from .serializers import StartupProfileSerializer, PositionSerializer, VoteSerializer
 from django.utils.translation import gettext as _
 from drf_yasg.utils import swagger_auto_schema
 from balance.utils import UserBalanceMixin
@@ -110,7 +110,7 @@ class StartupProfileUpdateView(mixins.UpdateModelMixin, generics.GenericAPIView)
         except StartupProfile.DoesNotExist:
             return Response({"detail": "Startup profile not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        excluded_fields = ["startup_profile_visit_count", "startupposition_set"]
+        excluded_fields = ["startup_profile_visit_count", "Position_set"]
         update_data = {key: value for key, value in request.data.items() if key not in excluded_fields}
 
         serializer = self.get_serializer(startup_profile, data=update_data, partial=True)
@@ -126,12 +126,12 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from .models import StartupPosition
-from .serializers import StartupPositionSerializer
+from .models import Position
+from .serializers import PositionSerializer
 
-class StartupPositionListView(mixins.ListModelMixin, generics.GenericAPIView):
-    queryset = StartupPosition.objects.all()
-    serializer_class = StartupPositionSerializer
+class PositionListView(mixins.ListModelMixin, generics.GenericAPIView):
+    queryset = Position.objects.all()
+    serializer_class = PositionSerializer
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
@@ -176,14 +176,14 @@ class StartupPositionListView(mixins.ListModelMixin, generics.GenericAPIView):
             return Response({"detail": "Only users with 'startup' type can view positions."},
                             status=status.HTTP_403_FORBIDDEN)
 
-        positions = StartupPosition.objects.filter(startup_profile__startup_user=user.startupuser)
+        positions = Position.objects.filter(startup_profile__startup_user=user.startupuser)
         serializer = self.get_serializer(positions, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class StartupPositionCreateView(mixins.CreateModelMixin, generics.GenericAPIView, UserBalanceMixin):
-    queryset = StartupPosition.objects.all()
-    serializer_class = StartupPositionSerializer
+class PositionCreateView(mixins.CreateModelMixin, generics.GenericAPIView, UserBalanceMixin):
+    queryset = Position.objects.all()
+    serializer_class = PositionSerializer
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -207,9 +207,9 @@ class StartupPositionCreateView(mixins.CreateModelMixin, generics.GenericAPIView
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class StartupPositionUpdateView(mixins.UpdateModelMixin, generics.GenericAPIView):
-    queryset = StartupPosition.objects.all()
-    serializer_class = StartupPositionSerializer
+class PositionUpdateView(mixins.UpdateModelMixin, generics.GenericAPIView):
+    queryset = Position.objects.all()
+    serializer_class = PositionSerializer
     permission_classes = [IsAuthenticated]
 
     def patch(self, request, position_id):
@@ -225,8 +225,8 @@ class StartupPositionUpdateView(mixins.UpdateModelMixin, generics.GenericAPIView
             return Response({"detail": "Startup profile not found."}, status=status.HTTP_404_NOT_FOUND)
 
         try:
-            position = StartupPosition.objects.get(id=position_id, startup_profile=startup_profile)
-        except StartupPosition.DoesNotExist:
+            position = Position.objects.get(id=position_id, startup_profile=startup_profile)
+        except Position.DoesNotExist:
             return Response({"detail": "Position not found or not owned by this startup."}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = self.get_serializer(position, data=request.data, partial=True)
@@ -237,9 +237,9 @@ class StartupPositionUpdateView(mixins.UpdateModelMixin, generics.GenericAPIView
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class StartupPositionDeleteView(mixins.DestroyModelMixin, generics.GenericAPIView):
-    queryset = StartupPosition.objects.all()
-    serializer_class = StartupPositionSerializer
+class PositionDeleteView(mixins.DestroyModelMixin, generics.GenericAPIView):
+    queryset = Position.objects.all()
+    serializer_class = PositionSerializer
     permission_classes = [IsAuthenticated]
 
     def delete(self, request, position_id):
@@ -255,8 +255,8 @@ class StartupPositionDeleteView(mixins.DestroyModelMixin, generics.GenericAPIVie
             return Response({"detail": "Startup profile not found."}, status=status.HTTP_404_NOT_FOUND)
 
         try:
-            position = StartupPosition.objects.get(id=position_id, startup_profile=startup_profile)
-        except StartupPosition.DoesNotExist:
+            position = Position.objects.get(id=position_id, startup_profile=startup_profile)
+        except Position.DoesNotExist:
             return Response({"detail": "Position not found or not owned by this startup."}, status=status.HTTP_404_NOT_FOUND)
 
         position.delete()

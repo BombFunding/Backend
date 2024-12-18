@@ -37,10 +37,10 @@ class StartupProfile(models.Model):
 
     @property
     def positions(self):
-        return StartupPosition.objects.filter(startup_profile=self)
+        return Position.objects.filter(startup_profile=self)
 
 
-class StartupPosition(models.Model):
+class Position(models.Model):
     startup_profile = models.ForeignKey(StartupProfile, on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
     description = models.TextField()
@@ -55,7 +55,7 @@ class StartupPosition(models.Model):
 
     @property
     def positions(self):
-        return StartupPosition.objects.filter(startup_profile=self)
+        return Position.objects.filter(startup_profile=self)
 
 
 class StartupApplication(models.Model):

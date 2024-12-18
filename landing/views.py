@@ -2,7 +2,7 @@ from django.db.models import Sum
 from django.shortcuts import render
 from django.db import models
 from authenticator.models import BaseUser, StartupUser,BaseProfile
-from startup.models import StartupApplication,StartupPosition , StartupProfile , StartupUser
+from startup.models import StartupApplication,Position , StartupProfile , StartupUser
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -118,7 +118,7 @@ def top_funded_startups(request):
 def get_statistics(request):
     total_base_profiles = BaseProfile.objects.count()
     total_startup_profiles = StartupProfile.objects.count()
-    total_positions = StartupPosition.objects.count()
+    total_positions = Position.objects.count()
 
     data = {
         "total_base_profiles": total_base_profiles,
