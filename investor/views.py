@@ -1,93 +1,101 @@
-# from rest_framework.views import APIView
-# from rest_framework.response import Response
-# from rest_framework import status
-# from rest_framework.permissions import IsAuthenticated
-# from .models import Investor
-# from .serializers import InvestorSerializer
-# from drf_yasg.utils import swagger_auto_schema
-# from drf_yasg import openapi
+from rest_framework import status, mixins, generics
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from .models import InvestorProfile
+from authenticator.models import InvestorUser
+from .serializers import InvestorProfileSerializer
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
-# class InvestorUpdateView(APIView):
-#     permission_classes = [IsAuthenticated]  
+class InvestorProfileRetrieveView(mixins.RetrieveModelMixin, generics.GenericAPIView):
+    queryset = InvestorProfile.objects.all()
+    serializer_class = InvestorProfileSerializer
+    permission_classes = [AllowAny]
 
-    
-#     @swagger_auto_schema(
-#         operation_description="Retrieve investor profile without authentication.",
-#         responses={
-#             200: openapi.Response(
-#                 description="Investor details",
-#                 examples={
-#                     "application/json": {
-#                         "id": 1,
-#                         "name": "Investor A",
-#                         "tax_identification_number": "123456789",
-#                         "contact_number": "+989123456789",
-#                         "investor_ending_date": "2025-12-31",
-#                         "address": "123 Investor Street",
-#                         "starting_date": "2022-01-01"
-#                     }
-#                 }
-#             ),
-#             404: openapi.Response(
-#                 description="Investor not found",
-#                 examples={"application/json": {"detail": "Investor not found."}},
-#             ),
-#         }
-#     )
-#     def get(self, request, investor_id):
-#         try:
-#             investor = Investor.objects.get(pk=investor_id)
-#         except Investor.DoesNotExist:
-#             return Response({"detail": "Investor not found."}, status=status.HTTP_404_NOT_FOUND)
+    @swagger_auto_schema(
+        operation_description="Get the profile of an Investor user",
+        responses={
+            200: openapi.Response(
+                description="Profile retrieved successfully.",
+            ),
+            404: openapi.Response(
+                description="Not Found",
+                examples={"application/json": {"detail": "Profile not found."}},
+            ),
+        },
+    )
+    def get(self, request, username):
+        try:
+            investor_user = InvestorUser.objects.get(username__username=username)
+        except InvestorUser.DoesNotExist:
+            return Response({"detail": "Investor user not found."}, status=status.HTTP_404_NOT_FOUND)
 
-#         serializer = InvestorSerializer(investor)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
+        investor_profile = InvestorProfile.objects.filter(investor_user=investor_user).first()
 
-    
-#     @swagger_auto_schema(
-#         operation_description="Update investor profile.",
-#         request_body=InvestorSerializer,
-#         responses={
-#             200: openapi.Response(
-#                 description="Investor updated successfully",
-#                 examples={
-#                     "application/json": {
-#                         "id": 1,
-#                         "name": "Investor A",
-#                         "tax_identification_number": "123456789",
-#                         "contact_number": "+989123456789",
-#                         "investor_ending_date": "2025-12-31",
-#                         "address": "123 Investor Street"
-#                     }
-#                 }
-#             ),
-#             404: openapi.Response(
-#                 description="Investor not found",
-#                 examples={"application/json": {"detail": "Investor not found."}},
-#             ),
-#             400: openapi.Response(
-#                 description="Invalid data",
-#                 examples={"application/json": {"detail": "Invalid data."}},
-#             ),
-#         }
-#     )
-#     def post(self, request, investor_id):
-#         try:
-#             investor = Investor.objects.get(pk=investor_id)
-#         except Investor.DoesNotExist:
-#             return Response({"detail": "Investor not found."}, status=status.HTTP_404_NOT_FOUND)
+        if not investor_profile:
+            return Response({"detail": "Investor profile not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        if request.user.username != username:
+            investor_profile.investor_profile_visit_count += 1
+            investor_profile.save()
+            from profile_statics.models import ProfileStatics
+
+            profile_statics, _ = ProfileStatics.objects.get_or_create(user=investor_user.username)
+            profile_statics.increment_view()
+
+        serializer = self.get_serializer(investor_profile)
+        return Response({"profile": serializer.data}, status=status.HTTP_200_OK)
+
+
+class InvestorProfileUpdateView(mixins.UpdateModelMixin, generics.GenericAPIView):
+    queryset = InvestorProfile.objects.all()
+    serializer_class = InvestorProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Update an Investor Profile",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                "bio": openapi.Schema(type=openapi.TYPE_STRING, description="Biography of the investor"),
+                "experience": openapi.Schema(type=openapi.TYPE_STRING, description="Experience details of the investor"),
+                "linkedin_profile": openapi.Schema(type=openapi.TYPE_STRING, description="LinkedIn profile URL"),
+                
+            },
+            required=["bio"],  
+        ),
+        responses={
+            200: openapi.Response(
+                description="Investor profile updated successfully.",
+            ),
+            400: openapi.Response(
+                description="Validation error",
+            ),
+        },
+    )
+    def patch(self, request):
+        user = request.user
+        try:
+            investor_user = InvestorUser.objects.get(username=user)
+        except InvestorUser.DoesNotExist:
+            return Response({"detail": "Investor user not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            investor_profile = InvestorProfile.objects.get(investor_user=investor_user)
+        except InvestorProfile.DoesNotExist:
+            return Response({"detail": "Investor profile not found."}, status=status.HTTP_404_NOT_FOUND)
 
         
-#         if request.user != investor.user:
-#             return Response({"detail": "You can only update your own profile."}, status=status.HTTP_403_FORBIDDEN)
+        excluded_fields = ["investor_profile_visit_count", "score"]
+        update_data = {key: value for key, value in request.data.items() if key not in excluded_fields}
+
         
-        
-#         if 'starting_date' in request.data:
-#             del request.data['starting_date']
-        
-#         serializer = InvestorSerializer(instance=investor, data=request.data, partial=True)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-        
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = self.get_serializer(investor_profile, data=update_data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {"detail": "Investor profile updated successfully.", "profile": serializer.data},
+                status=status.HTTP_200_OK
+            )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

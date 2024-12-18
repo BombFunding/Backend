@@ -12,7 +12,7 @@ class InvestorProfile(models.Model):
     investor_starting_date = models.DateField(null=True, blank=True)
     investor_profile_visit_count = models.PositiveIntegerField(default=0)
 
-    national_id = models.CharField(max_length=10, verbose_name="National ID")
+    national_id = models.CharField(max_length=10, verbose_name="National ID",blank=True)
     legal_code = models.CharField(max_length=15, verbose_name="Legal Code", null=True, blank=True)
     iban = models.CharField(max_length=34, verbose_name="IBAN", null=True, blank=True)
     tax_identification_number = models.CharField(

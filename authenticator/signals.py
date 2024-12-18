@@ -10,6 +10,8 @@ from authenticator.models import BaseUser, BasicUser, InvestorUser, StartupUser
 from startup.models import StartupProfile
 from profile_statics.models import ProfileStatics  
 from django.db import transaction
+from investor.models import InvestorProfile
+from django.utils import timezone
 
 
 @receiver(post_save, sender=BaseUser)
@@ -29,7 +31,7 @@ def create_user_profile(sender, instance, created, **kwargs):
             StartupProfile.objects.create(
                 startup_user=startup_user,
                 startup_categories="Technology",
-                startup_starting_date=None,
+                startup_starting_date=timezone.now().date(),
                 startup_profile_visit_count=0,
             )
 
@@ -42,9 +44,18 @@ def create_user_profile(sender, instance, created, **kwargs):
 
         elif instance.user_type == "investor":
             
-            InvestorUser.objects.create(username=instance)
+            investor_user = InvestorUser.objects.create(username=instance)
 
-            
+            InvestorProfile.objects.create(
+                investor_user=investor_user,
+                investor_starting_date=timezone.now().date(),  
+                investor_profile_visit_count=0,
+                national_id="",
+                legal_code="",
+                iban="",
+                tax_identification_number="",
+                address="",
+            )
             ProfileStatics.objects.create(
                 user=instance,  
                 likes={},  
