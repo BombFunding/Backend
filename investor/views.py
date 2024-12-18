@@ -35,7 +35,7 @@ class InvestorProfileRetrieveView(mixins.RetrieveModelMixin, generics.GenericAPI
         if not investor_profile:
             return Response({"detail": "Investor profile not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        if request.user.username != username:
+        if request.user.is_authenticated and request.user.username != username:
             investor_profile.investor_profile_visit_count += 1
             investor_profile.save()
             from profile_statics.models import ProfileStatics

@@ -78,11 +78,12 @@ class StartupProfileRetrieveView(mixins.RetrieveModelMixin, generics.GenericAPIV
         if not startup_profile:
             return Response({"detail": "Startup profile not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        if request.user.username != username:
+        if request.user.is_authenticated and request.user.username != username:
             startup_profile.startup_profile_visit_count += 1
             startup_profile.save()
             profile_statics = ProfileStatics.objects.get(user=startup_user.username)
-            profile_statics.increment_view() 
+            profile_statics.increment_view()
+
 
         serializer = self.get_serializer(startup_profile)
         return Response({"profile": serializer.data}, status=status.HTTP_200_OK)
