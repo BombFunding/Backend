@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "authenticator",
     "startup",
     "investor",
+    "project",
     "team",
     "landing",
     "profile_statics",
