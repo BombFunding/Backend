@@ -35,13 +35,15 @@ class StartupProfile(models.Model):
     def __str__(self):
         return f"{self.startup_user.username}"
 
-    @property
-    def positions(self):
-        return Position.objects.filter(startup_profile=self)
 
 
 class Position(models.Model):
-    startup_profile = models.ForeignKey(StartupProfile, on_delete=models.CASCADE)
+    position_user = models.OneToOneField(
+        BaseUser,
+        on_delete=models.CASCADE,
+        limit_choices_to={"user_type__in": ["startup", "investor"]},
+        )
+
     name = models.CharField(max_length=50)
     description = models.TextField()
     total = models.IntegerField()
@@ -51,11 +53,7 @@ class Position(models.Model):
     end_time = models.DateTimeField()
 
     def __str__(self) -> str:
-        return f"{self.name} - {self.startup_profile.startup_user.username} {self.funded}/{self.total}"
-
-    @property
-    def positions(self):
-        return Position.objects.filter(startup_profile=self)
+        return f"{self.name} - {self.position_user.username}"
 
 
 class StartupApplication(models.Model):

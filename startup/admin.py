@@ -3,31 +3,35 @@ from django.contrib import admin
 
 from .models import StartupApplication, Position, StartupProfile
 
+from django.contrib import admin
+from .models import Position
+
+
 @admin.register(Position)
 class PositionAdmin(admin.ModelAdmin):
     list_display = [
         "id",
-        "startup_profile",
+        "position_user",  
         "name",
         "total",
         "funded",
         "is_done",
         "start_time",
         "end_time",
-        "get_startup_profile_name",
+        "get_position_user_name",  
     ]
     list_editable = ["funded", "is_done"]
-    search_fields = ["name", "startup_profile__base_profile__name"]
+    search_fields = ["name", "position_user__username"]  
     list_filter = ["is_done", "start_time", "end_time"]
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
-        return queryset.select_related("startup_profile")
+        return queryset.select_related("position_user")  
 
-    def get_startup_profile_name(self, obj):
-        return obj.startup_profile.startup_user.username
+    def get_position_user_name(self, obj):
+        return obj.position_user.username  
 
-    get_startup_profile_name.short_description = "Startup Profile"
+    get_position_user_name.short_description = "Position User"  
 
 @admin.register(StartupProfile)
 class StartupProfileAdmin(admin.ModelAdmin):
@@ -38,26 +42,10 @@ class StartupProfileAdmin(admin.ModelAdmin):
         "startup_categories",
         "startup_starting_date",
         "startup_profile_visit_count",
-        "get_positions_count",
-        "get_position_ids",
     ]
     search_fields = ["startup_categories"]
     list_filter = ["startup_categories", "startup_starting_date"]
 
-    def get_queryset(self, request):
-        queryset = super().get_queryset(request)
-        return queryset.prefetch_related("Position_set")
-
-    def get_positions_count(self, obj):
-        return obj.Position_set.count()
-
-    get_positions_count.short_description = "Number of Positions"
-
-    def get_position_ids(self, obj):
-        position_ids = [position.id for position in obj.Position_set.all()]
-        return ", ".join(map(str, position_ids))
-
-    get_position_ids.short_description = "Position IDs"
 
 @admin.register(StartupApplication)
 class StartupApplicationAdmin(admin.ModelAdmin):

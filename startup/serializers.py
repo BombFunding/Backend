@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from .models import StartupProfile, Position, StartupVote
 from rest_framework import serializers
-from datetime import datetime
+from datetime import datetime, date 
+
 
 class PositionSerializer(serializers.ModelSerializer):
     percent_funded = serializers.SerializerMethodField()
@@ -28,11 +29,12 @@ class PositionSerializer(serializers.ModelSerializer):
         return 0  
 
     def get_days_remaining(self, obj):
-        today = datetime.today().date()
-        if obj.end_time and obj.end_time > today:
-            remaining_days = (obj.end_time - today).days
+        today = date.today()  
+        if obj.end_time and obj.end_time.date() > today:  
+            remaining_days = (obj.end_time.date() - today).days  
             return remaining_days
-        return 0  
+        return 0 
+    
 
 class StartupProfileSerializer(serializers.ModelSerializer):
     positions = PositionSerializer(many=True, read_only=True)
@@ -45,7 +47,6 @@ class StartupProfileSerializer(serializers.ModelSerializer):
             "startup_categories",
             "startup_starting_date",
             "startup_profile_visit_count",
-            "positions",
         ]
 
 
