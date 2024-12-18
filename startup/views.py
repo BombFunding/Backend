@@ -129,7 +129,7 @@ from authenticator.models import BaseUser
 class PositionListView(mixins.ListModelMixin, generics.GenericAPIView):
     queryset = Position.objects.all()
     serializer_class = PositionSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     @swagger_auto_schema(
         operation_description="Retrieve all positions of the authenticated user (startup or investor).",
@@ -166,17 +166,16 @@ class PositionListView(mixins.ListModelMixin, generics.GenericAPIView):
             403: openapi.Response(description="Forbidden - User is not a startup or investor."),
         }
     )
-    def get(self, request):
-        user = request.user
-
-        if user.user_type not in ["startup", "investor"]:
+    def get(self, request, username):
+        try:
+            user = BaseUser.objects.get(username=username)
+        except BaseUser.DoesNotExist:
             return Response(
-                {"detail": "Only users with 'startup' or 'investor' type can view positions."},
-                status=status.HTTP_403_FORBIDDEN,
+                {"detail": "User not found."}, status=status.HTTP_404_NOT_FOUND
             )
 
         positions = Position.objects.filter(position_user=user)
-        serializer = self.get_serializer(positions, many=True)
+        serializer = PositionSerializer(positions, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

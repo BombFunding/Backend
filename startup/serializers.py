@@ -37,7 +37,6 @@ class PositionSerializer(serializers.ModelSerializer):
     
 
 class StartupProfileSerializer(serializers.ModelSerializer):
-    positions = PositionSerializer(many=True, read_only=True)
 
     class Meta:
         model = StartupProfile
