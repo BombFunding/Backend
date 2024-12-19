@@ -50,8 +50,11 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 INSTALLED_APPS = [
     "authenticator",
     "startup",
+    "position",
+    "investor",
     "team",
     "landing",
+    "profile_statics",
     "search",
     "bookmark",
     "balance",

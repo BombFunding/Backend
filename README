@@ -10,9 +10,9 @@ python manage.py makemigrations
 python manage.py migrate
 Python manage.py makemigrations team
 Python manage.py makemigrations bookmark
+Python manage.py makemigrations position
 python manage.py createsuperuser --username admin --email admin@gmail.com --user_type basic --password !ADMIN00admin
 python manage.py runserver
 
 
 if bug in migrations -> remove all files in migrations folders except ___init___ files
-migrate by name -> Python manage.py makemigrations team

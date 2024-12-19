@@ -1,23 +1,10 @@
 from rest_framework import serializers
-from .models import StartupProfile, StartupPosition, StartupVote
+from .models import StartupProfile, StartupVote
+from rest_framework import serializers
+from datetime import datetime, date 
 
-
-class StartupPositionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = StartupPosition
-        fields = [
-            "id",
-            "name",
-            "description",
-            "total",
-            "funded",
-            "is_done",
-            "start_time",
-            "end_time",
-        ]
 
 class StartupProfileSerializer(serializers.ModelSerializer):
-    positions = StartupPositionSerializer(many=True, read_only=True)
 
     class Meta:
         model = StartupProfile
@@ -27,7 +14,6 @@ class StartupProfileSerializer(serializers.ModelSerializer):
             "startup_categories",
             "startup_starting_date",
             "startup_profile_visit_count",
-            "positions",
         ]
 
 

@@ -1,8 +1,8 @@
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from .models import StartupProfile, StartupPosition, StartupUser
-from .serializers import StartupProfileSerializer, StartupPositionSerializer
+from .models import StartupProfile, Position, StartupUser
+from .serializers import StartupProfileSerializer
 from rest_framework import mixins, generics
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -13,13 +13,14 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView
-from .models import StartupProfile, StartupPosition, StartupUser, StartupVote
-from .serializers import StartupProfileSerializer, StartupPositionSerializer, VoteSerializer
+from .models import StartupProfile, Position, StartupUser, StartupVote
+from .serializers import StartupProfileSerializer, VoteSerializer
 from django.utils.translation import gettext as _
 from drf_yasg.utils import swagger_auto_schema
 from balance.utils import UserBalanceMixin
+from datetime import date
+from profile_statics.models import ProfileStatics
 
-POSITION_CREATION_COST = 100000
 
 class StartupProfileRetrieveView(mixins.RetrieveModelMixin, generics.GenericAPIView):
     queryset = StartupProfile.objects.all()
@@ -39,19 +40,8 @@ class StartupProfileRetrieveView(mixins.RetrieveModelMixin, generics.GenericAPIV
                             "startup_categories": "Technology",
                             "startup_starting_date": None,
                             "startup_profile_visit_count": 2,
-                            "positions": [
-                                {
-                                    "id": 1,
-                                    "name": "string",
-                                    "description": "string",
-                                    "total": 9223372854776000,
-                                    "funded": 922337203776000,
-                                    "is_done": True,
-                                    "start_time": "2024-12-06T23:50:23.585000Z",
-                                    "end_time": "2024-12-06T23:50:23.585000Z"
-                                }
-                            ]
                         }
+                        
                     }
                 },
             ),
@@ -76,9 +66,12 @@ class StartupProfileRetrieveView(mixins.RetrieveModelMixin, generics.GenericAPIV
         if not startup_profile:
             return Response({"detail": "Startup profile not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        if request.user.username != username:
+        if request.user.is_authenticated and request.user.username != username:
             startup_profile.startup_profile_visit_count += 1
             startup_profile.save()
+            profile_statics = ProfileStatics.objects.get(user=startup_user.username)
+            profile_statics.increment_view()
+
 
         serializer = self.get_serializer(startup_profile)
         return Response({"profile": serializer.data}, status=status.HTTP_200_OK)
@@ -105,7 +98,7 @@ class StartupProfileUpdateView(mixins.UpdateModelMixin, generics.GenericAPIView)
         except StartupProfile.DoesNotExist:
             return Response({"detail": "Startup profile not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        excluded_fields = ["startup_profile_visit_count", "startupposition_set"]
+        excluded_fields = ["startup_profile_visit_count"]
         update_data = {key: value for key, value in request.data.items() if key not in excluded_fields}
 
         serializer = self.get_serializer(startup_profile, data=update_data, partial=True)
@@ -115,147 +108,6 @@ class StartupProfileUpdateView(mixins.UpdateModelMixin, generics.GenericAPIView)
                             status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-from rest_framework import generics, mixins, status
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
-from .models import StartupPosition
-from .serializers import StartupPositionSerializer
-
-class StartupPositionListView(mixins.ListModelMixin, generics.GenericAPIView):
-    queryset = StartupPosition.objects.all()
-    serializer_class = StartupPositionSerializer
-    permission_classes = [IsAuthenticated]
-
-    @swagger_auto_schema(
-        operation_description="Retrieve all positions of the authenticated startup user.",
-        responses={
-            200: openapi.Response(
-                description="List of startup positions.",
-                examples={
-                    "application/json": [
-                        {
-                            "id": 1,
-                            "startup_profile": 2,
-                            "name": "Tech Innovators Fund",
-                            "description": "Funding for a groundbreaking tech startup.",
-                            "total": 100000,
-                            "funded": 50000,
-                            "is_done": False,
-                            "start_time": "2024-12-01T09:00:00Z",
-                            "end_time": "2024-12-31T18:00:00Z"
-                        },
-                        {
-                            "id": 2,
-                            "startup_profile": 2,
-                            "name": "Green Energy Ventures",
-                            "description": "Fundraising for sustainable energy solutions.",
-                            "total": 200000,
-                            "funded": 180000,
-                            "is_done": False,
-                            "start_time": "2024-11-01T09:00:00Z",
-                            "end_time": "2024-12-15T18:00:00Z"
-                        }
-                    ]
-                }
-            ),
-            403: openapi.Response(description="Forbidden - User is not a startup."),
-        }
-    )
-    def get(self, request):
-        user = request.user
-
-        if user.user_type != "startup":
-            return Response({"detail": "Only users with 'startup' type can view positions."},
-                            status=status.HTTP_403_FORBIDDEN)
-
-        positions = StartupPosition.objects.filter(startup_profile__startup_user=user.startupuser)
-        serializer = self.get_serializer(positions, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-class StartupPositionCreateView(mixins.CreateModelMixin, generics.GenericAPIView, UserBalanceMixin):
-    queryset = StartupPosition.objects.all()
-    serializer_class = StartupPositionSerializer
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        user = request.user
-
-        if user.user_type != "startup":
-            return Response({"detail": "Only users with 'startup' type can create positions."},
-                            status=status.HTTP_403_FORBIDDEN)
-
-        try:
-            startup_profile = StartupProfile.objects.get(startup_user=user.startupuser)
-        except StartupProfile.DoesNotExist:
-            return Response({"detail": "Startup profile not found."}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(startup_profile=startup_profile)
-            self.reduce_balance(user, POSITION_CREATION_COST)
-            return Response({"detail": "Position created successfully.", "position": serializer.data},
-                            status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class StartupPositionUpdateView(mixins.UpdateModelMixin, generics.GenericAPIView):
-    queryset = StartupPosition.objects.all()
-    serializer_class = StartupPositionSerializer
-    permission_classes = [IsAuthenticated]
-
-    def patch(self, request, position_id):
-        user = request.user
-
-        if user.user_type != "startup":
-            return Response({"detail": "Only users with 'startup' type can update positions."},
-                            status=status.HTTP_403_FORBIDDEN)
-
-        try:
-            startup_profile = StartupProfile.objects.get(startup_user=user.startupuser)
-        except StartupProfile.DoesNotExist:
-            return Response({"detail": "Startup profile not found."}, status=status.HTTP_404_NOT_FOUND)
-
-        try:
-            position = StartupPosition.objects.get(id=position_id, startup_profile=startup_profile)
-        except StartupPosition.DoesNotExist:
-            return Response({"detail": "Position not found or not owned by this startup."}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = self.get_serializer(position, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"detail": "Position updated successfully.", "position": serializer.data},
-                            status=status.HTTP_200_OK)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class StartupPositionDeleteView(mixins.DestroyModelMixin, generics.GenericAPIView):
-    queryset = StartupPosition.objects.all()
-    serializer_class = StartupPositionSerializer
-    permission_classes = [IsAuthenticated]
-
-    def delete(self, request, position_id):
-        user = request.user
-
-        if user.user_type != "startup":
-            return Response({"detail": "Only users with 'startup' type can delete positions."},
-                            status=status.HTTP_403_FORBIDDEN)
-
-        try:
-            startup_profile = StartupProfile.objects.get(startup_user=user.startupuser)
-        except StartupProfile.DoesNotExist:
-            return Response({"detail": "Startup profile not found."}, status=status.HTTP_404_NOT_FOUND)
-
-        try:
-            position = StartupPosition.objects.get(id=position_id, startup_profile=startup_profile)
-        except StartupPosition.DoesNotExist:
-            return Response({"detail": "Position not found or not owned by this startup."}, status=status.HTTP_404_NOT_FOUND)
-
-        position.delete()
-        return Response({"detail": "Position deleted successfully."}, status=status.HTTP_200_OK)
 
 
 class VoteProfile(GenericAPIView):
@@ -300,9 +152,21 @@ class VoteProfile(GenericAPIView):
             )
 
         try:
+            
             startup_vote, created = StartupVote.objects.update_or_create(
                 user=user, startup_profile=startup_profile, defaults={"vote": vote_type}
             )
+
+            
+            profile_statics, _ = ProfileStatics.objects.get_or_create(
+                user=startup_profile.startup_user.username
+            )
+
+            if vote_type == 1:
+                profile_statics.increment_like()
+            elif vote_type == -1:
+                profile_statics.decrement_like()
+
             if created:
                 return Response(
                     {"detail": "Vote added successfully."},
@@ -317,6 +181,7 @@ class VoteProfile(GenericAPIView):
                 {"detail": "You have already voted on this profile."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
 
     @swagger_auto_schema(
         responses={

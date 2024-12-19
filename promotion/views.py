@@ -10,8 +10,8 @@ from balance.serializers import change_balance
 from drf_yasg.utils import swagger_auto_schema
 import drf_yasg.openapi
 
-STARTUP_PROMOTION_COST = 1000
-INVESTOR_PROMOTION_COST = 1000
+STARTUP_PROMOTION_COST = 0
+INVESTOR_PROMOTION_COST = 0
 
 class PromotionToStartupView(GenericAPIView):
     permission_classes = [IsAuthenticated, IsBaseUser]
@@ -35,7 +35,6 @@ class PromotionToStartupView(GenericAPIView):
         StartupProfile.objects.create(
             startup_user=new_startup_user,
             startup_starting_date=None,
-            startup_ending_date=None,
         )
         return Response({"message": "Promotion to startup successful"})
 

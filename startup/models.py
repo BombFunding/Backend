@@ -1,7 +1,7 @@
 from typing import Any
 from django.db import models
 from authenticator.models import BaseUser, StartupUser, BaseProfile
-
+from position.models import Position
 from django.core.exceptions import ValidationError
 
 
@@ -25,7 +25,6 @@ class StartupProfile(models.Model):
     )
     score = models.IntegerField(default=0)
     startup_starting_date = models.DateField(null=True, blank=True)  
-    startup_ending_date = models.DateField(null=True, blank=True)  
     startup_profile_visit_count = models.PositiveIntegerField(default=0)  
     page = models.JSONField(default=dict, blank=True)
 
@@ -37,40 +36,6 @@ class StartupProfile(models.Model):
     def __str__(self):
         return f"{self.startup_user.username}"
 
-    @property
-    def positions(self):
-        return StartupPosition.objects.filter(startup_profile=self)
-
-
-class StartupPosition(models.Model):
-    startup_profile = models.ForeignKey(StartupProfile, on_delete=models.CASCADE)
-    name = models.CharField(max_length=50)
-    description = models.TextField()
-    total = models.IntegerField()
-    funded = models.IntegerField()
-    is_done = models.BooleanField(default=False)
-    start_time = models.DateTimeField()
-    end_time = models.DateTimeField()
-
-    def __str__(self) -> str:
-        return f"{self.name} - {self.startup_profile.startup_user.username} {self.funded}/{self.total}"
-
-    @property
-    def positions(self):
-        return StartupPosition.objects.filter(startup_profile=self)
-
-
-class StartupApplication(models.Model):
-    startup_applicant = models.ForeignKey(BaseProfile, on_delete=models.CASCADE)
-    investor_position = models.ForeignKey(
-        "Bombfunding.InvestPosition",
-        on_delete=models.CASCADE,
-        null=True,
-        default=None,
-    )
-
-    def __str__(self) -> str:
-        return f"{self.startup_applicant.name} - {self.investor_position.name}"
 
 
 class StartupVote(models.Model):
