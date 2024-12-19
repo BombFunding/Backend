@@ -272,3 +272,31 @@ class PositionRenewView(mixins.UpdateModelMixin, generics.GenericAPIView):
             status=status.HTTP_200_OK
         )
     
+from rest_framework.views import APIView
+
+class PositionCostView(APIView):
+    @swagger_auto_schema(
+        operation_description="Retrieve the position costs.",
+        responses={
+            200: openapi.Response(
+                description="Position costs.",
+                examples={
+                    "application/json": {
+                        "POSITION_CREATION_BASE_COST": 100000,
+                        "POSITION_CREATION_COST_PER_DAY": 10000,
+                        "POSITION_RENEWAL_COST_3_DAY": 25000,
+                        "POSITION_RENEWAL_COST_7_DAY": 50000,
+                        "POSITION_RENEWAL_COST_10_DAY": 80000
+                    }
+                }
+            )
+        }
+    )
+    def get(self, request):
+        return Response({
+            "POSITION_CREATION_BASE_COST": POSITION_CREATION_BASE_COST,
+            "POSITION_CREATION_COST_PER_DAY": POSITION_CREATION_COST_PER_DAY,
+            "POSITION_RENEWAL_COST_3_DAY": POSITION_RENEWAL_COST_3_DAY,
+            "POSITION_RENEWAL_COST_7_DAY": POSITION_RENEWAL_COST_7_DAY,
+            "POSITION_RENEWAL_COST_10_DAY": POSITION_RENEWAL_COST_10_DAY
+        })

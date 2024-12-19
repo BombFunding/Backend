@@ -5,6 +5,7 @@ from .views import (
     PositionDeleteView,
     PositionListView,
     PositionRenewView,  
+    PositionCostView,
 )
 
 urlpatterns = [
@@ -13,4 +14,5 @@ urlpatterns = [
     path("delete/<int:position_id>/", PositionDeleteView.as_view(), name="delete_startup_position"),
     path("list/<str:username>/", PositionListView.as_view(), name="list_startup_positions"),
     path("renew/<int:position_id>/", PositionRenewView.as_view(), name="renew_startup_position"),  
+    path('costs/', PositionCostView.as_view(), name='position_costs'),
 ]
