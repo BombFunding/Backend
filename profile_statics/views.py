@@ -6,6 +6,11 @@ from .models import ProfileStatics
 import calendar
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from datetime import timedelta
+from calendar import month_name
+from django.utils.timezone import now
+from position.models import Position , Transaction
+from django.db.models import Sum
 
 class ProfileStaticsLast7DaysView(APIView):
     
@@ -74,6 +79,79 @@ class ProfileStaticsLast7DaysView(APIView):
                 "day": persian_day_name,
                 "view": views,
                 "like": likes
+            })
+
+        return Response(result)
+
+
+class ProfileStaticsLast6MonthsView(APIView):
+    
+    @swagger_auto_schema(
+        operation_description="Get fund statistics for the last 6 months for a specific startup.",
+        manual_parameters=[
+            openapi.Parameter(
+                'username', openapi.IN_QUERY, 
+                description="Username of the startup to filter the statistics by", 
+                type=openapi.TYPE_STRING
+            ),
+        ],
+        responses={
+            200: openapi.Response(
+                description="A list of fund statistics for the last 6 months",
+                examples={
+                    'application/json': [
+                        {"month": "آبان", "fund": "100000"},
+                        {"month": "مهر", "fund": "75000"},
+                        {"month": "شهریور", "fund": "120000"},
+                        {"month": "مرداد", "fund": "50000"},
+                        {"month": "تیر", "fund": "85000"},
+                        {"month": "خرداد", "fund": "95000"}
+                    ]
+                }
+            )
+        }
+    )
+    def get(self, request, *args, **kwargs):
+        username = request.GET.get("username", None)
+        if not username:
+            return Response({"error": "Username is required."}, status=400)
+
+        
+        today = now().date()
+        current_month = today.replace(day=1)
+        
+        
+        positions = Position.objects.filter(position_user__username=username)
+        if not positions.exists():
+            return Response({"error": "No positions found for this startup."}, status=404)
+
+        
+        result = []
+        for i in range(6):
+            month_date = (current_month - timedelta(days=1)).replace(day=1) if i > 0 else current_month
+            current_month = month_date.replace(day=1)
+
+            persian_month_names = {
+                "January": "فروردین", "February": "اردیبهشت", "March": "خرداد",
+                "April": "تیر", "May": "مرداد", "June": "شهریور",
+                "July": "مهر", "August": "آبان", "September": "آذر",
+                "October": "دی", "November": "بهمن", "December": "اسفند",
+            }
+            month_name_persian = persian_month_names.get(month_name[month_date.month], month_date.month)
+
+            
+            monthly_transactions = Transaction.objects.filter(
+                position__in=positions,
+                investment_date__month=month_date.month,
+                investment_date__year=month_date.year
+            )
+
+            
+            total_fund = monthly_transactions.aggregate(Sum('investment_amount'))['investment_amount__sum'] or 0
+
+            result.append({
+                "month": month_name_persian,
+                "fund": f"{total_fund:.0f}"  
             })
 
         return Response(result)
