@@ -16,6 +16,11 @@ from django.utils import timezone
 
 @receiver(post_save, sender=BaseUser)
 def create_user_profile(sender, instance, created, **kwargs):
+    """
+    Creates related profiles for users based on their user type 
+    when a new BaseUser is created, regardless of whether it's via
+    request or admin panel.
+    """
     if created:
         
         base_profile = BaseProfile.objects.create(
@@ -25,8 +30,8 @@ def create_user_profile(sender, instance, created, **kwargs):
             bio="",
         )
         
+        
         if instance.user_type == "startup":
-            
             startup_user = StartupUser.objects.create(username=instance)
             StartupProfile.objects.create(
                 startup_user=startup_user,
@@ -34,21 +39,18 @@ def create_user_profile(sender, instance, created, **kwargs):
                 startup_starting_date=timezone.now().date(),
                 startup_profile_visit_count=0,
             )
-
-            
             ProfileStatics.objects.create(
-                user=instance,  
-                likes={},  
-                views={},  
+                user=instance,
+                likes={},
+                views={},
             )
 
+        
         elif instance.user_type == "investor":
-            
             investor_user = InvestorUser.objects.create(username=instance)
-
             InvestorProfile.objects.create(
                 investor_user=investor_user,
-                investor_starting_date=timezone.now().date(),  
+                investor_starting_date=timezone.now().date(),
                 investor_profile_visit_count=0,
                 national_id="",
                 legal_code="",
@@ -57,11 +59,11 @@ def create_user_profile(sender, instance, created, **kwargs):
                 address="",
             )
             ProfileStatics.objects.create(
-                user=instance,  
-                likes={},  
-                views={},  
+                user=instance,
+                likes={},
+                views={},
             )
 
+        
         elif instance.user_type == "basic":
-            
             BasicUser.objects.create(username=instance)
