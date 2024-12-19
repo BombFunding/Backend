@@ -37,19 +37,6 @@ class StartupProfile(models.Model):
 
 
 
-class StartupApplication(models.Model):
-    startup_applicant = models.ForeignKey(BaseProfile, on_delete=models.CASCADE)
-    investor_position = models.ForeignKey(
-        "Bombfunding.InvestPosition",
-        on_delete=models.CASCADE,
-        null=True,
-        default=None,
-    )
-
-    def __str__(self) -> str:
-        return f"{self.startup_applicant.name} - {self.investor_position.name}"
-
-
 class StartupVote(models.Model):
     VOTE_CHOICES = (
         (1, "Upvote"),

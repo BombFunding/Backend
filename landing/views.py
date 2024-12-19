@@ -2,7 +2,7 @@ from django.db.models import Sum
 from django.shortcuts import render
 from django.db import models
 from authenticator.models import BaseUser, StartupUser,BaseProfile
-from startup.models import StartupApplication,Position , StartupProfile , StartupUser
+from startup.models import Position , StartupProfile , StartupUser
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
