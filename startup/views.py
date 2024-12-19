@@ -21,7 +21,6 @@ from balance.utils import UserBalanceMixin
 from datetime import date
 from profile_statics.models import ProfileStatics
 
-POSITION_CREATION_COST = 100000
 
 class StartupProfileRetrieveView(mixins.RetrieveModelMixin, generics.GenericAPIView):
     queryset = StartupProfile.objects.all()

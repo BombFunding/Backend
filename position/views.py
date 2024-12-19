@@ -19,6 +19,10 @@ from rest_framework.response import Response
 from rest_framework import mixins, generics
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from balance.utils import UserBalanceMixin
+
+POSITION_CREATION_COST = 100000
+
 
 class PositionListView(mixins.ListModelMixin, generics.GenericAPIView):
     queryset = Position.objects.all()
@@ -89,6 +93,8 @@ class PositionCreateView(mixins.CreateModelMixin, generics.GenericAPIView):
 
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
+            mixin = UserBalanceMixin()
+            mixin.reduce_balance(user, POSITION_CREATION_COST)  
             serializer.save(position_user=user)
             return Response(
                 {"detail": "Position created successfully.", "position": serializer.data},
@@ -96,7 +102,6 @@ class PositionCreateView(mixins.CreateModelMixin, generics.GenericAPIView):
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class PositionUpdateView(mixins.UpdateModelMixin, generics.GenericAPIView):
     queryset = Position.objects.all()

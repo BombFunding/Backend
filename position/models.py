@@ -2,12 +2,11 @@ from django.db import models
 from authenticator.models import BaseUser
 
 class Position(models.Model):
-    position_user = models.OneToOneField(
+    position_user = models.ForeignKey(
         BaseUser,
         on_delete=models.CASCADE,
         limit_choices_to={"user_type__in": ["startup", "investor"]},
-        )
-
+    )
     name = models.CharField(max_length=50)
     description = models.TextField()
     total = models.IntegerField()
