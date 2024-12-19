@@ -6,6 +6,7 @@ from .views import (
     PositionListView,
     PositionRenewView,  
     PositionCostView,
+    InvestmentCreateView,
 )
 
 urlpatterns = [
@@ -15,4 +16,7 @@ urlpatterns = [
     path("list/<str:username>/", PositionListView.as_view(), name="list_startup_positions"),
     path("renew/<int:position_id>/", PositionRenewView.as_view(), name="renew_startup_position"),  
     path('costs/', PositionCostView.as_view(), name='position_costs'),
+    path("investment_on/", InvestmentCreateView.as_view(), name="create_investment"),
 ]
+
+

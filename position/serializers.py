@@ -34,3 +34,10 @@ class PositionSerializer(serializers.ModelSerializer):
             remaining_days = (obj.end_time.date() - today).days  
             return remaining_days
         return 0 
+    
+from .models import Transaction
+
+class TransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Transaction
+        fields = ['id', 'investor_user', 'position', 'amount', 'transaction_date']
