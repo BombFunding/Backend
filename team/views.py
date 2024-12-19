@@ -7,9 +7,8 @@ from .serializers import (
 )
 from rest_framework import permissions
 from .mixins import TeamMixin
-from .permissions import IsStartupOwner
+from .permissions import IsStartupUser
 from authenticator.utils import get_user_id_from_username
-from startup.utils import is_startup_user
 
 
 class TeamSerializerContextMixin(TeamMixin):
@@ -28,7 +27,7 @@ class TeamQuerysetMixin:
 
 
 class AddTeamMember(TeamSerializerContextMixin, generics.CreateAPIView):
-    permission_classes = [permissions.IsAuthenticated, IsStartupOwner]
+    permission_classes = [permissions.IsAuthenticated, IsStartupUser]
     serializer_class = TeamMemberSerializer
 
 
@@ -41,7 +40,7 @@ class ListTeamMembers(TeamMixin, generics.ListAPIView):
         return TeamMember.objects.filter(team=team)
 
 class RemoveTeamMember(TeamMixin, TeamQuerysetMixin, generics.DestroyAPIView):
-    permission_classes = [permissions.IsAuthenticated, IsStartupOwner]
+    permission_classes = [permissions.IsAuthenticated, IsStartupUser]
     serializer_class = TeamMemberSerializer
     lookup_field = "user"
 
@@ -49,6 +48,6 @@ class RemoveTeamMember(TeamMixin, TeamQuerysetMixin, generics.DestroyAPIView):
 class UpdateTeamMember(
     TeamSerializerContextMixin, TeamQuerysetMixin, TeamMixin, generics.UpdateAPIView
 ):
-    permission_classes = [permissions.IsAuthenticated, IsStartupOwner]
+    permission_classes = [permissions.IsAuthenticated, IsStartupUser]
     serializer_class = TeamMemberUpdateSerializer
     lookup_field = "user"
