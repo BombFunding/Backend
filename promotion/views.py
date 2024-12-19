@@ -6,6 +6,7 @@ from authenticator.models import BasicUser, StartupUser, InvestorUser
 from startup.models import StartupProfile
 from .serializers import PromotionSerializer
 from balance.serializers import change_balance
+from investor.models import InvestorProfile
 
 from drf_yasg.utils import swagger_auto_schema
 import drf_yasg.openapi
@@ -29,13 +30,14 @@ class PromotionToStartupView(GenericAPIView):
     def post(self, request):
         user = request.user
         change_balance(user, -STARTUP_PROMOTION_COST)
-        user.category = "startup"
+        user.user_type = "startup"
         BasicUser.objects.filter(username=user).delete()
         new_startup_user = StartupUser.objects.create(username=user)
         StartupProfile.objects.create(
             startup_user=new_startup_user,
             startup_starting_date=None,
         )
+        user.save()
         return Response({"message": "Promotion to startup successful"})
 
 class PromotionToInvestorView(GenericAPIView):
@@ -55,7 +57,11 @@ class PromotionToInvestorView(GenericAPIView):
     def post(self, request):
         user = request.user
         change_balance(user, -STARTUP_PROMOTION_COST)
-        user.category = "investor"
+        user.user_type = "investor"
         BasicUser.objects.filter(username=user).delete()
         new_investor_user = InvestorUser.objects.create(username=user)
+        InvestorProfile.objects.create(
+            investor_user=new_investor_user
+        )
+        user.save()
         return Response({"message": "Promotion to investor successful"})
