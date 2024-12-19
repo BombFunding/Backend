@@ -7,13 +7,3 @@ class IsStartupUser(permissions.BasePermission):
         return StartupUser.objects.filter(username=request.user).exists()
     
         
-class IsStartupOwner(permissions.BasePermission):
-    def has_permission(self, request, view):
-        user = request.user
-
-        try:
-            print("FAILED TO GET USER")
-            startup_user = StartupUser.objects.get(username=user)
-        except StartupUser.DoesNotExist:
-            return False
-        return True

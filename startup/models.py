@@ -27,6 +27,7 @@ class StartupProfile(models.Model):
     startup_starting_date = models.DateField(null=True, blank=True)  
     startup_ending_date = models.DateField(null=True, blank=True)  
     startup_profile_visit_count = models.PositiveIntegerField(default=0)  
+    page = models.JSONField(default=dict, blank=True)
 
 
     def save(self, *args, **kwargs):

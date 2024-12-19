@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "bookmark",
     "balance",
     "promotion",
+    "profilepage",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
