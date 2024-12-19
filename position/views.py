@@ -21,7 +21,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from balance.utils import UserBalanceMixin
 
-POSITION_CREATION_COST = 100000
+POSITION_CREATION_COST_PER_DAY = 100000
 
 
 class PositionListView(mixins.ListModelMixin, generics.GenericAPIView):
@@ -93,8 +93,23 @@ class PositionCreateView(mixins.CreateModelMixin, generics.GenericAPIView):
 
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
+            
+            start_time = serializer.validated_data.get("start_time")
+            end_time = serializer.validated_data.get("end_time")
+
+            
+            delta = (end_time - start_time).days
+            if delta < 1:  
+                return Response(
+                    {"detail": "The duration must be at least 1 day."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            
             mixin = UserBalanceMixin()
-            mixin.reduce_balance(user, POSITION_CREATION_COST)  
+            mixin.reduce_balance(user, POSITION_CREATION_COST_PER_DAY * delta)
+
+            
             serializer.save(position_user=user)
             return Response(
                 {"detail": "Position created successfully.", "position": serializer.data},
@@ -102,6 +117,7 @@ class PositionCreateView(mixins.CreateModelMixin, generics.GenericAPIView):
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class PositionUpdateView(mixins.UpdateModelMixin, generics.GenericAPIView):
     queryset = Position.objects.all()
