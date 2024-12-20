@@ -42,6 +42,8 @@ urlpatterns = [
         schema_view.with_ui("swagger", cache_timeout=0),
         name="schema-swagger-ui",
     ),
+    path('swagger<format>/', schema_view.without_ui(cache_timeout=0),
+         name='schema-json'),
     path("startup/", include("startup.urls")),
     path("landing/", include("landing.urls")),
     path("search/", include("search.urls")),
@@ -52,7 +54,9 @@ urlpatterns = [
     path("position/", include("position.urls")),
     path("investor/", include("investor.urls")),
     path("profile_statics/", include("profile_statics.urls")),
+    path("project/", include("project.urls")),
 ]
 
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.MEDIA_URL,
+                          document_root=settings.MEDIA_ROOT)

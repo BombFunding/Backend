@@ -14,10 +14,8 @@ class StartupProfileAdmin(admin.ModelAdmin):
         "id",
         "startup_user",
         "score",
-        "startup_categories",
         "startup_starting_date",
         "startup_profile_visit_count",
     ]
-    search_fields = ["startup_categories"]
-    list_filter = ["startup_categories", "startup_starting_date"]
+    list_filter = ["startup_starting_date","startup_ending_date"]
 
