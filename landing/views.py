@@ -69,50 +69,41 @@ def top_visited_startups(request):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def top_funded_startups(request):
-    startup_funding_data = []
-    
-    for startup in StartupProfile.objects.all():
-        
-        total_funded = Position.objects.filter(
-            position_user=startup.startup_user.username
-        ).aggregate(
-            funded_sum=models.Sum('funded')
-        )['funded_sum'] or 0  
+    positions = Position.objects.values('position_user').annotate(
+        total_funded=Sum('funded')
+    ).order_by('-total_funded')  
 
-        startup_funding_data.append({
-            "startup": startup,
-            "total_funded": total_funded,
-        })
-
-    
-    top_startups = sorted(
-        startup_funding_data, 
-        key=lambda x: x['total_funded'], 
-        reverse=True
-    )[:10]
-
-    data = []
-    for entry in top_startups:
-        startup = entry['startup']
-        total_funded = entry['total_funded']
-        username = startup.startup_user.username.username
+    top_users = []
+    for position_data in positions[:10]:  
+        total_funded = position_data['total_funded']
         profile_picture = None
+        user_id = position_data['position_user']  
 
         
         try:
-            base_profile = BaseProfile.objects.get(base_user__username=username)
+            user = BaseUser.objects.get(id=user_id, user_type="startup")
+        except BaseUser.DoesNotExist:
+            continue  
+
+        username = user.username  
+
+        
+        try:
+            base_profile = BaseProfile.objects.get(base_user=user_id)
             if base_profile.profile_picture:
                 profile_picture = base_profile.profile_picture.url
         except BaseProfile.DoesNotExist:
             profile_picture = None
 
-        data.append({
+        
+        top_users.append({
             "username": username,
             "profile_picture": profile_picture,
             "total_funded": total_funded,
         })
 
-    return Response(data)
+    return Response(top_users)
+
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
