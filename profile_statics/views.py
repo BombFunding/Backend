@@ -83,6 +83,15 @@ class ProfileStaticsLast7DaysView(APIView):
         return Response(result)
 
 
+from django.db.models import Sum
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from datetime import timedelta
+from django.utils.timezone import now
+
+
 class ProfileStaticsLast6MonthsView(APIView):
     
     @swagger_auto_schema(
@@ -131,12 +140,14 @@ class ProfileStaticsLast6MonthsView(APIView):
             current_month = month_date.replace(day=1)
 
             persian_month_names = {
-                "January": "فروردین", "February": "اردیبهشت", "March": "خرداد",
-                "April": "تیر", "May": "مرداد", "June": "شهریور",
-                "July": "مهر", "August": "آبان", "September": "آذر",
-                "October": "دی", "November": "بهمن", "December": "اسفند",
+                1: "فروردین", 2: "اردیبهشت", 3: "خرداد",
+                4: "تیر", 5: "مرداد", 6: "شهریور",
+                7: "مهر", 8: "آبان", 9: "آذر",
+                10: "دی", 11: "بهمن", 12: "اسفند",
             }
-            month_name_persian = persian_month_names.get(month_name[month_date.month], month_date.month)
+
+            
+            month_name_persian = persian_month_names.get(month_date.month, str(month_date.month))
 
             
             monthly_transactions = Transaction.objects.filter(
@@ -145,12 +156,12 @@ class ProfileStaticsLast6MonthsView(APIView):
                 investment_date__year=month_date.year
             )
 
-            
             total_fund = monthly_transactions.aggregate(Sum('investment_amount'))['investment_amount__sum'] or 0
 
             result.append({
                 "month": month_name_persian,
-                "fund": f"{total_fund:.0f}"  
+                "fund": f"{total_fund:.0f}"
             })
 
-        return Response(result)
+        
+        return Response(result[::-1])
