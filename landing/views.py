@@ -66,18 +66,19 @@ def top_visited_startups(request):
 
     return Response(data)
 
-
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def top_funded_startups(request):
-    
     startup_funding_data = []
     
     for startup in StartupProfile.objects.all():
-        total_funded = startup.positions.aggregate(
+        
+        total_funded = Position.objects.filter(
+            position_user=startup.startup_user.username
+        ).aggregate(
             funded_sum=models.Sum('funded')
         )['funded_sum'] or 0  
-        
+
         startup_funding_data.append({
             "startup": startup,
             "total_funded": total_funded,
