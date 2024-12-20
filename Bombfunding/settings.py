@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     "balance",
     "promotion",
     "profilepage",
+    "project",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",

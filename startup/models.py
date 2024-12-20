@@ -9,25 +9,10 @@ class StartupProfile(models.Model):
     startup_user = models.OneToOneField(
         StartupUser, on_delete=models.CASCADE, editable=False, null=True
     )
-    startup_categories = models.CharField(
-        max_length=50,
-        choices=[
-            ("Technology", "Technology"),
-            ("Food", "Food"),
-            ("Beauty", "Beauty"),
-            ("Art", "Art"),
-            ("Health", "Health"),
-            ("Tourism", "Tourism"),
-            ("Education", "Education"),
-            ("Finance", "Finance"),
-        ],
-        default="Art",
-    )
     score = models.IntegerField(default=0)
     startup_starting_date = models.DateField(null=True, blank=True)  
     startup_ending_date = models.DateField(null=True, blank=True)  
     startup_profile_visit_count = models.PositiveIntegerField(default=0)  
-    page = models.JSONField(default=dict, blank=True)
 
 
     def save(self, *args, **kwargs):

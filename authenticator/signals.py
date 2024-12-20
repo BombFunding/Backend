@@ -19,7 +19,6 @@ def create_user_profile(sender, instance, created, **kwargs):
             startup_user = StartupUser.objects.create(username=instance)
             StartupProfile.objects.create(
                 startup_user=startup_user,
-                startup_categories="Technology",
                 startup_starting_date=None,
                 startup_ending_date=None,
                 startup_profile_visit_count=0,
