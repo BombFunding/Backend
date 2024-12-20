@@ -1,7 +1,8 @@
 from rest_framework import generics, permissions
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.response import Response
 from .models import Project
-from .serializers import ProjectSerializer
+from .serializers import ProjectSerializer, ProjectImageSerializer
 from rest_framework.parsers import MultiPartParser, FormParser
 
 class ProjectListCreateView(generics.ListCreateAPIView):
@@ -33,3 +34,21 @@ class ProjectRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         if instance.user != self.request.user:
             raise PermissionDenied("You do not have permission to delete this project.")
         instance.delete()
+
+class ProjectImageView(generics.CreateAPIView):
+    serializer_class = ProjectImageSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        response.data = {
+            "success": 1,
+            "file": {
+                "url": response.data["image"],
+            }
+        }
+        return Response(response.data, status=201)
