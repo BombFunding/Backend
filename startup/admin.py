@@ -17,5 +17,4 @@ class StartupProfileAdmin(admin.ModelAdmin):
         "startup_starting_date",
         "startup_profile_visit_count",
     ]
-    list_filter = ["startup_starting_date","startup_ending_date"]
-
+    list_filter = ["startup_starting_date"]
