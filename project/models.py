@@ -20,3 +20,11 @@ class Project(models.Model):
         ],
         default="Art",
     )
+
+class ProjectImage(models.Model):
+    user = models.ForeignKey(BaseUser, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to="projectimages/")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return f"{self.user.username} - {self.image.url}"
