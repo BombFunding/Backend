@@ -43,8 +43,7 @@ class ProfileStaticsLast7DaysView(APIView):
         today = timezone.localdate()
         
         
-        days = [(today - timedelta(days=i)) for i in range(7)]
-        
+        days = [(today - timedelta(days=i)) for i in range(6, -1, -1)]  
         
         username = request.GET.get("username", None)
         
