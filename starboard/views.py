@@ -13,6 +13,11 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from drf_yasg.utils import swagger_auto_schema
 from project.models import Project
+import random
+import os
+from django.conf import settings
+from django.core.files.storage import default_storage
+
 
 type_param = openapi.Parameter(
     'type',
@@ -92,6 +97,14 @@ def get_top_startups(request):
 
     data = []
 
+    
+    default_images = ["1.png", "2.png", "3.png", "4.png", "5.png"]
+    default_image_path = "projects/"  
+
+    def get_random_default_image():
+        """تصویر پیش‌فرض تصادفی برمی‌گرداند"""
+        return random.choice(default_images)
+
     if top_type == "top_liked":
         top_startups = (
             StartupProfile.objects.select_related('startup_user')
@@ -132,6 +145,10 @@ def get_top_startups(request):
                     project_image = project.image.url
             except Project.DoesNotExist:
                 project_image = None
+
+            
+            if not project_image:
+                project_image = default_image_path + get_random_default_image()
 
             if valid_positions:
                 data.append({
@@ -183,13 +200,17 @@ def get_top_startups(request):
             except Project.DoesNotExist:
                 project_image = None
 
+            
+            if not project_image:
+                project_image = default_image_path + get_random_default_image()
+
             if valid_positions:
                 data.append({
                     "username": username,
                     "profile_picture": profile_picture,
+                    "project_image": project_image,  
                     "visit_count": startup.startup_profile_visit_count,
                     "positions": valid_positions,
-                    "project_image": project_image,  
                 })
 
     elif top_type == "top_funded":
@@ -236,13 +257,17 @@ def get_top_startups(request):
             except Project.DoesNotExist:
                 project_image = None
 
+            
+            if not project_image:
+                project_image = default_image_path + get_random_default_image()
+
             if valid_positions:
                 data.append({
                     "username": username,
                     "profile_picture": profile_picture,
+                    "project_image": project_image,  
                     "total_funded": total_funded,
                     "positions": valid_positions,
-                    "project_image": project_image,  
                 })
 
     else:
