@@ -11,6 +11,7 @@ from calendar import month_name
 from django.utils.timezone import now
 from position.models import Position , Transaction
 from django.db.models import Sum
+from django.utils import timezone
 
 class ProfileStaticsLast7DaysView(APIView):
     
@@ -90,6 +91,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from datetime import timedelta
 from django.utils.timezone import now
+import jdatetime
 
 
 class ProfileStaticsLast6MonthsView(APIView):
@@ -125,9 +127,11 @@ class ProfileStaticsLast6MonthsView(APIView):
             return Response({"error": "Username is required."}, status=400)
 
         
-        today = now().date()
-        current_month = today.replace(day=1)
-        
+        # today = jdatetime.date.today()
+        today = timezone.datetime.now()
+        today = jdatetime.datetime.fromgregorian(date=timezone.now())
+        current_month = today.replace(day=1, hour=0, minute=0, second=0)
+
         
         positions = Position.objects.filter(position_user__username=username)
         if not positions.exists():
@@ -145,15 +149,18 @@ class ProfileStaticsLast6MonthsView(APIView):
                 7: "مهر", 8: "آبان", 9: "آذر",
                 10: "دی", 11: "بهمن", 12: "اسفند",
             }
-
             
             month_name_persian = persian_month_names.get(month_date.month, str(month_date.month))
 
+            gregorian_start_date = (month_date.togregorian())
+            print(gregorian_start_date)
+            gregorian_end_date = ((month_date + jdatetime.timedelta(days=30)).togregorian())
+            print(gregorian_end_date)
             
             monthly_transactions = Transaction.objects.filter(
                 position__in=positions,
-                investment_date__month=month_date.month,
-                investment_date__year=month_date.year
+                investment_date__gte=gregorian_start_date,
+                investment_date__lt=gregorian_end_date,
             )
 
             total_fund = monthly_transactions.aggregate(Sum('investment_amount'))['investment_amount__sum'] or 0
