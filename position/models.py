@@ -1,6 +1,9 @@
 from django.db import models
 from authenticator.models import BaseUser
 
+from django.db import models
+from django.contrib.postgres.fields import ArrayField  
+
 class Position(models.Model):
     TECHNOLOGY_CHOICES = [
         ("Artificial Intelligence", "Artificial Intelligence"),
@@ -54,7 +57,13 @@ class Position(models.Model):
     is_done = models.BooleanField(default=False)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
-    subcategory = models.CharField(max_length=100, choices=CATEGORY_CHOICES, default=None, null=True, blank=True)
+
+    
+    subcategory = ArrayField(
+        models.CharField(max_length=100, choices=CATEGORY_CHOICES),
+        blank=True,  
+        default=list  
+    )
 
     def __str__(self) -> str:
         return f"{self.name} - {self.position_user.username}"

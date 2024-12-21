@@ -6,7 +6,10 @@ from datetime import datetime, date
 class PositionSerializer(serializers.ModelSerializer):
     percent_funded = serializers.SerializerMethodField()
     days_remaining = serializers.SerializerMethodField()
-
+    subcategory = serializers.ListField(
+        child=serializers.ChoiceField(choices=Position.CATEGORY_CHOICES),
+        allow_empty=True  
+    )
     class Meta:
         model = Position
         fields = [

@@ -1,5 +1,9 @@
 from django.contrib import admin
 from .models import Position
+from django.contrib.postgres.forms import SimpleArrayField
+from django.db import models  
+from django.contrib.postgres.fields import ArrayField  
+
 
 @admin.register(Position)
 class PositionAdmin(admin.ModelAdmin):
@@ -18,6 +22,10 @@ class PositionAdmin(admin.ModelAdmin):
     list_editable = ["funded", "is_done", "subcategory"]  
     search_fields = ["name", "position_user__username", "subcategory"]  
     list_filter = ["is_done", "start_time", "end_time", "subcategory"]  
+    
+    formfield_overrides = {
+        ArrayField: {'widget': SimpleArrayField}
+    }
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)

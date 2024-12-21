@@ -79,7 +79,6 @@ class PositionListView(mixins.ListModelMixin, generics.GenericAPIView):
         serializer = PositionSerializer(positions, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-
 class PositionCreateView(mixins.CreateModelMixin, generics.GenericAPIView):
     queryset = Position.objects.all()
     serializer_class = PositionSerializer
@@ -96,20 +95,19 @@ class PositionCreateView(mixins.CreateModelMixin, generics.GenericAPIView):
 
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            
             start_time = serializer.validated_data.get("start_time")
             end_time = serializer.validated_data.get("end_time")
-            subcategory = serializer.validated_data.get("subcategory")
+            subcategories = serializer.validated_data.get("subcategory")
 
-            # Ensure subcategory is provided
-            if not subcategory:
+            # Ensure subcategories are provided and are in array format
+            if not subcategories or not isinstance(subcategories, list):
                 return Response(
-                    {"detail": "Subcategory is required."},
+                    {"detail": "Subcategories must be provided as an array."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
             delta = (end_time - start_time).days
-            if delta < 1:  
+            if delta < 1:
                 return Response(
                     {"detail": "The duration must be at least 1 day."},
                     status=status.HTTP_400_BAD_REQUEST,
@@ -118,14 +116,17 @@ class PositionCreateView(mixins.CreateModelMixin, generics.GenericAPIView):
             mixin = UserBalanceMixin()
             mixin.reduce_balance(user, POSITION_CREATION_COST_PER_DAY * delta + POSITION_CREATION_BASE_COST)
 
-            serializer.save(position_user=user)
+            position = serializer.save(position_user=user)
+            # Convert subcategories array to a comma-separated string for storage
+            position.subcategory = ",".join(subcategories)
+            position.save()
+
             return Response(
                 {"detail": "Position created successfully.", "position": serializer.data},
                 status=status.HTTP_201_CREATED,
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class PositionUpdateView(mixins.UpdateModelMixin, generics.GenericAPIView):
     queryset = Position.objects.all()
@@ -185,7 +186,6 @@ class PositionDeleteView(mixins.DestroyModelMixin, generics.GenericAPIView):
         position.delete()
         return Response({"detail": "Position deleted successfully."}, status=status.HTTP_200_OK)
 
-
 class PositionRenewView(mixins.UpdateModelMixin, generics.GenericAPIView):
     queryset = Position.objects.all()
     serializer_class = PositionSerializer
@@ -197,11 +197,11 @@ class PositionRenewView(mixins.UpdateModelMixin, generics.GenericAPIView):
             type=openapi.TYPE_OBJECT,
             properties={
                 'days': openapi.Schema(type=openapi.TYPE_INTEGER, description='Number of days to extend the position.'),
-                'subcategory': openapi.Schema(type=openapi.TYPE_STRING, description='Subcategory of the position.')
+                'subcategory': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_STRING), description='Subcategories of the position.')
             },
             required=['days']
         ),
-        responses={ 
+        responses={
             200: openapi.Response(description="Position renewed successfully."),
             400: openapi.Response(description="Invalid data."),
             403: openapi.Response(description="Forbidden - User does not have a valid position."),
@@ -225,7 +225,7 @@ class PositionRenewView(mixins.UpdateModelMixin, generics.GenericAPIView):
             )
 
         days_to_renew = request.data.get("days", None)
-        subcategory = request.data.get("subcategory", None)
+        subcategories = request.data.get("subcategory", None)
 
         if not days_to_renew or days_to_renew <= 0:
             return Response(
@@ -233,10 +233,10 @@ class PositionRenewView(mixins.UpdateModelMixin, generics.GenericAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Ensure subcategory is provided
-        if not subcategory:
+        # Ensure subcategories are provided and are in array format
+        if not subcategories or not isinstance(subcategories, list):
             return Response(
-                {"detail": "Subcategory is required."},
+                {"detail": "Subcategories must be provided as an array."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -256,7 +256,7 @@ class PositionRenewView(mixins.UpdateModelMixin, generics.GenericAPIView):
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         position.end_time += timedelta(days=days_to_renew)
-        position.subcategory = subcategory  # Update subcategory
+        position.subcategory = ",".join(subcategories)  # Convert subcategories array to comma-separated string
         position.save()
 
         return Response(
