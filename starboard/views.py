@@ -74,7 +74,6 @@ filter_by_subcategory_param = openapi.Parameter(
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def get_top_startups(request):
-
     top_type = request.GET.get("type")  
     results_per_page = int(request.GET.get("results_per_page", 10))
     page_number = int(request.GET.get("page_number", 1))
@@ -109,13 +108,11 @@ def get_top_startups(request):
             except BaseProfile.DoesNotExist:
                 profile_picture = None
 
-            
             positions = Position.objects.filter(position_user__username=username)
 
-            
             valid_positions = []
             for position in positions:
-                position_subcategories = set(position.subcategory)  
+                position_subcategories = set(position.subcategory)
                 if set(filter_by_subcategory).issubset(position_subcategories):
                     valid_positions.append({
                         "name": position.name,
@@ -124,6 +121,7 @@ def get_top_startups(request):
                         "funded": position.funded,
                         "start_time": position.start_time,
                         "end_time": position.end_time,
+                        "subcategory": list(position_subcategories),  
                     })
 
             if valid_positions:
@@ -150,13 +148,11 @@ def get_top_startups(request):
             except BaseProfile.DoesNotExist:
                 profile_picture = None
 
-            
             positions = Position.objects.filter(position_user__username=username)
 
-            
             valid_positions = []
             for position in positions:
-                position_subcategories = set(position.subcategory)  
+                position_subcategories = set(position.subcategory)
                 if set(filter_by_subcategory).issubset(position_subcategories):
                     valid_positions.append({
                         "name": position.name,
@@ -165,8 +161,8 @@ def get_top_startups(request):
                         "funded": position.funded,
                         "start_time": position.start_time,
                         "end_time": position.end_time,
+                        "subcategory": list(position_subcategories),  
                     })
-
 
             if valid_positions:
                 data.append({
@@ -195,23 +191,21 @@ def get_top_startups(request):
             except BaseProfile.DoesNotExist:
                 profile_picture = None
 
-        
-        positions = Position.objects.filter(position_user__username=username)
+            positions = Position.objects.filter(position_user__username=username)
 
-        
-        valid_positions = []
-        for position in positions:
-            position_subcategories = set(position.subcategory)  
-            if set(filter_by_subcategory).issubset(position_subcategories):
-                valid_positions.append({
-                    "name": position.name,
-                    "description": position.description,
-                    "total": position.total,
-                    "funded": position.funded,
-                    "start_time": position.start_time,
-                    "end_time": position.end_time,
-                })
-
+            valid_positions = []
+            for position in positions:
+                position_subcategories = set(position.subcategory)
+                if set(filter_by_subcategory).issubset(position_subcategories):
+                    valid_positions.append({
+                        "name": position.name,
+                        "description": position.description,
+                        "total": position.total,
+                        "funded": position.funded,
+                        "start_time": position.start_time,
+                        "end_time": position.end_time,
+                        "subcategory": list(position_subcategories),  
+                    })
 
             if valid_positions:
                 data.append({
