@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.utils import timezone
 from rest_framework import generics, mixins, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -339,6 +339,28 @@ class InvestmentCreateView(generics.CreateAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        if position.is_done:
+            return Response(
+                {"detail": "This position is already closed."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if position.total - position.funded < investment_amount:
+            return Response(
+                {"detail": "The investment amount exceeds the remaining funding."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if position.end_time < timezone.now():
+            return Response(
+                {"detail": "This position has expired."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if position.total == position.funded + investment_amount:
+            position.is_done = True
+            position.save()
+
         
         investor.balance -= investment_amount
         investor.save()
@@ -346,6 +368,9 @@ class InvestmentCreateView(generics.CreateAPIView):
         
         position.position_user.balance += investment_amount
         position.position_user.save()
+
+        position.funded += investment_amount
+        position.save()
 
         
         transaction = Transaction.objects.create(
