@@ -1,6 +1,6 @@
 
 from rest_framework import serializers
-from .models import InvestorProfile
+from .models import InvestorProfile , InvestorVote
 
 class InvestorProfileSerializer(serializers.ModelSerializer):
 
@@ -17,3 +17,9 @@ class InvestorProfileSerializer(serializers.ModelSerializer):
             "tax_identification_number",
             "address"
         ]
+
+class InvestorVoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InvestorVote
+        fields = ["vote"]
+

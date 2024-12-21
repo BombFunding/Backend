@@ -21,20 +21,34 @@ class ProfileStatics(models.Model):
             self.views[today] = 1  
         self.save()  
 
-    def increment_like(self):
-        today = date.today().isoformat()
-        if today in self.likes:
-            self.likes[today] += 1
-        else:
-            self.likes[today] = 1
-        self.save()
+    def add_like(self, liked_by_user):
+        """
+        Add a like entry with the current date and the user who liked.
 
-    def decrement_like(self):
+        Args:
+            liked_by_user (str): The username of the user who liked the profile.
+        """
         today = date.today().isoformat()
-        if today in self.likes:
-            self.likes[today] -= 1
-        else:
-            self.likes[today] = -1
+        if today not in self.likes:
+            self.likes[today] = []
+        
+        if liked_by_user not in self.likes[today]:
+            self.likes[today].append(liked_by_user)
+            self.save()
+
+
+    def remove_like(self, liked_by_user):
+        """
+        Remove a like entry for the current date by a specific user.
+
+        Args:
+            liked_by_user (str): The username of the user who unliked the profile.
+        """
+        today = date.today().isoformat()
+        if today in self.likes and liked_by_user in self.likes[today]:
+            self.likes[today].remove(liked_by_user)
+            if not self.likes[today]:
+                del self.likes[today]  
         self.save()
 
     def increment_fund(self, amount):
@@ -51,3 +65,4 @@ class ProfileStatics(models.Model):
 
     def __str__(self):
         return f"Statistics for {self.user.username}"
+

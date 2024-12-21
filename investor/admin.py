@@ -3,7 +3,7 @@ from .models import InvestorProfile
 
 @admin.register(InvestorProfile)
 class InvestorProfileAdmin(admin.ModelAdmin):
-    list_display = ("investor_user", "score", "investor_starting_date", "national_id")
+    list_display = ("id","investor_user", "score", "investor_starting_date", "national_id")
     fields = (        
             "score",
             "investor_starting_date",

@@ -1,23 +1,18 @@
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from .models import StartupProfile, Position, StartupUser
+from .models import StartupProfile, StartupUser
 from .serializers import StartupProfileSerializer
 from rest_framework import mixins, generics
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from django.http import JsonResponse
 from django.db import IntegrityError
-from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView
-from .models import StartupProfile, Position, StartupUser, StartupVote
+from .models import StartupProfile, StartupUser, StartupVote
 from .serializers import StartupProfileSerializer, VoteSerializer
 from django.utils.translation import gettext as _
 from drf_yasg.utils import swagger_auto_schema
-from balance.utils import UserBalanceMixin
 from datetime import date
 from profile_statics.models import ProfileStatics
 
@@ -115,7 +110,7 @@ class VoteProfile(GenericAPIView):
 
     def get_permissions(self):
         """
-        diffrent permission classes for functions
+        Different permission classes for functions
         """
         if self.request.method in ["POST", "DELETE"]:
             return [IsAuthenticated()]
@@ -132,15 +127,16 @@ class VoteProfile(GenericAPIView):
     )
     def post(self, request, *args, **kwargs):
         """
-        Vote on a startup profile.
+        Vote on a startup profile (like or nothing).
         """
-        user = request.user
+        user = request.user  
         startup_profile_id = self.kwargs.get("startup_profile_id")
         vote_type = request.data.get("vote")
 
-        if vote_type not in [1, -1]:
+        if vote_type not in [1, 0]:  
             return Response(
-                {"detail": "Invalid vote type."}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": "Invalid vote type."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         try:
@@ -153,72 +149,55 @@ class VoteProfile(GenericAPIView):
 
         try:
             
-            startup_vote, created = StartupVote.objects.update_or_create(
-                user=user, startup_profile=startup_profile, defaults={"vote": vote_type}
-            )
+            existing_vote = StartupVote.objects.filter(
+                user=user, startup_profile=startup_profile
+            ).first()
 
-            
-            profile_statics, _ = ProfileStatics.objects.get_or_create(
-                user=startup_profile.startup_user.username
-            )
-
-            if vote_type == 1:
-                profile_statics.increment_like()
-            elif vote_type == -1:
-                profile_statics.decrement_like()
-
-            if created:
+            if vote_type == 1:  
+                if existing_vote and existing_vote.vote == 1:
+                    return Response(
+                        {"detail": "You have already liked this profile."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                
+                StartupVote.objects.update_or_create(
+                    user=user, startup_profile=startup_profile, defaults={"vote": 1}
+                )
+                
+                profile_statics, _ = ProfileStatics.objects.get_or_create(
+                    user=startup_profile.startup_user.username
+                )
+                profile_statics.add_like(liked_by_user=user.username)
                 return Response(
-                    {"detail": "Vote added successfully."},
+                    {"detail": "Profile liked successfully."},
                     status=status.HTTP_201_CREATED,
                 )
-            else:
-                return Response(
-                    {"detail": "Vote updated successfully."}, status=status.HTTP_200_OK
-                )
+
+            elif vote_type == 0:  
+                if existing_vote and existing_vote.vote == 1:
+                    
+                    profile_statics = ProfileStatics.objects.filter(
+                        user=startup_profile.startup_user.username
+                    ).first()
+                    if profile_statics:
+                        profile_statics.remove_like(liked_by_user=user.username)
+                    existing_vote.delete()
+                    return Response(
+                        {"detail": "Like removed successfully."},
+                        status=status.HTTP_200_OK,
+                    )
+                else:
+                    return Response(
+                        {"detail": "No like exists to remove."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
         except IntegrityError:
             return Response(
-                {"detail": "You have already voted on this profile."},
+                {"detail": "An error occurred while processing your vote."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-
-    @swagger_auto_schema(
-        responses={
-            204: "Vote removed successfully.",
-            400: "You have not voted on this profile.",
-            404: "Startup profile not found.",
-        },
-    )
-    def delete(self, request, *args, **kwargs):
-        """
-        Remove a vote from a startup profile.
-        """
-        user = request.user
-        startup_profile_id = self.kwargs.get("startup_profile_id")
-
-        try:
-            startup_profile = StartupProfile.objects.get(pk=startup_profile_id)
-        except StartupProfile.DoesNotExist:
-            return Response(
-                {"detail": "Startup profile not found."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        try:
-            startup_vote = StartupVote.objects.get(
-                user=user, startup_profile=startup_profile
-            )
-            startup_vote.delete()
-            return Response(
-                {"detail": "Vote removed successfully."},
-                status=status.HTTP_204_NO_CONTENT,
-            )
-        except StartupVote.DoesNotExist:
-            return Response(
-                {"detail": "You have not voted on this profile."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
     @swagger_auto_schema(
         responses={

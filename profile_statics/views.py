@@ -11,9 +11,10 @@ from calendar import month_name
 from django.utils.timezone import now
 from position.models import Position , Transaction
 from django.db.models import Sum
+from django.utils import timezone
 
 class ProfileStaticsLast7DaysView(APIView):
-    
+
     @swagger_auto_schema(
         operation_description="Get statistics (views and likes) for the last 7 days.",
         manual_parameters=[
@@ -39,49 +40,56 @@ class ProfileStaticsLast7DaysView(APIView):
         }
     )
     def get(self, request, *args, **kwargs):
-        
+        """
+        Fetch statistics (views and likes) for the last 7 days.
+        """
         today = timezone.localdate()
-        
-        
-        days = [(today - timedelta(days=i)) for i in range(7)]
-        
-        
+        days = [(today - timedelta(days=i)) for i in range(6, -1, -1)]
+
         username = request.GET.get("username", None)
-        
+
         result = []
-        
+
         for day in days:
-            
+            # Convert day names to Persian
             day_name = calendar.day_name[day.weekday()]
             persian_day_names = {
-                "Monday": "یک‌شنبه",
-                "Tuesday": "دوشنبه",
-                "Wednesday": "سه‌شنبه",
-                "Thursday": "چهارشنبه",
-                "Friday": "پنج‌شنبه",
-                "Saturday": "جمعه",
-                "Sunday": "شنبه",
+                "Monday": "دوشنبه",
+                "Tuesday": "سه‌شنبه",
+                "Wednesday": "چهارشنبه",
+                "Thursday": "پنج‌شنبه",
+                "Friday": "جمعه",
+                "Saturday": "شنبه",
+                "Sunday": "یک‌شنبه",
             }
             persian_day_name = persian_day_names.get(day_name, day_name)
-            
-            
-            if username:
-                profile_statics = ProfileStatics.objects.filter(user__username=username).first()
-            else:
-                profile_statics = ProfileStatics.objects.first()
 
-            
-            likes = profile_statics.likes.get(day.isoformat(), 0) if profile_statics else 0
+            # Fetch profile statistics for the specified user or the first profile
+            profile_statics = ProfileStatics.objects.filter(user__username=username).first() if username else ProfileStatics.objects.first()
+
+            # Retrieve view and like counts for the specific day
+            likes_list = profile_statics.likes.get(day.isoformat(), []) if profile_statics else []
+            likes_count = len(likes_list)  # Calculate the number of likes
             views = profile_statics.views.get(day.isoformat(), 0) if profile_statics else 0
 
-            
+            # Append the statistics to the result
             result.append({
                 "day": persian_day_name,
                 "view": views,
-                "like": likes
+                "like": likes_count  # Return the count of likes instead of the list
             })
 
         return Response(result)
+
+
+from django.db.models import Sum
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from datetime import timedelta
+from django.utils.timezone import now
+import jdatetime
 
 
 class ProfileStaticsLast6MonthsView(APIView):
@@ -117,9 +125,11 @@ class ProfileStaticsLast6MonthsView(APIView):
             return Response({"error": "Username is required."}, status=400)
 
         
-        today = now().date()
-        current_month = today.replace(day=1)
-        
+        # today = jdatetime.date.today()
+        today = timezone.datetime.now()
+        today = jdatetime.datetime.fromgregorian(date=timezone.now())
+        current_month = today.replace(day=1, hour=0, minute=0, second=0)
+
         
         positions = Position.objects.filter(position_user__username=username)
         if not positions.exists():
@@ -132,26 +142,31 @@ class ProfileStaticsLast6MonthsView(APIView):
             current_month = month_date.replace(day=1)
 
             persian_month_names = {
-                "January": "فروردین", "February": "اردیبهشت", "March": "خرداد",
-                "April": "تیر", "May": "مرداد", "June": "شهریور",
-                "July": "مهر", "August": "آبان", "September": "آذر",
-                "October": "دی", "November": "بهمن", "December": "اسفند",
+                1: "فروردین", 2: "اردیبهشت", 3: "خرداد",
+                4: "تیر", 5: "مرداد", 6: "شهریور",
+                7: "مهر", 8: "آبان", 9: "آذر",
+                10: "دی", 11: "بهمن", 12: "اسفند",
             }
-            month_name_persian = persian_month_names.get(month_name[month_date.month], month_date.month)
+            
+            month_name_persian = persian_month_names.get(month_date.month, str(month_date.month))
 
+            gregorian_start_date = (month_date.togregorian())
+            print(gregorian_start_date)
+            gregorian_end_date = ((month_date + jdatetime.timedelta(days=30)).togregorian())
+            print(gregorian_end_date)
             
             monthly_transactions = Transaction.objects.filter(
                 position__in=positions,
-                investment_date__month=month_date.month,
-                investment_date__year=month_date.year
+                investment_date__gte=gregorian_start_date,
+                investment_date__lt=gregorian_end_date,
             )
 
-            
             total_fund = monthly_transactions.aggregate(Sum('investment_amount'))['investment_amount__sum'] or 0
 
             result.append({
                 "month": month_name_persian,
-                "fund": f"{total_fund:.0f}"  
+                "fund": f"{total_fund:.0f}"
             })
 
-        return Response(result)
+        
+        return Response(result[::-1])
