@@ -65,4 +65,18 @@ class ProfileStatics(models.Model):
 
     def __str__(self):
         return f"Statistics for {self.user.username}"
+    
+    def is_liked_by(self, liked_by_username):
+        """
+        Check if a specific user has liked the profile at any time.
 
+        Args:
+            liked_by_username (str): The username of the user to check.
+
+        Returns:
+            bool: True if the user has liked the profile, False otherwise.
+        """
+        for day_likes in self.likes.values():
+            if liked_by_username in day_likes:
+                return True
+        return False

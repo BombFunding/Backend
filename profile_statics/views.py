@@ -51,7 +51,7 @@ class ProfileStaticsLast7DaysView(APIView):
         result = []
 
         for day in days:
-            # Convert day names to Persian
+            
             day_name = calendar.day_name[day.weekday()]
             persian_day_names = {
                 "Monday": "دوشنبه",
@@ -64,19 +64,19 @@ class ProfileStaticsLast7DaysView(APIView):
             }
             persian_day_name = persian_day_names.get(day_name, day_name)
 
-            # Fetch profile statistics for the specified user or the first profile
+            
             profile_statics = ProfileStatics.objects.filter(user__username=username).first() if username else ProfileStatics.objects.first()
 
-            # Retrieve view and like counts for the specific day
+            
             likes_list = profile_statics.likes.get(day.isoformat(), []) if profile_statics else []
-            likes_count = len(likes_list)  # Calculate the number of likes
+            likes_count = len(likes_list)  
             views = profile_statics.views.get(day.isoformat(), 0) if profile_statics else 0
 
-            # Append the statistics to the result
+            
             result.append({
                 "day": persian_day_name,
                 "view": views,
-                "like": likes_count  # Return the count of likes instead of the list
+                "like": likes_count  
             })
 
         return Response(result)
@@ -125,7 +125,7 @@ class ProfileStaticsLast6MonthsView(APIView):
             return Response({"error": "Username is required."}, status=400)
 
         
-        # today = jdatetime.date.today()
+        
         today = timezone.datetime.now()
         today = jdatetime.datetime.fromgregorian(date=timezone.now())
         current_month = today.replace(day=1, hour=0, minute=0, second=0)
@@ -170,3 +170,76 @@ class ProfileStaticsLast6MonthsView(APIView):
 
         
         return Response(result[::-1])
+    
+from rest_framework.exceptions import NotFound
+from authenticator.models import BaseUser
+from .models import ProfileStatics
+class CheckProfileLikeView(APIView):
+    @swagger_auto_schema(
+        operation_description="Check if a user has liked a profile.",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'liker_username': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description="Username of the user who may have liked the profile."
+                ),
+                'profile_username': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description="Username of the profile being checked."
+                ),
+            },
+            required=['liker_username', 'profile_username'],
+            example={
+                "liker_username": "user1",
+                "profile_username": "user2"
+            }
+        ),
+        responses={
+            200: openapi.Response(
+                description="Indicates if the profile is liked by the user.",
+                examples={
+                    "application/json": {"is_liked": True}
+                }
+            ),
+            400: openapi.Response(
+                description="Bad Request if required fields are missing.",
+                examples={
+                    "application/json": {"error": "Both 'liker_username' and 'profile_username' are required."}
+                }
+            ),
+            404: openapi.Response(
+                description="Not Found if the user or profile does not exist.",
+                examples={
+                    "application/json": {"error": "User with username 'user2' not found."}
+                }
+            )
+        }
+    )
+    def post(self, request, *args, **kwargs):
+        """
+        Check if a user has liked a profile.
+
+        Args:
+            request (Request): The HTTP request containing 'liker_username' and 'profile_username'.
+
+        Returns:
+            Response: JSON response indicating whether the profile is liked or not.
+        """
+        liker_username = request.data.get("liker_username")
+        profile_username = request.data.get("profile_username")
+
+        if not liker_username or not profile_username:
+            return Response({"error": "Both 'liker_username' and 'profile_username' are required."}, status=400)
+
+        try:
+            profile_user = BaseUser.objects.get(username=profile_username)
+            profile_statics = ProfileStatics.objects.get(user=profile_user)
+        except BaseUser.DoesNotExist:
+            raise NotFound(f"User with username '{profile_username}' not found.")
+        except ProfileStatics.DoesNotExist:
+            raise NotFound(f"Profile statistics for user '{profile_username}' not found.")
+
+        is_liked = profile_statics.is_liked_by(liker_username)
+
+        return Response({"is_liked": is_liked})
