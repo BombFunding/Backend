@@ -14,7 +14,7 @@ from django.db.models import Sum
 from django.utils import timezone
 
 class ProfileStaticsLast7DaysView(APIView):
-    
+
     @swagger_auto_schema(
         operation_description="Get statistics (views and likes) for the last 7 days.",
         manual_parameters=[
@@ -40,45 +40,43 @@ class ProfileStaticsLast7DaysView(APIView):
         }
     )
     def get(self, request, *args, **kwargs):
-        
+        """
+        Fetch statistics (views and likes) for the last 7 days.
+        """
         today = timezone.localdate()
-        
-        
-        days = [(today - timedelta(days=i)) for i in range(6, -1, -1)]  
-        
+        days = [(today - timedelta(days=i)) for i in range(6, -1, -1)]
+
         username = request.GET.get("username", None)
-        
+
         result = []
-        
+
         for day in days:
-            
+            # Convert day names to Persian
             day_name = calendar.day_name[day.weekday()]
             persian_day_names = {
-                "Monday": "یک‌شنبه",
-                "Tuesday": "دوشنبه",
-                "Wednesday": "سه‌شنبه",
-                "Thursday": "چهارشنبه",
-                "Friday": "پنج‌شنبه",
-                "Saturday": "جمعه",
-                "Sunday": "شنبه",
+                "Monday": "دوشنبه",
+                "Tuesday": "سه‌شنبه",
+                "Wednesday": "چهارشنبه",
+                "Thursday": "پنج‌شنبه",
+                "Friday": "جمعه",
+                "Saturday": "شنبه",
+                "Sunday": "یک‌شنبه",
             }
             persian_day_name = persian_day_names.get(day_name, day_name)
-            
-            
-            if username:
-                profile_statics = ProfileStatics.objects.filter(user__username=username).first()
-            else:
-                profile_statics = ProfileStatics.objects.first()
 
-            
-            likes = profile_statics.likes.get(day.isoformat(), 0) if profile_statics else 0
+            # Fetch profile statistics for the specified user or the first profile
+            profile_statics = ProfileStatics.objects.filter(user__username=username).first() if username else ProfileStatics.objects.first()
+
+            # Retrieve view and like counts for the specific day
+            likes_list = profile_statics.likes.get(day.isoformat(), []) if profile_statics else []
+            likes_count = len(likes_list)  # Calculate the number of likes
             views = profile_statics.views.get(day.isoformat(), 0) if profile_statics else 0
 
-            
+            # Append the statistics to the result
             result.append({
                 "day": persian_day_name,
                 "view": views,
-                "like": likes
+                "like": likes_count  # Return the count of likes instead of the list
             })
 
         return Response(result)
