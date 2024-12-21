@@ -35,25 +35,28 @@ page_number_param = openapi.Parameter(
     default=1
 )
 
-
 @swagger_auto_schema(
     method="get",
     manual_parameters=[type_param, results_per_page_param, page_number_param],
-    responses={
-        200: openapi.Schema(
+    responses={200: openapi.Schema(
             type=openapi.TYPE_ARRAY,
             items=openapi.Schema(
                 type=openapi.TYPE_OBJECT,
                 properties={
                     'username': openapi.Schema(type=openapi.TYPE_STRING),
                     'profile_picture': openapi.Schema(type=openapi.TYPE_STRING, format='uri', description="URL of the profile picture"),
-                    'score': openapi.Schema(type=openapi.TYPE_INTEGER, description="Score of the startup (for top_liked)"),
-                    'visit_count': openapi.Schema(type=openapi.TYPE_INTEGER, description="Visit count of the startup (for top_visited)"),
-                    'total_funded': openapi.Schema(type=openapi.TYPE_INTEGER, description="Total funded amount (for top_funded)"),
+                    'positions': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_OBJECT, properties={
+                        'name': openapi.Schema(type=openapi.TYPE_STRING),
+                        'description': openapi.Schema(type=openapi.TYPE_STRING),
+                        'total': openapi.Schema(type=openapi.TYPE_INTEGER),
+                        'funded': openapi.Schema(type=openapi.TYPE_INTEGER),
+                        'start_time': openapi.Schema(type=openapi.TYPE_STRING, format='date-time'),
+                        'end_time': openapi.Schema(type=openapi.TYPE_STRING, format='date-time'),
+                    }))
                 },
             ),
         ),
-        400: "Invalid request"
+    400: "Invalid request"
     },
 )
 @api_view(["GET"])
@@ -73,12 +76,12 @@ def get_top_startups(request):
 
     if top_type == "top_liked":
         top_startups = (
-            StartupProfile.objects.select_related('startup_user__username')
+            StartupProfile.objects.select_related('startup_user')
             .order_by('-score')[start_index:end_index]
         )
 
         for startup in top_startups:
-            username = startup.startup_user.username.username
+            username = startup.startup_user.username.username  
             profile_picture = None
             try:
                 base_profile = BaseProfile.objects.get(base_user__username=username)
@@ -86,21 +89,33 @@ def get_top_startups(request):
                     profile_picture = base_profile.profile_picture.url
             except BaseProfile.DoesNotExist:
                 profile_picture = None
+
+            
+            positions = Position.objects.filter(position_user__username=username)
+            position_data = [{
+                "name": position.name,
+                "description": position.description,
+                "total": position.total,
+                "funded": position.funded,
+                "start_time": position.start_time,
+                "end_time": position.end_time,
+            } for position in positions]
 
             data.append({
                 "username": username,
                 "profile_picture": profile_picture,
                 "score": startup.score,
+                "positions": position_data,
             })
 
     elif top_type == "top_visited":
         top_startups = (
-            StartupProfile.objects.select_related('startup_user__username')
+            StartupProfile.objects.select_related('startup_user')
             .order_by('-startup_profile_visit_count')[start_index:end_index]
         )
 
         for startup in top_startups:
-            username = startup.startup_user.username.username
+            username = startup.startup_user.username.username  
             profile_picture = None
             try:
                 base_profile = BaseProfile.objects.get(base_user__username=username)
@@ -109,14 +124,25 @@ def get_top_startups(request):
             except BaseProfile.DoesNotExist:
                 profile_picture = None
 
+            
+            positions = Position.objects.filter(position_user__username=username)
+            position_data = [{
+                "name": position.name,
+                "description": position.description,
+                "total": position.total,
+                "funded": position.funded,
+                "start_time": position.start_time,
+                "end_time": position.end_time,
+            } for position in positions]
+
             data.append({
                 "username": username,
                 "profile_picture": profile_picture,
                 "visit_count": startup.startup_profile_visit_count,
+                "positions": position_data,
             })
 
     elif top_type == "top_funded":
-        
         funded_data = (
             Position.objects.values('position_user__username')
             .annotate(total_funded=Sum('funded'))
@@ -135,10 +161,22 @@ def get_top_startups(request):
             except BaseProfile.DoesNotExist:
                 profile_picture = None
 
+            
+            positions = Position.objects.filter(position_user__username=username)
+            position_data = [{
+                "name": position.name,
+                "description": position.description,
+                "total": position.total,
+                "funded": position.funded,
+                "start_time": position.start_time,
+                "end_time": position.end_time,
+            } for position in positions]
+
             data.append({
                 "username": username,
                 "profile_picture": profile_picture,
                 "total_funded": total_funded,
+                "positions": position_data,
             })
 
     else:
