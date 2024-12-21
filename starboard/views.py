@@ -8,6 +8,11 @@ from rest_framework.decorators import api_view, permission_classes
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 import json
+from drf_yasg import openapi
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from drf_yasg.utils import swagger_auto_schema
+
 
 type_param = openapi.Parameter(
     'type',
@@ -33,11 +38,13 @@ page_number_param = openapi.Parameter(
     default=1
 )
 
+
 filter_by_subcategory_param = openapi.Parameter(
     'filter_by_subcategory',
     openapi.IN_QUERY,
-    description="A JSON object of subcategory to filter the positions by.",
-    type=openapi.TYPE_STRING
+    description="Comma-separated list of subcategories to filter the positions by. Example: 'Technology,Art,Health'",
+    type=openapi.TYPE_ARRAY,
+    items=openapi.Items(type=openapi.TYPE_STRING),
 )
 
 @swagger_auto_schema(
@@ -67,6 +74,7 @@ filter_by_subcategory_param = openapi.Parameter(
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def get_top_startups(request):
+
     top_type = request.GET.get("type")  
     results_per_page = int(request.GET.get("results_per_page", 10))
     page_number = int(request.GET.get("page_number", 1))
@@ -101,13 +109,13 @@ def get_top_startups(request):
             except BaseProfile.DoesNotExist:
                 profile_picture = None
 
-            # Fetch positions
+            
             positions = Position.objects.filter(position_user__username=username)
 
-            # Filter positions by subcategories
+            
             valid_positions = []
             for position in positions:
-                position_subcategories = set(position.subcategory)  # position.subcategory is already a list
+                position_subcategories = set(position.subcategory)  
                 if set(filter_by_subcategory).issubset(position_subcategories):
                     valid_positions.append({
                         "name": position.name,
@@ -142,13 +150,13 @@ def get_top_startups(request):
             except BaseProfile.DoesNotExist:
                 profile_picture = None
 
-            # Fetch positions
+            
             positions = Position.objects.filter(position_user__username=username)
 
-            # Filter positions by subcategories
+            
             valid_positions = []
             for position in positions:
-                position_subcategories = set(position.subcategory)  # position.subcategory is already a list
+                position_subcategories = set(position.subcategory)  
                 if set(filter_by_subcategory).issubset(position_subcategories):
                     valid_positions.append({
                         "name": position.name,
@@ -187,13 +195,13 @@ def get_top_startups(request):
             except BaseProfile.DoesNotExist:
                 profile_picture = None
 
-        # Fetch positions
+        
         positions = Position.objects.filter(position_user__username=username)
 
-        # Filter positions by subcategories
+        
         valid_positions = []
         for position in positions:
-            position_subcategories = set(position.subcategory)  # position.subcategory is already a list
+            position_subcategories = set(position.subcategory)  
             if set(filter_by_subcategory).issubset(position_subcategories):
                 valid_positions.append({
                     "name": position.name,
