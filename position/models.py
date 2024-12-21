@@ -60,7 +60,7 @@ class Position(models.Model):
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
 
-    subcategory = models.JSONField(default=list, blank=True)  # تغییر به JSONField
+    subcategory = models.JSONField(default=list, blank=True)  
 
     def __str__(self) -> str:
         return f"{self.name} - {self.position_user.username}"

@@ -7,8 +7,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-
-
+import json
 
 type_param = openapi.Parameter(
     'type',
@@ -17,7 +16,6 @@ type_param = openapi.Parameter(
     type=openapi.TYPE_STRING,
     enum=["top_liked", "top_visited", "top_funded"]  
 )
-
 
 results_per_page_param = openapi.Parameter(
     'results_per_page',
@@ -35,9 +33,16 @@ page_number_param = openapi.Parameter(
     default=1
 )
 
+filter_by_subcategory_param = openapi.Parameter(
+    'filter_by_subcategory',
+    openapi.IN_QUERY,
+    description="A JSON object of subcategory to filter the positions by.",
+    type=openapi.TYPE_STRING
+)
+
 @swagger_auto_schema(
     method="get",
-    manual_parameters=[type_param, results_per_page_param, page_number_param],
+    manual_parameters=[type_param, results_per_page_param, page_number_param, filter_by_subcategory_param],
     responses={200: openapi.Schema(
             type=openapi.TYPE_ARRAY,
             items=openapi.Schema(
@@ -65,9 +70,15 @@ def get_top_startups(request):
     top_type = request.GET.get("type")  
     results_per_page = int(request.GET.get("results_per_page", 10))
     page_number = int(request.GET.get("page_number", 1))
+    filter_by_subcategory = request.GET.get("filter_by_subcategory")
 
     if not top_type:
         return Response({"error": "'type' parameter is required."}, status=400)
+
+    try:
+        filter_by_subcategory = json.loads(filter_by_subcategory) if filter_by_subcategory else {}
+    except json.JSONDecodeError:
+        return Response({"error": "'filter_by_subcategory' must be a valid JSON object."}, status=400)
 
     start_index = (page_number - 1) * results_per_page
     end_index = start_index + results_per_page
@@ -90,23 +101,30 @@ def get_top_startups(request):
             except BaseProfile.DoesNotExist:
                 profile_picture = None
 
-            
+            # Fetch positions
             positions = Position.objects.filter(position_user__username=username)
-            position_data = [{
-                "name": position.name,
-                "description": position.description,
-                "total": position.total,
-                "funded": position.funded,
-                "start_time": position.start_time,
-                "end_time": position.end_time,
-            } for position in positions]
 
-            data.append({
-                "username": username,
-                "profile_picture": profile_picture,
-                "score": startup.score,
-                "positions": position_data,
-            })
+            # Filter positions by subcategories
+            valid_positions = []
+            for position in positions:
+                position_subcategories = set(position.subcategory)  # position.subcategory is already a list
+                if set(filter_by_subcategory).issubset(position_subcategories):
+                    valid_positions.append({
+                        "name": position.name,
+                        "description": position.description,
+                        "total": position.total,
+                        "funded": position.funded,
+                        "start_time": position.start_time,
+                        "end_time": position.end_time,
+                    })
+
+            if valid_positions:
+                data.append({
+                    "username": username,
+                    "profile_picture": profile_picture,
+                    "score": startup.score,
+                    "positions": valid_positions,
+                })
 
     elif top_type == "top_visited":
         top_startups = (
@@ -124,23 +142,31 @@ def get_top_startups(request):
             except BaseProfile.DoesNotExist:
                 profile_picture = None
 
-            
+            # Fetch positions
             positions = Position.objects.filter(position_user__username=username)
-            position_data = [{
-                "name": position.name,
-                "description": position.description,
-                "total": position.total,
-                "funded": position.funded,
-                "start_time": position.start_time,
-                "end_time": position.end_time,
-            } for position in positions]
 
-            data.append({
-                "username": username,
-                "profile_picture": profile_picture,
-                "visit_count": startup.startup_profile_visit_count,
-                "positions": position_data,
-            })
+            # Filter positions by subcategories
+            valid_positions = []
+            for position in positions:
+                position_subcategories = set(position.subcategory)  # position.subcategory is already a list
+                if set(filter_by_subcategory).issubset(position_subcategories):
+                    valid_positions.append({
+                        "name": position.name,
+                        "description": position.description,
+                        "total": position.total,
+                        "funded": position.funded,
+                        "start_time": position.start_time,
+                        "end_time": position.end_time,
+                    })
+
+
+            if valid_positions:
+                data.append({
+                    "username": username,
+                    "profile_picture": profile_picture,
+                    "visit_count": startup.startup_profile_visit_count,
+                    "positions": valid_positions,
+                })
 
     elif top_type == "top_funded":
         funded_data = (
@@ -161,23 +187,31 @@ def get_top_startups(request):
             except BaseProfile.DoesNotExist:
                 profile_picture = None
 
-            
-            positions = Position.objects.filter(position_user__username=username)
-            position_data = [{
-                "name": position.name,
-                "description": position.description,
-                "total": position.total,
-                "funded": position.funded,
-                "start_time": position.start_time,
-                "end_time": position.end_time,
-            } for position in positions]
+        # Fetch positions
+        positions = Position.objects.filter(position_user__username=username)
 
-            data.append({
-                "username": username,
-                "profile_picture": profile_picture,
-                "total_funded": total_funded,
-                "positions": position_data,
-            })
+        # Filter positions by subcategories
+        valid_positions = []
+        for position in positions:
+            position_subcategories = set(position.subcategory)  # position.subcategory is already a list
+            if set(filter_by_subcategory).issubset(position_subcategories):
+                valid_positions.append({
+                    "name": position.name,
+                    "description": position.description,
+                    "total": position.total,
+                    "funded": position.funded,
+                    "start_time": position.start_time,
+                    "end_time": position.end_time,
+                })
+
+
+            if valid_positions:
+                data.append({
+                    "username": username,
+                    "profile_picture": profile_picture,
+                    "total_funded": total_funded,
+                    "positions": valid_positions,
+                })
 
     else:
         return Response({"error": "'type' must be 'top_liked', 'top_visited', or 'top_funded'."}, status=400)

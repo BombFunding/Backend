@@ -99,7 +99,7 @@ class PositionCreateView(mixins.CreateModelMixin, generics.GenericAPIView):
             end_time = serializer.validated_data.get("end_time")
             subcategories = serializer.validated_data.get("subcategory")
 
-            # Ensure subcategories are provided and are in list format
+            
             if not subcategories or not isinstance(subcategories, list):
                 return Response(
                     {"detail": "Subcategories must be provided as a list."},
@@ -118,8 +118,8 @@ class PositionCreateView(mixins.CreateModelMixin, generics.GenericAPIView):
 
             position = serializer.save(position_user=user)
 
-            # Convert subcategories list to a JSON field (stored as a JSON in database)
-            position.subcategory = subcategories  # JSONField now handles this
+            
+            position.subcategory = subcategories  
             position.save()
 
             return Response(
@@ -155,7 +155,7 @@ class PositionUpdateView(mixins.UpdateModelMixin, generics.GenericAPIView):
         if serializer.is_valid():
             subcategories = serializer.validated_data.get("subcategory", None)
             if subcategories and isinstance(subcategories, list):
-                position.subcategory = subcategories  # Update the JSON field
+                position.subcategory = subcategories  
             position.save()
             return Response(
                 {"detail": "Position updated successfully.", "position": serializer.data},
@@ -237,7 +237,7 @@ class PositionRenewView(mixins.UpdateModelMixin, generics.GenericAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Ensure subcategories are provided and are in array format
+        
         if subcategories and not isinstance(subcategories, list):
             return Response(
                 {"detail": "Subcategories must be provided as a list."},
@@ -261,7 +261,7 @@ class PositionRenewView(mixins.UpdateModelMixin, generics.GenericAPIView):
 
         position.end_time += timedelta(days=days_to_renew)
         if subcategories:
-            position.subcategory = subcategories  # Update the JSON field
+            position.subcategory = subcategories  
         position.save()
 
         return Response(
