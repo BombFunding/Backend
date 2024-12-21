@@ -3,7 +3,6 @@ from .models import Position
 from rest_framework import serializers
 from datetime import datetime, date 
 
-
 class PositionSerializer(serializers.ModelSerializer):
     percent_funded = serializers.SerializerMethodField()
     days_remaining = serializers.SerializerMethodField()
@@ -19,6 +18,7 @@ class PositionSerializer(serializers.ModelSerializer):
             "is_done",
             "start_time",
             "end_time",
+            "subcategory",  
             "percent_funded",  
             "days_remaining",   
         ]
@@ -33,7 +33,8 @@ class PositionSerializer(serializers.ModelSerializer):
         if obj.end_time and obj.end_time.date() > today:  
             remaining_days = (obj.end_time.date() - today).days  
             return remaining_days
-        return 0 
+        return 0
+
     
 from .models import Transaction
 

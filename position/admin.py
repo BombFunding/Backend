@@ -12,11 +12,12 @@ class PositionAdmin(admin.ModelAdmin):
         "is_done",
         "start_time",
         "end_time",
+        "subcategory",  
         "get_position_user_name",  
     ]
-    list_editable = ["funded", "is_done"]
-    search_fields = ["name", "position_user__username"]  
-    list_filter = ["is_done", "start_time", "end_time"]
+    list_editable = ["funded", "is_done", "subcategory"]  
+    search_fields = ["name", "position_user__username", "subcategory"]  
+    list_filter = ["is_done", "start_time", "end_time", "subcategory"]  
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
@@ -25,7 +26,7 @@ class PositionAdmin(admin.ModelAdmin):
     def get_position_user_name(self, obj):
         return obj.position_user.username  
 
-    get_position_user_name.short_description = "Position User"  
+    get_position_user_name.short_description = "Position User"
 
 
 
