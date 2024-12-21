@@ -12,7 +12,7 @@ from drf_yasg import openapi
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from drf_yasg.utils import swagger_auto_schema
-
+from project.models import Project
 
 type_param = openapi.Parameter(
     'type',
@@ -124,10 +124,20 @@ def get_top_startups(request):
                         "subcategory": list(position_subcategories),  
                     })
 
+            
+            project_image = None
+            try:
+                project = Project.objects.filter(user__username=username).first()
+                if project and project.image:
+                    project_image = project.image.url
+            except Project.DoesNotExist:
+                project_image = None
+
             if valid_positions:
                 data.append({
                     "username": username,
                     "profile_picture": profile_picture,
+                    "project_image": project_image,  
                     "score": startup.score,
                     "positions": valid_positions,
                 })
@@ -164,12 +174,22 @@ def get_top_startups(request):
                         "subcategory": list(position_subcategories),  
                     })
 
+            
+            project_image = None
+            try:
+                project = Project.objects.filter(user__username=username).first()
+                if project and project.image:
+                    project_image = project.image.url
+            except Project.DoesNotExist:
+                project_image = None
+
             if valid_positions:
                 data.append({
                     "username": username,
                     "profile_picture": profile_picture,
                     "visit_count": startup.startup_profile_visit_count,
                     "positions": valid_positions,
+                    "project_image": project_image,  
                 })
 
     elif top_type == "top_funded":
@@ -207,12 +227,22 @@ def get_top_startups(request):
                         "subcategory": list(position_subcategories),  
                     })
 
+            
+            project_image = None
+            try:
+                project = Project.objects.filter(user__username=username).first()
+                if project and project.image:
+                    project_image = project.image.url
+            except Project.DoesNotExist:
+                project_image = None
+
             if valid_positions:
                 data.append({
                     "username": username,
                     "profile_picture": profile_picture,
                     "total_funded": total_funded,
                     "positions": valid_positions,
+                    "project_image": project_image,  
                 })
 
     else:
