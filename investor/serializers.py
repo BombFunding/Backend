@@ -18,7 +18,7 @@ class InvestorProfileSerializer(serializers.ModelSerializer):
             "address"
         ]
 
-class VoteSerializer(serializers.ModelSerializer):
+class InvestorVoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = InvestorVote
         fields = ["vote"]

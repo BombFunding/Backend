@@ -9,7 +9,7 @@ from drf_yasg import openapi
 from rest_framework.generics import GenericAPIView
 from .models import InvestorProfile , InvestorUser
 from .models import InvestorVote
-from .serializers import VoteSerializer
+from .serializers import InvestorVoteSerializer
 from .serializers import InvestorProfileSerializer
 from django.db import IntegrityError
 
@@ -120,7 +120,7 @@ class VoteProfile(GenericAPIView):
         return super().get_permissions()
 
     @swagger_auto_schema(
-        request_body=VoteSerializer,
+        request_body=InvestorVoteSerializer,
         responses={
             201: "Vote added successfully.",
             200: "Vote updated successfully.",
@@ -151,7 +151,7 @@ class VoteProfile(GenericAPIView):
             )
 
         try:
-            # Checking if an existing vote exists
+            
             existing_vote = InvestorVote.objects.filter(
                 user=user, investor_profile=investor_profile
             ).first()
@@ -163,12 +163,12 @@ class VoteProfile(GenericAPIView):
                         status=status.HTTP_400_BAD_REQUEST,
                     )
                 
-                # Create or update the vote to 1
+                
                 InvestorVote.objects.update_or_create(
                     user=user, investor_profile=investor_profile, defaults={"vote": 1}
                 )
                 
-                # Handle profile stats (ensure using correct field)
+                
                 profile_statics, _ = InvestorProfile.objects.get_or_create(
                     investor_user=investor_profile.investor_user
                 )
@@ -181,7 +181,7 @@ class VoteProfile(GenericAPIView):
 
             elif vote_type == 0:  
                 if existing_vote and existing_vote.vote == 1:
-                    # Removing like if it exists
+                    
                     profile_statics = InvestorProfile.objects.filter(
                         investor_user=investor_profile.investor_user
                     ).first()
