@@ -26,3 +26,31 @@ class InvestorProfile(models.Model):
 
     def __str__(self):
         return f"{self.investor_user.username}"
+
+
+class InvestorVote(models.Model):
+    VOTE_CHOICES = (
+        (1, "like"),
+        (0, "nothing"),
+    )
+
+    user = models.ForeignKey(BaseUser, on_delete=models.CASCADE)
+    investor_profile = models.ForeignKey(InvestorProfile, on_delete=models.CASCADE)
+    vote = models.SmallIntegerField(choices=VOTE_CHOICES)
+
+    class Meta:
+        unique_together = ("user", "investor_profile")
+
+    def save(self, *args, **kwargs):
+        if self.pk is None:
+            self.investor_profile.score += self.vote
+        else:
+            old_vote = InvestorVote.objects.get(pk=self.pk)
+            self.investor_profile.score += self.vote - old_vote.vote
+        self.investor_profile.save()
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        self.investor_profile.score -= self.vote
+        self.investor_profile.save()
+        super().delete(*args, **kwargs)

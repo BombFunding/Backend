@@ -1,23 +1,18 @@
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from .models import StartupProfile, Position, StartupUser
+from .models import StartupProfile, StartupUser
 from .serializers import StartupProfileSerializer
 from rest_framework import mixins, generics
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from django.http import JsonResponse
 from django.db import IntegrityError
-from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView
-from .models import StartupProfile, Position, StartupUser, StartupVote
+from .models import StartupProfile, StartupUser, StartupVote
 from .serializers import StartupProfileSerializer, VoteSerializer
 from django.utils.translation import gettext as _
 from drf_yasg.utils import swagger_auto_schema
-from balance.utils import UserBalanceMixin
 from datetime import date
 from profile_statics.models import ProfileStatics
 
