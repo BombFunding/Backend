@@ -12,6 +12,7 @@ from .models import InvestorVote
 from .serializers import InvestorVoteSerializer
 from .serializers import InvestorProfileSerializer
 from django.db import IntegrityError
+from profile_statics.models import ProfileStatics
 
 
 class InvestorProfileRetrieveView(mixins.RetrieveModelMixin, generics.GenericAPIView):
@@ -108,6 +109,7 @@ class InvestorProfileUpdateView(mixins.UpdateModelMixin, generics.GenericAPIView
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+
 class VoteProfile(GenericAPIView):
     permission_classes = [AllowAny]
 
@@ -130,7 +132,7 @@ class VoteProfile(GenericAPIView):
     )
     def post(self, request, *args, **kwargs):
         """
-        Vote on an investor profile (like or nothing).
+        Vote on a investor profile (like or nothing).
         """
         user = request.user  
         investor_profile_id = self.kwargs.get("investor_profile_id")
@@ -146,7 +148,7 @@ class VoteProfile(GenericAPIView):
             investor_profile = InvestorProfile.objects.get(pk=investor_profile_id)
         except InvestorProfile.DoesNotExist:
             return Response(
-                {"detail": "Investor profile not found."},
+                {"detail": "investor profile not found."},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
@@ -163,17 +165,14 @@ class VoteProfile(GenericAPIView):
                         status=status.HTTP_400_BAD_REQUEST,
                     )
                 
-                
                 InvestorVote.objects.update_or_create(
                     user=user, investor_profile=investor_profile, defaults={"vote": 1}
                 )
                 
-                
-                profile_statics, _ = InvestorProfile.objects.get_or_create(
-                    investor_user=investor_profile.investor_user
+                profile_statics, _ = ProfileStatics.objects.get_or_create(
+                    user=investor_profile.investor_user.username
                 )
                 profile_statics.add_like(liked_by_user=user.username)
-                
                 return Response(
                     {"detail": "Profile liked successfully."},
                     status=status.HTTP_201_CREATED,
@@ -182,14 +181,12 @@ class VoteProfile(GenericAPIView):
             elif vote_type == 0:  
                 if existing_vote and existing_vote.vote == 1:
                     
-                    profile_statics = InvestorProfile.objects.filter(
-                        investor_user=investor_profile.investor_user
+                    profile_statics = ProfileStatics.objects.filter(
+                        user=investor_profile.investor_user.username
                     ).first()
-                    
                     if profile_statics:
                         profile_statics.remove_like(liked_by_user=user.username)
                     existing_vote.delete()
-                    
                     return Response(
                         {"detail": "Like removed successfully."},
                         status=status.HTTP_200_OK,
