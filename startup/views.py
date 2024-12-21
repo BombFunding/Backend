@@ -115,7 +115,7 @@ class VoteProfile(GenericAPIView):
 
     def get_permissions(self):
         """
-        diffrent permission classes for functions
+        Different permission classes for functions
         """
         if self.request.method in ["POST", "DELETE"]:
             return [IsAuthenticated()]
@@ -134,7 +134,7 @@ class VoteProfile(GenericAPIView):
         """
         Vote on a startup profile.
         """
-        user = request.user
+        user = request.user  # This is an instance of BaseUser
         startup_profile_id = self.kwargs.get("startup_profile_id")
         vote_type = request.data.get("vote")
 
@@ -152,21 +152,23 @@ class VoteProfile(GenericAPIView):
             )
 
         try:
-            
+            # Create or update the vote
             startup_vote, created = StartupVote.objects.update_or_create(
                 user=user, startup_profile=startup_profile, defaults={"vote": vote_type}
             )
 
-            
+            # Ensure ProfileStatics exists for the startup profile's user
             profile_statics, _ = ProfileStatics.objects.get_or_create(
                 user=startup_profile.startup_user.username
             )
 
+            # Update likes based on vote type
             if vote_type == 1:
-                profile_statics.increment_like()
+                profile_statics.add_like(liked_by_user=user.username)
             elif vote_type == -1:
-                profile_statics.decrement_like()
+                profile_statics.remove_like(liked_by_user=user.username)
 
+            # Return appropriate response
             if created:
                 return Response(
                     {"detail": "Vote added successfully."},
@@ -179,44 +181,6 @@ class VoteProfile(GenericAPIView):
         except IntegrityError:
             return Response(
                 {"detail": "You have already voted on this profile."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-
-    @swagger_auto_schema(
-        responses={
-            204: "Vote removed successfully.",
-            400: "You have not voted on this profile.",
-            404: "Startup profile not found.",
-        },
-    )
-    def delete(self, request, *args, **kwargs):
-        """
-        Remove a vote from a startup profile.
-        """
-        user = request.user
-        startup_profile_id = self.kwargs.get("startup_profile_id")
-
-        try:
-            startup_profile = StartupProfile.objects.get(pk=startup_profile_id)
-        except StartupProfile.DoesNotExist:
-            return Response(
-                {"detail": "Startup profile not found."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        try:
-            startup_vote = StartupVote.objects.get(
-                user=user, startup_profile=startup_profile
-            )
-            startup_vote.delete()
-            return Response(
-                {"detail": "Vote removed successfully."},
-                status=status.HTTP_204_NO_CONTENT,
-            )
-        except StartupVote.DoesNotExist:
-            return Response(
-                {"detail": "You have not voted on this profile."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
