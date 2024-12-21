@@ -4,6 +4,8 @@ from authenticator.models import BaseUser
 from django.db import models
 from django.contrib.postgres.fields import ArrayField  
 
+from django.db import models
+
 class Position(models.Model):
     TECHNOLOGY_CHOICES = [
         ("Artificial Intelligence", "Artificial Intelligence"),
@@ -58,12 +60,7 @@ class Position(models.Model):
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
 
-    
-    subcategory = ArrayField(
-        models.CharField(max_length=100, choices=CATEGORY_CHOICES),
-        blank=True,  
-        default=list  
-    )
+    subcategory = models.JSONField(default=list, blank=True)  # تغییر به JSONField
 
     def __str__(self) -> str:
         return f"{self.name} - {self.position_user.username}"

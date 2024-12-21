@@ -99,10 +99,10 @@ class PositionCreateView(mixins.CreateModelMixin, generics.GenericAPIView):
             end_time = serializer.validated_data.get("end_time")
             subcategories = serializer.validated_data.get("subcategory")
 
-            # Ensure subcategories are provided and are in array format
+            # Ensure subcategories are provided and are in list format
             if not subcategories or not isinstance(subcategories, list):
                 return Response(
-                    {"detail": "Subcategories must be provided as an array."},
+                    {"detail": "Subcategories must be provided as a list."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -117,8 +117,9 @@ class PositionCreateView(mixins.CreateModelMixin, generics.GenericAPIView):
             mixin.reduce_balance(user, POSITION_CREATION_COST_PER_DAY * delta + POSITION_CREATION_BASE_COST)
 
             position = serializer.save(position_user=user)
-            # Convert subcategories array to a comma-separated string for storage
-            position.subcategory = ",".join(subcategories)
+
+            # Convert subcategories list to a JSON field (stored as a JSON in database)
+            position.subcategory = subcategories  # JSONField now handles this
             position.save()
 
             return Response(
@@ -152,7 +153,10 @@ class PositionUpdateView(mixins.UpdateModelMixin, generics.GenericAPIView):
 
         serializer = self.get_serializer(position, data=request.data, partial=True)
         if serializer.is_valid():
-            serializer.save()
+            subcategories = serializer.validated_data.get("subcategory", None)
+            if subcategories and isinstance(subcategories, list):
+                position.subcategory = subcategories  # Update the JSON field
+            position.save()
             return Response(
                 {"detail": "Position updated successfully.", "position": serializer.data},
                 status=status.HTTP_200_OK,
@@ -234,9 +238,9 @@ class PositionRenewView(mixins.UpdateModelMixin, generics.GenericAPIView):
             )
 
         # Ensure subcategories are provided and are in array format
-        if not subcategories or not isinstance(subcategories, list):
+        if subcategories and not isinstance(subcategories, list):
             return Response(
-                {"detail": "Subcategories must be provided as an array."},
+                {"detail": "Subcategories must be provided as a list."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -256,7 +260,8 @@ class PositionRenewView(mixins.UpdateModelMixin, generics.GenericAPIView):
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         position.end_time += timedelta(days=days_to_renew)
-        position.subcategory = ",".join(subcategories)  # Convert subcategories array to comma-separated string
+        if subcategories:
+            position.subcategory = subcategories  # Update the JSON field
         position.save()
 
         return Response(
