@@ -132,15 +132,16 @@ class VoteProfile(GenericAPIView):
     )
     def post(self, request, *args, **kwargs):
         """
-        Vote on a startup profile.
+        Vote on a startup profile (like or nothing).
         """
-        user = request.user  # This is an instance of BaseUser
+        user = request.user  
         startup_profile_id = self.kwargs.get("startup_profile_id")
         vote_type = request.data.get("vote")
 
-        if vote_type not in [1, -1]:
+        if vote_type not in [1, 0]:  
             return Response(
-                {"detail": "Invalid vote type."}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": "Invalid vote type."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         try:
@@ -152,37 +153,56 @@ class VoteProfile(GenericAPIView):
             )
 
         try:
-            # Create or update the vote
-            startup_vote, created = StartupVote.objects.update_or_create(
-                user=user, startup_profile=startup_profile, defaults={"vote": vote_type}
-            )
+            
+            existing_vote = StartupVote.objects.filter(
+                user=user, startup_profile=startup_profile
+            ).first()
 
-            # Ensure ProfileStatics exists for the startup profile's user
-            profile_statics, _ = ProfileStatics.objects.get_or_create(
-                user=startup_profile.startup_user.username
-            )
-
-            # Update likes based on vote type
-            if vote_type == 1:
+            if vote_type == 1:  
+                if existing_vote and existing_vote.vote == 1:
+                    return Response(
+                        {"detail": "You have already liked this profile."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                
+                StartupVote.objects.update_or_create(
+                    user=user, startup_profile=startup_profile, defaults={"vote": 1}
+                )
+                
+                profile_statics, _ = ProfileStatics.objects.get_or_create(
+                    user=startup_profile.startup_user.username
+                )
                 profile_statics.add_like(liked_by_user=user.username)
-            elif vote_type == -1:
-                profile_statics.remove_like(liked_by_user=user.username)
-
-            # Return appropriate response
-            if created:
                 return Response(
-                    {"detail": "Vote added successfully."},
+                    {"detail": "Profile liked successfully."},
                     status=status.HTTP_201_CREATED,
                 )
-            else:
-                return Response(
-                    {"detail": "Vote updated successfully."}, status=status.HTTP_200_OK
-                )
+
+            elif vote_type == 0:  
+                if existing_vote and existing_vote.vote == 1:
+                    
+                    profile_statics = ProfileStatics.objects.filter(
+                        user=startup_profile.startup_user.username
+                    ).first()
+                    if profile_statics:
+                        profile_statics.remove_like(liked_by_user=user.username)
+                    existing_vote.delete()
+                    return Response(
+                        {"detail": "Like removed successfully."},
+                        status=status.HTTP_200_OK,
+                    )
+                else:
+                    return Response(
+                        {"detail": "No like exists to remove."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
         except IntegrityError:
             return Response(
-                {"detail": "You have already voted on this profile."},
+                {"detail": "An error occurred while processing your vote."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
 
     @swagger_auto_schema(
         responses={

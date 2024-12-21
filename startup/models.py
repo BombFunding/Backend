@@ -40,8 +40,8 @@ class StartupProfile(models.Model):
 
 class StartupVote(models.Model):
     VOTE_CHOICES = (
-        (1, "Upvote"),
-        (-1, "Downvote"),
+        (1, "like"),
+        (0, "nothing"),
     )
 
     user = models.ForeignKey(BaseUser, on_delete=models.CASCADE)
