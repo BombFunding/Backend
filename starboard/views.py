@@ -1,80 +1,118 @@
 from django.db.models import Sum
-from django.shortcuts import render
-from django.db import models
-from authenticator.models import BaseUser, StartupUser, BaseProfile
+from authenticator.models import BaseUser, BaseProfile
 from startup.models import Position, StartupProfile
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+import json
+from drf_yasg import openapi
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from drf_yasg.utils import swagger_auto_schema
+from project.models import Project
+import random
+import os
+from django.conf import settings
+from django.core.files.storage import default_storage
 
+
+type_param = openapi.Parameter(
+    'type',
+    openapi.IN_QUERY,
+    description="Type of the top startups to retrieve: 'top_liked', 'top_visited', or 'top_funded'.",
+    type=openapi.TYPE_STRING,
+    enum=["top_liked", "top_visited", "top_funded"]  
+)
+
+results_per_page_param = openapi.Parameter(
+    'results_per_page',
+    openapi.IN_QUERY,
+    description="Number of results per page",
+    type=openapi.TYPE_INTEGER,
+    default=10
+)
+
+page_number_param = openapi.Parameter(
+    'page_number',
+    openapi.IN_QUERY,
+    description="Page number to retrieve",
+    type=openapi.TYPE_INTEGER,
+    default=1
+)
+
+
+filter_by_subcategory_param = openapi.Parameter(
+    'filter_by_subcategory',
+    openapi.IN_QUERY,
+    description="Comma-separated list of subcategories to filter the positions by. Example: 'Technology,Art,Health'",
+    type=openapi.TYPE_ARRAY,
+    items=openapi.Items(type=openapi.TYPE_STRING),
+)
 
 @swagger_auto_schema(
-    method="post",
-    operation_description="Retrieve startups based on the specified 'type' ('top_liked', 'top_visited', 'top_funded') and pagination details.",
-    request_body=openapi.Schema(
-        type=openapi.TYPE_OBJECT,
-        properties={
-            'type': openapi.Schema(
-                type=openapi.TYPE_STRING,
-                description="Type of the top startups to retrieve: 'top_liked', 'top_visited', or 'top_funded'."
-            ),
-            'results_per_page': openapi.Schema(
-                type=openapi.TYPE_INTEGER,
-                description="Number of results per page",
-                default=10
-            ),
-            'page_number': openapi.Schema(
-                type=openapi.TYPE_INTEGER,
-                description="Page number to retrieve",
-                default=1
-            ),
-        },
-        required=['type']
-    ),
-    responses={
-        200: openapi.Schema(
+    method="get",
+    manual_parameters=[type_param, results_per_page_param, page_number_param, filter_by_subcategory_param],
+    responses={200: openapi.Schema(
             type=openapi.TYPE_ARRAY,
             items=openapi.Schema(
                 type=openapi.TYPE_OBJECT,
                 properties={
                     'username': openapi.Schema(type=openapi.TYPE_STRING),
                     'profile_picture': openapi.Schema(type=openapi.TYPE_STRING, format='uri', description="URL of the profile picture"),
-                    'score': openapi.Schema(type=openapi.TYPE_INTEGER, description="Score of the startup (for top_liked)"),
-                    'visit_count': openapi.Schema(type=openapi.TYPE_INTEGER, description="Visit count of the startup (for top_visited)"),
-                    'total_funded': openapi.Schema(type=openapi.TYPE_INTEGER, description="Total funded amount (for top_funded)"),
+                    'positions': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_OBJECT, properties={
+                        'name': openapi.Schema(type=openapi.TYPE_STRING),
+                        'description': openapi.Schema(type=openapi.TYPE_STRING),
+                        'total': openapi.Schema(type=openapi.TYPE_INTEGER),
+                        'funded': openapi.Schema(type=openapi.TYPE_INTEGER),
+                        'start_time': openapi.Schema(type=openapi.TYPE_STRING, format='date-time'),
+                        'end_time': openapi.Schema(type=openapi.TYPE_STRING, format='date-time'),
+                    }))
                 },
             ),
         ),
-        400: "Invalid request"
+    400: "Invalid request"
     },
 )
-@api_view(["POST"])
+@api_view(["GET"])
 @permission_classes([AllowAny])
 def get_top_startups(request):
-    top_type = request.data.get("type")
-    results_per_page = request.data.get("results_per_page", 10)
-    page_number = request.data.get("page_number", 1)
+    top_type = request.GET.get("type")  
+    results_per_page = int(request.GET.get("results_per_page", 10))
+    page_number = int(request.GET.get("page_number", 1))
+    filter_by_subcategory = request.GET.get("filter_by_subcategory")
 
     if not top_type:
         return Response({"error": "'type' parameter is required."}, status=400)
 
-    
+    try:
+        filter_by_subcategory = json.loads(filter_by_subcategory) if filter_by_subcategory else {}
+    except json.JSONDecodeError:
+        return Response({"error": "'filter_by_subcategory' must be a valid JSON object."}, status=400)
+
     start_index = (page_number - 1) * results_per_page
     end_index = start_index + results_per_page
 
     data = []
 
+    
+    default_images = ["1.png", "2.png", "3.png", "4.png", "5.png"]
+    default_image_path = "projects/"  
+
+    def get_random_default_image():
+        """تصویر پیش‌فرض تصادفی برمی‌گرداند"""
+        return random.choice(default_images)
+
     if top_type == "top_liked":
         top_startups = (
-            StartupProfile.objects.select_related('startup_user__username')
+            StartupProfile.objects.select_related('startup_user')
             .order_by('-score')[start_index:end_index]
         )
 
         for startup in top_startups:
-            username = startup.startup_user.username.username
+            username = startup.startup_user.username.username  
             profile_picture = None
             try:
                 base_profile = BaseProfile.objects.get(base_user__username=username)
@@ -83,20 +121,52 @@ def get_top_startups(request):
             except BaseProfile.DoesNotExist:
                 profile_picture = None
 
-            data.append({
-                "username": username,
-                "profile_picture": profile_picture,
-                "score": startup.score,
-            })
+            positions = Position.objects.filter(position_user__username=username)
+
+            valid_positions = []
+            for position in positions:
+                position_subcategories = set(position.subcategory)
+                if set(filter_by_subcategory).issubset(position_subcategories):
+                    valid_positions.append({
+                        "name": position.name,
+                        "description": position.description,
+                        "total": position.total,
+                        "funded": position.funded,
+                        "start_time": position.start_time,
+                        "end_time": position.end_time,
+                        "subcategory": list(position_subcategories),  
+                    })
+
+            
+            project_image = None
+            try:
+                project = Project.objects.filter(user__username=username).first()
+                if project and project.image:
+                    project_image = project.image.url
+            except Project.DoesNotExist:
+                project_image = None
+
+            
+            if not project_image:
+                project_image = default_image_path + get_random_default_image()
+
+            if valid_positions:
+                data.append({
+                    "username": username,
+                    "profile_picture": profile_picture,
+                    "project_image": project_image,  
+                    "score": startup.score,
+                    "positions": valid_positions,
+                })
 
     elif top_type == "top_visited":
         top_startups = (
-            StartupProfile.objects.select_related('startup_user__username')
+            StartupProfile.objects.select_related('startup_user')
             .order_by('-startup_profile_visit_count')[start_index:end_index]
         )
 
         for startup in top_startups:
-            username = startup.startup_user.username.username
+            username = startup.startup_user.username.username  
             profile_picture = None
             try:
                 base_profile = BaseProfile.objects.get(base_user__username=username)
@@ -105,41 +175,100 @@ def get_top_startups(request):
             except BaseProfile.DoesNotExist:
                 profile_picture = None
 
-            data.append({
-                "username": username,
-                "profile_picture": profile_picture,
-                "visit_count": startup.startup_profile_visit_count,
-            })
+            positions = Position.objects.filter(position_user__username=username)
+
+            valid_positions = []
+            for position in positions:
+                position_subcategories = set(position.subcategory)
+                if set(filter_by_subcategory).issubset(position_subcategories):
+                    valid_positions.append({
+                        "name": position.name,
+                        "description": position.description,
+                        "total": position.total,
+                        "funded": position.funded,
+                        "start_time": position.start_time,
+                        "end_time": position.end_time,
+                        "subcategory": list(position_subcategories),  
+                    })
+
+            
+            project_image = None
+            try:
+                project = Project.objects.filter(user__username=username).first()
+                if project and project.image:
+                    project_image = project.image.url
+            except Project.DoesNotExist:
+                project_image = None
+
+            
+            if not project_image:
+                project_image = default_image_path + get_random_default_image()
+
+            if valid_positions:
+                data.append({
+                    "username": username,
+                    "profile_picture": profile_picture,
+                    "project_image": project_image,  
+                    "visit_count": startup.startup_profile_visit_count,
+                    "positions": valid_positions,
+                })
 
     elif top_type == "top_funded":
-        positions = Position.objects.values('position_user').annotate(
-            total_funded=Sum('funded')
-        ).order_by('-total_funded')[start_index:end_index]
+        funded_data = (
+            Position.objects.values('position_user__username')
+            .annotate(total_funded=Sum('funded'))
+            .order_by('-total_funded')[start_index:end_index]
+        )
 
-        for position_data in positions:
-            total_funded = position_data['total_funded']
+        for entry in funded_data:
+            username = entry['position_user__username']
+            total_funded = entry['total_funded']
             profile_picture = None
-            user_id = position_data['position_user']
 
             try:
-                user = BaseUser.objects.get(id=user_id, user_type="startup")
-            except BaseUser.DoesNotExist:
-                continue
-
-            username = user.username
-
-            try:
-                base_profile = BaseProfile.objects.get(base_user=user_id)
+                base_profile = BaseProfile.objects.get(base_user__username=username)
                 if base_profile.profile_picture:
                     profile_picture = base_profile.profile_picture.url
             except BaseProfile.DoesNotExist:
                 profile_picture = None
 
-            data.append({
-                "username": username,
-                "profile_picture": profile_picture,
-                "total_funded": total_funded,
-            })
+            positions = Position.objects.filter(position_user__username=username)
+
+            valid_positions = []
+            for position in positions:
+                position_subcategories = set(position.subcategory)
+                if set(filter_by_subcategory).issubset(position_subcategories):
+                    valid_positions.append({
+                        "name": position.name,
+                        "description": position.description,
+                        "total": position.total,
+                        "funded": position.funded,
+                        "start_time": position.start_time,
+                        "end_time": position.end_time,
+                        "subcategory": list(position_subcategories),  
+                    })
+
+            
+            project_image = None
+            try:
+                project = Project.objects.filter(user__username=username).first()
+                if project and project.image:
+                    project_image = project.image.url
+            except Project.DoesNotExist:
+                project_image = None
+
+            
+            if not project_image:
+                project_image = default_image_path + get_random_default_image()
+
+            if valid_positions:
+                data.append({
+                    "username": username,
+                    "profile_picture": profile_picture,
+                    "project_image": project_image,  
+                    "total_funded": total_funded,
+                    "positions": valid_positions,
+                })
 
     else:
         return Response({"error": "'type' must be 'top_liked', 'top_visited', or 'top_funded'."}, status=400)
