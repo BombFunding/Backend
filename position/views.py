@@ -31,7 +31,7 @@ class PositionListView(mixins.ListModelMixin, generics.GenericAPIView):
     permission_classes = [AllowAny]
 
     @swagger_auto_schema(
-        operation_description="Retrieve all positions of the authenticated user (startup or investor).",
+        operation_description="Retrieve all positions of the authenticated user (startup).",
         responses={ 
             200: openapi.Response(
                 description="List of positions.",
@@ -64,7 +64,7 @@ class PositionListView(mixins.ListModelMixin, generics.GenericAPIView):
                     ]
                 }
             ),
-            403: openapi.Response(description="Forbidden - User is not a startup or investor."),
+            403: openapi.Response(description="Forbidden - User is not a startup."),
         }
     )
     def get(self, request, username):
@@ -87,9 +87,9 @@ class PositionCreateView(mixins.CreateModelMixin, generics.GenericAPIView):
     def post(self, request):
         user = request.user
 
-        if user.user_type not in ["startup", "investor"]:
+        if user.user_type not in ["startup"]:
             return Response(
-                {"detail": "Only users with 'startup' or 'investor' type can create positions."},
+                {"detail": "Only users with 'startup' type can create positions."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -137,9 +137,9 @@ class PositionUpdateView(mixins.UpdateModelMixin, generics.GenericAPIView):
     def patch(self, request, position_id):
         user = request.user
 
-        if user.user_type not in ["startup", "investor"]:
+        if user.user_type not in ["startup"]:
             return Response(
-                {"detail": "Only users with 'startup' or 'investor' type can update positions."},
+                {"detail": "Only users with 'startup' type can update positions."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -173,9 +173,9 @@ class PositionDeleteView(mixins.DestroyModelMixin, generics.GenericAPIView):
     def delete(self, request, position_id):
         user = request.user
 
-        if user.user_type not in ["startup", "investor"]:
+        if user.user_type not in ["startup"]:
             return Response(
-                {"detail": "Only users with 'startup' or 'investor' type can delete positions."},
+                {"detail": "Only users with 'startup' type can delete positions."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -214,9 +214,9 @@ class PositionRenewView(mixins.UpdateModelMixin, generics.GenericAPIView):
     def patch(self, request, position_id):
         user = request.user
 
-        if user.user_type not in ["startup", "investor"]:
+        if user.user_type not in ["startup"]:
             return Response(
-                {"detail": "Only users with 'startup' or 'investor' type can renew positions."},
+                {"detail": "Only users with 'startup' type can renew positions."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 

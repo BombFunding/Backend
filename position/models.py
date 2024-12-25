@@ -2,9 +2,6 @@ from django.db import models
 from authenticator.models import BaseUser
 
 from django.db import models
-from django.contrib.postgres.fields import ArrayField  
-
-from django.db import models
 
 class Position(models.Model):
     TECHNOLOGY_CHOICES = [
@@ -50,7 +47,7 @@ class Position(models.Model):
     position_user = models.ForeignKey(
         BaseUser,
         on_delete=models.CASCADE,
-        limit_choices_to={"user_type__in": ["startup", "investor"]},
+        limit_choices_to={"user_type__in": ["startup"]},
     )
     name = models.CharField(max_length=50)
     description = models.TextField()

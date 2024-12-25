@@ -7,7 +7,7 @@ class ProfileStatics(models.Model):
         BaseUser,
         on_delete=models.CASCADE,
         related_name="profile_statics",
-        limit_choices_to={"user_type__in": ["startup", "investor"]},
+        limit_choices_to={"user_type__in": ["startup"]},
     )
     likes = models.JSONField(default=dict, blank=True)
     views = models.JSONField(default=dict, blank=True)

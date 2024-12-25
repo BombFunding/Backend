@@ -52,7 +52,6 @@ urlpatterns = [
     path("promotion/", include("promotion.urls")),
     path("profilepage/", include("profilepage.urls")),
     path("position/", include("position.urls")),
-    path("investor/", include("investor.urls")),
     path("starboard/", include("starboard.urls")),
     path("profile_statics/", include("profile_statics.urls")),
     path("project/", include("project.urls")),

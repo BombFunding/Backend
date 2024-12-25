@@ -36,7 +36,6 @@ class BaseUserManager(BaseUserManager):
 
 class BaseUser(AbstractBaseUser):
     USER_TYPE_CHOICES = (
-        ("investor", "Investor"),
         ("startup", "Startup"),
         ("basic", "Basic"),
     )
@@ -82,17 +81,6 @@ class BasicUser(models.Model):
 
     def __str__(self) -> str:
         return f"{self.username.__str__()}"
-
-
-class InvestorUser(models.Model):
-    username = models.OneToOneField(
-        BaseUser, on_delete=models.CASCADE, primary_key=True
-    )
-    page = models.JSONField(null=True, blank=True)
-    categories = models.JSONField(null=True, blank=True)
-
-    def __str__(self) -> str:
-        return f"{self.username}"
 
 
 class StartupUser(models.Model):

@@ -3,7 +3,7 @@ from startup.models import StartupProfile
 from authenticator.models import BaseUser
 
 class Project(models.Model):
-    user = models.ForeignKey(BaseUser, on_delete=models.CASCADE, related_name="projects", limit_choices_to={"user_type__in": ["startup", "investor"]})
+    user = models.ForeignKey(BaseUser, on_delete=models.CASCADE, related_name="projects", limit_choices_to={"user_type__in": ["startup"]})
     page = models.JSONField(default=dict)
     name = models.CharField(max_length=50, default="Startup Project")
     image = models.ImageField(upload_to="projects/", default="projects/default_project.jpg")

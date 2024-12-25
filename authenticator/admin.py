@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django import forms
-from .models import BaseUser, BasicUser, InvestorUser, StartupUser, BaseProfile, BaseuserComment
+from .models import BaseUser, BasicUser,  StartupUser, BaseProfile, BaseuserComment
 from startup.models import StartupProfile
 
 
@@ -51,16 +51,6 @@ class BasicUserAdmin(admin.ModelAdmin):
     get_username.admin_order_field = "username"
     get_username.short_description = "Username"
 
-
-class InvestorUserAdmin(admin.ModelAdmin):
-    list_display = ("get_username",)
-    search_fields = ("username__username",)
-
-    def get_username(self, obj):
-        return obj.username.username
-
-    get_username.admin_order_field = "username"
-    get_username.short_description = "Username"
 
 
 class StartupUserAdmin(admin.ModelAdmin):
@@ -114,6 +104,5 @@ class BaseuserCommentAdmin(admin.ModelAdmin):
 
 admin.site.register(BaseUser, BaseUserAdmin)
 admin.site.register(BasicUser, BasicUserAdmin)
-admin.site.register(InvestorUser, InvestorUserAdmin)
 admin.site.register(StartupUser, StartupUserAdmin)
 admin.site.register(BaseProfile, BaseProfileAdmin)
