@@ -1,5 +1,4 @@
 from django.db import models
-from startup.models import StartupProfile
 from authenticator.models import BaseUser
 
 CATEGORIES = {

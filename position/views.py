@@ -4,10 +4,9 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from drf_yasg.utils import swagger_auto_schema
 from .models import Position, Transaction
-from .serializers import PositionSerializer
+from .serializers import PositionSerializer, TransactionSerializer
 from rest_framework import mixins, generics, status
 from rest_framework.response import Response
-from authenticator.models import BaseUser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import mixins, generics
@@ -16,6 +15,9 @@ from datetime import timedelta
 from rest_framework.exceptions import ValidationError 
 from balance.utils import UserBalanceMixin
 from rest_framework.views import APIView
+from rest_framework.generics import RetrieveAPIView
+from .serializers import PositionDetailSerializer, PositionCreateSerializer, PositionUpdateSerializer
+from project.models import Project
 
 
 POSITION_CREATION_BASE_COST = 100000
@@ -25,170 +27,76 @@ POSITION_RENEWAL_COST_7_DAY = 50000
 POSITION_RENEWAL_COST_10_DAY = 80000
 
 
-class PositionListView(mixins.ListModelMixin, generics.GenericAPIView):
+class PositionCreateView(generics.CreateAPIView):
     queryset = Position.objects.all()
-    serializer_class = PositionSerializer
-    permission_classes = [AllowAny]
+    serializer_class = PositionCreateSerializer
 
     @swagger_auto_schema(
-        operation_description="Retrieve all positions of the authenticated user (startup).",
-        responses={ 
-            200: openapi.Response(
-                description="List of positions.",
-                examples={ 
-                    "application/json": [
-                        {
-                            "id": 1,
-                            "position_user": 2,
-                            "name": "Tech Innovators Fund",
-                            "description": "Funding for a groundbreaking tech startup.",
-                            "total": 100000,
-                            "funded": 50000,
-                            "is_done": False,
-                            "start_time": "2024-12-01T09:00:00Z",
-                            "end_time": "2024-12-31T18:00:00Z",
-                            "subcategory": "Technology"
-                        },
-                        {
-                            "id": 2,
-                            "position_user": 2,
-                            "name": "Green Energy Ventures",
-                            "description": "Fundraising for sustainable energy solutions.",
-                            "total": 200000,
-                            "funded": 180000,
-                            "is_done": False,
-                            "start_time": "2024-11-01T09:00:00Z",
-                            "end_time": "2024-12-15T18:00:00Z",
-                            "subcategory": "Energy"
-                        }
-                    ]
-                }
-            ),
-            403: openapi.Response(description="Forbidden - User is not a startup."),
-        }
+        operation_description="Create a new position.",
     )
-    def get(self, request, username):
-        try:
-            user = BaseUser.objects.get(username=username)
-        except BaseUser.DoesNotExist:
+    def post(self, request, *args, **kwargs):
+        project_id = kwargs.get('project_id')
+
+        # Check for existing open positions
+        if Position.objects.filter(project_id=project_id, end_time__gt=timezone.now()).exists():
             return Response(
-                {"detail": "User not found."}, status=status.HTTP_404_NOT_FOUND
+                {"detail": "You already have an open position for this project."},
+                status=status.HTTP_400_BAD_REQUEST
             )
 
-        positions = Position.objects.filter(position_user=user)
-        serializer = PositionSerializer(positions, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        # Calculate the cost
+        end_time_str = request.data.get('end_time')
+        start_time = request.data.get('start_time', timezone.now())
 
-class PositionCreateView(mixins.CreateModelMixin, generics.GenericAPIView):
+        end_time = timezone.datetime.strptime(end_time_str, '%Y-%m-%dT%H:%M:%S')
+        if timezone.is_naive(end_time):
+            end_time = timezone.make_aware(end_time)
+
+        days = (end_time - start_time).days
+        cost = POSITION_CREATION_COST_PER_DAY * days
+
+        # Apply the cost to the project owner
+        project = Project.objects.get(id=project_id)
+        owner = project.user
+        mixin = UserBalanceMixin()
+        mixin.reduce_balance(owner, cost)
+
+        return super().post(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        serializer.save(project_id=self.kwargs.get('project_id'))
+
+class PositionUpdateView(generics.UpdateAPIView):
     queryset = Position.objects.all()
-    serializer_class = PositionSerializer
+    serializer_class = PositionUpdateSerializer
+    lookup_field = 'id'
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
-        user = request.user
+    @swagger_auto_schema(
+        operation_description="Update the total of an existing position.",
+        responses={200: PositionUpdateSerializer}
+    )
+    def put(self, request, *args, **kwargs):
+        position = self.get_object()
+        if position.project.user != request.user:
+            return Response({"detail": "You do not have permission to update this position."}, status=status.HTTP_403_FORBIDDEN)
+        return super().put(request, *args, **kwargs)
 
-        if user.user_type not in ["startup"]:
-            return Response(
-                {"detail": "Only users with 'startup' type can create positions."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            start_time = serializer.validated_data.get("start_time")
-            end_time = serializer.validated_data.get("end_time")
-            subcategories = serializer.validated_data.get("subcategory")
-
-            
-            if not subcategories or not isinstance(subcategories, list):
-                return Response(
-                    {"detail": "Subcategories must be provided as a list."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            delta = (end_time - start_time).days
-            if delta < 1:
-                return Response(
-                    {"detail": "The duration must be at least 1 day."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            mixin = UserBalanceMixin()
-            mixin.reduce_balance(user, POSITION_CREATION_COST_PER_DAY * delta + POSITION_CREATION_BASE_COST)
-
-            position = serializer.save(position_user=user)
-
-            
-            position.subcategory = subcategories  
-            position.save()
-
-            return Response(
-                {"detail": "Position created successfully.", "position": serializer.data},
-                status=status.HTTP_201_CREATED,
-            )
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class PositionUpdateView(mixins.UpdateModelMixin, generics.GenericAPIView):
+class PositionDeleteView(generics.DestroyAPIView):
     queryset = Position.objects.all()
     serializer_class = PositionSerializer
+    lookup_field = 'id'
     permission_classes = [IsAuthenticated]
 
-    def patch(self, request, position_id):
-        user = request.user
-
-        if user.user_type not in ["startup"]:
-            return Response(
-                {"detail": "Only users with 'startup' type can update positions."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        try:
-            position = Position.objects.get(id=position_id, position_user=user)
-        except Position.DoesNotExist:
-            return Response(
-                {"detail": "Position not found or not owned by this user."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        serializer = self.get_serializer(position, data=request.data, partial=True)
-        if serializer.is_valid():
-            subcategories = serializer.validated_data.get("subcategory", None)
-            if subcategories and isinstance(subcategories, list):
-                position.subcategory = subcategories  
-            position.save()
-            return Response(
-                {"detail": "Position updated successfully.", "position": serializer.data},
-                status=status.HTTP_200_OK,
-            )
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class PositionDeleteView(mixins.DestroyModelMixin, generics.GenericAPIView):
-    queryset = Position.objects.all()
-    serializer_class = PositionSerializer
-    permission_classes = [IsAuthenticated]
-
-    def delete(self, request, position_id):
-        user = request.user
-
-        if user.user_type not in ["startup"]:
-            return Response(
-                {"detail": "Only users with 'startup' type can delete positions."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        try:
-            position = Position.objects.get(id=position_id, position_user=user)
-        except Position.DoesNotExist:
-            return Response(
-                {"detail": "Position not found or not owned by this user."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        position.delete()
-        return Response({"detail": "Position deleted successfully."}, status=status.HTTP_200_OK)
+    @swagger_auto_schema(
+        operation_description="Delete an existing position.",
+        responses={204: 'No Content'}
+    )
+    def delete(self, request, *args, **kwargs):
+        position = self.get_object()
+        if position.project.user != request.user:
+            return Response({"detail": "You do not have permission to delete this position."}, status=status.HTTP_403_FORBIDDEN)
+        return super().delete(request, *args, **kwargs)
 
 class PositionRenewView(mixins.UpdateModelMixin, generics.GenericAPIView):
     queryset = Position.objects.all()
@@ -237,12 +145,6 @@ class PositionRenewView(mixins.UpdateModelMixin, generics.GenericAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        
-        if subcategories and not isinstance(subcategories, list):
-            return Response(
-                {"detail": "Subcategories must be provided as a list."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         if days_to_renew == 3:
             renewal_cost = POSITION_RENEWAL_COST_3_DAY
@@ -301,6 +203,8 @@ from django.shortcuts import get_object_or_404
 from decimal import Decimal
 
 class InvestmentCreateView(generics.CreateAPIView):
+    queryset = Transaction.objects.all()
+    serializer_class = TransactionSerializer
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
@@ -326,6 +230,7 @@ class InvestmentCreateView(generics.CreateAPIView):
             )
 
         position = get_object_or_404(Position, id=position_id)
+        position_owner = position.project.user
 
         if investor.balance < investment_amount:
             return Response(
@@ -333,39 +238,23 @@ class InvestmentCreateView(generics.CreateAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        if position.position_user == investor:
+        if position_owner == investor:
             return Response(
                 {"detail": "You cannot invest in your own position."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        if position.is_done:
+        if position.is_closed:
             return Response(
                 {"detail": "This position is already closed."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        if position.total - position.funded < investment_amount:
-            return Response(
-                {"detail": "The investment amount exceeds the remaining funding."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        if position.end_time < timezone.now():
-            return Response(
-                {"detail": "This position has expired."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        if position.total == position.funded + investment_amount:
-            position.is_done = True
-            position.save()
-
         investor.balance -= investment_amount
         investor.save()
 
-        position.position_user.balance += investment_amount
-        position.position_user.save()
+        position_owner.balance += investment_amount
+        position_owner.save()
 
         position.funded += investment_amount
         position.save()
@@ -379,9 +268,68 @@ class InvestmentCreateView(generics.CreateAPIView):
         return Response(
             {"detail": "Investment successful.", "transaction": {
                 "investor": investor.username,
-                "position": position.name,
+                "position": position.id,
                 "investment_amount": str(investment_amount),
                 "investment_date": transaction.investment_date
             }},
             status=status.HTTP_201_CREATED
         )
+
+class PositionDetailView(RetrieveAPIView):
+    queryset = Position.objects.all()
+    serializer_class = PositionDetailSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'id'
+
+from django.utils.dateparse import parse_datetime
+
+class PositionExtendView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Extend the end time of a position.",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'end_time': openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME, description='New end time for the position.')
+            },
+            required=['end_time']
+        ),
+        responses={
+            200: openapi.Response(description="Position extended successfully."),
+            400: openapi.Response(description="Invalid data or insufficient balance."),
+            403: openapi.Response(description="Forbidden - User does not have a valid position."),
+        }
+    )
+    def patch(self, request, position_id):
+        user = request.user
+        new_end_time_str = request.data.get("end_time")
+        new_end_time = parse_datetime(new_end_time_str)
+
+        if not new_end_time:
+            return Response({"detail": "Invalid end time format."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            position = Position.objects.get(id=position_id, project__user=user)
+        except Position.DoesNotExist:
+            return Response({"detail": "Position not found or not owned by this user."}, status=status.HTTP_404_NOT_FOUND)
+
+        if new_end_time <= position.end_time:
+            return Response({"detail": "New end time must be after the current end time."}, status=status.HTTP_400_BAD_REQUEST)
+
+        days_to_extend = (new_end_time - position.end_time).days
+        cost = 15000 * days_to_extend
+
+        if user.balance < cost:
+            return Response({"detail": f"Insufficient balance. You need {cost - user.balance} more."}, status=status.HTTP_400_BAD_REQUEST)
+
+        mixin = UserBalanceMixin()
+        try:
+            mixin.reduce_balance(user, cost)
+        except ValidationError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        position.end_time = new_end_time
+        position.save()
+
+        return Response({"detail": "Position extended successfully.", "position": PositionSerializer(position).data}, status=status.HTTP_200_OK)

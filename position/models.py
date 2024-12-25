@@ -1,67 +1,30 @@
 from django.db import models
 from authenticator.models import BaseUser
-
-from django.db import models
+from project.models import Project  # Import the Project model
 
 class Position(models.Model):
-    TECHNOLOGY_CHOICES = [
-        ("Artificial Intelligence", "Artificial Intelligence"),
-        ("Internet of Things", "Internet of Things"),
-        ("Software", "Software"),
-        ("Security", "Security"),
-        ("Augmented Reality", "Augmented Reality"),
-    ]
-
-    ART_CHOICES = [
-        ("Music", "Music"),
-        ("Cinema", "Cinema"),
-        ("Handicrafts", "Handicrafts"),
-    ]
-
-    HEALTH_CHOICES = [
-        ("Nutrition", "Nutrition"),
-        ("Psychology", "Psychology"),
-        ("Therapy", "Therapy"),
-    ]
-
-    TOURISM_CHOICES = [
-        ("Cultural", "Cultural"),
-        ("Urban", "Urban"),
-        ("International", "International"),
-    ]
-
-    EDUCATION_CHOICES = [
-        ("Books and Publications", "Books and Publications"),
-        ("Personal Development", "Personal Development"),
-        ("Educational Institutions", "Educational Institutions"),
-    ]
-
-    FINANCE_CHOICES = [
-        ("Investment Fund", "Investment Fund"),
-        ("Cryptocurrency", "Cryptocurrency"),
-        ("Insurance", "Insurance"),
-    ]
-
-    CATEGORY_CHOICES = TECHNOLOGY_CHOICES + ART_CHOICES + HEALTH_CHOICES + TOURISM_CHOICES + EDUCATION_CHOICES + FINANCE_CHOICES
-
-    position_user = models.ForeignKey(
-        BaseUser,
+    project = models.ForeignKey(
+        Project,
         on_delete=models.CASCADE,
-        limit_choices_to={"user_type__in": ["startup"]},
+        related_name="positions"
     )
-    name = models.CharField(max_length=50)
-    description = models.TextField()
+    description = models.TextField(default="")
     total = models.IntegerField()
-    funded = models.IntegerField()
-    is_done = models.BooleanField(default=False)
-    start_time = models.DateTimeField()
+    funded = models.IntegerField(default=0)
+    start_time = models.DateTimeField(auto_now_add=True)
     end_time = models.DateTimeField()
 
-    subcategory = models.JSONField(default=list, blank=True)  
+    @property
+    def is_done(self):
+        return self.total == self.funded
+
+    @property
+    def is_closed(self):
+        from django.utils import timezone
+        return self.end_time < timezone.now()
 
     def __str__(self) -> str:
-        return f"{self.name} - {self.position_user.username}"
-
+        return f"Position for project {self.project.name}"
 
 class Transaction(models.Model):
     investor_user = models.ForeignKey(BaseUser, on_delete=models.CASCADE, related_name="transactions")
@@ -70,7 +33,7 @@ class Transaction(models.Model):
     investment_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Transaction by {self.investor_user.username} on {self.position.name} for {self.investment_amount} at {self.investment_date}"
+        return f"Transaction by {self.investor_user.username} on position {self.position.id} for {self.investment_amount} at {self.investment_date}"
 
     class Meta:
         verbose_name = "Transaction"

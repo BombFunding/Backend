@@ -1,7 +1,6 @@
 from django.contrib import admin
-from .models import Position
+from .models import Position, Transaction
 from django.contrib.postgres.forms import SimpleArrayField
-from django.db import models  
 from django.contrib.postgres.fields import ArrayField  
 
 
@@ -9,19 +8,17 @@ from django.contrib.postgres.fields import ArrayField
 class PositionAdmin(admin.ModelAdmin):
     list_display = [
         "id",
-        "position_user",  
-        "name",
+        "project",  
+        "description",
         "total",
         "funded",
-        "is_done",
         "start_time",
         "end_time",
-        "subcategory",  
-        "get_position_user_name",  
+        "get_project_name",  
     ]
-    list_editable = ["funded", "is_done", "subcategory"]  
-    search_fields = ["name", "position_user__username", "subcategory"]  
-    list_filter = ["is_done", "start_time", "end_time", "subcategory"]  
+    list_editable = ["funded"]  
+    search_fields = ["description", "project__name"]  
+    list_filter = ["start_time", "end_time"]  
     
     formfield_overrides = {
         ArrayField: {'widget': SimpleArrayField}
@@ -29,22 +26,16 @@ class PositionAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
-        return queryset.select_related("position_user")  
+        return queryset.select_related("project")  
 
-    def get_position_user_name(self, obj):
-        return obj.position_user.username  
+    def get_project_name(self, obj):
+        return obj.project.name  
 
-    get_position_user_name.short_description = "Position User"
+    get_project_name.short_description = "Project"
 
-
-
-from django.contrib import admin
-from .models import Transaction
-
+@admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
     list_display = ('id', 'investor_user', 'position', 'investment_amount', 'investment_date')
-    search_fields = ('investor_user__username', 'position__name')
+    search_fields = ('investor_user__username', 'position__description')
     list_filter = ('investment_date',)
     ordering = ('-investment_date',)
-
-admin.site.register(Transaction, TransactionAdmin)
