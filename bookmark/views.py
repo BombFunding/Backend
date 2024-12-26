@@ -1,73 +1,57 @@
-from rest_framework import generics, permissions
-
-from .serializers import BookmarkSerializer
-from .permissions import IsBookmarkOwner
-from .models import BookmarkUser
-
+from rest_framework.views import APIView
+from rest_framework import status
+from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
+from project.models import Project
+from .models import Bookmark
+from .serializers import BookmarkStatusSerializer, BookmarkedProjectSerializer
 from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
 
-
-class BookmarkView(generics.ListCreateAPIView):
-    queryset = BookmarkUser.objects.all()
-    serializer_class = BookmarkSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        return self.queryset.filter(owner=self.request.user)
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-
+class BookmarkCreateView(APIView):
     @swagger_auto_schema(
-        operation_description="Create a bookmark",
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                'target': openapi.Schema(type=openapi.TYPE_STRING, description='Username of the user to bookmark'),
-            },
-        ),
-        responses={
-            201: openapi.Schema(
-                type=openapi.TYPE_OBJECT,
-                properties={
-                    'id': openapi.Schema(type=openapi.TYPE_INTEGER, description='ID of the bookmark'),
-                    'target_username': openapi.Schema(type=openapi.TYPE_STRING, description='Username of the bookmarked user'),
-                },
-            ),
-            400: 'Bad Request',
-            401: 'Unauthorized',
-        },
+        operation_description="Bookmark a project",
+        responses={201: "Created", 400: "Already bookmarked"}
     )
-    def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
+    def post(self, request, project_id):
+        project = get_object_or_404(Project, id=project_id)
+        if Bookmark.objects.filter(owner=request.user, target=project).exists():
+            return Response({"error": "Already bookmarked"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        Bookmark.objects.create(owner=request.user, target=project)
+        return Response(status=status.HTTP_201_CREATED)
 
+class BookmarkDeleteView(APIView):
     @swagger_auto_schema(
-        operation_description="List all bookmarks",
-        responses={
-            200: openapi.Schema(
-                type=openapi.TYPE_ARRAY,
-                items=openapi.Schema(
-                    type=openapi.TYPE_OBJECT,
-                    properties={
-                        'id': openapi.Schema(type=openapi.TYPE_INTEGER, description='ID of the bookmark'),
-                        'target_username': openapi.Schema(type=openapi.TYPE_STRING, description='Username of the bookmarked user'),
-                    },
-                ),
-            ),
-            401: 'Unauthorized',
-        },
+        operation_description="Delete a bookmark",
+        responses={204: "No Content", 400: "Not bookmarked"}
     )
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
+    def delete(self, request, project_id):
+        project = get_object_or_404(Project, id=project_id)
+        bookmark = Bookmark.objects.filter(owner=request.user, target=project).first()
+        
+        if not bookmark:
+            return Response({"error": "Not bookmarked"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        bookmark.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
+class BookmarkStatusView(APIView):
+    @swagger_auto_schema(
+        operation_description="Check if a project is bookmarked",
+        responses={200: BookmarkStatusSerializer}
+    )
+    def get(self, request, project_id):
+        project = get_object_or_404(Project, id=project_id)
+        has_bookmarked = Bookmark.objects.filter(owner=request.user, target=project).exists()
+        serializer = BookmarkStatusSerializer({"has_bookmarked": has_bookmarked})
+        return Response(serializer.data)
 
-class DestroyBookmarkView(generics.DestroyAPIView):
-    queryset = BookmarkUser.objects.all()
-    serializer_class = BookmarkSerializer
-    permission_classes = [permissions.IsAuthenticated, IsBookmarkOwner]
-
-    def get_queryset(self):
-        if getattr(self, 'swagger_fake_view', False):
-            return BookmarkUser.objects.none()
-        return self.queryset.filter(owner=self.request.user)
+class BookmarkListView(APIView):
+    @swagger_auto_schema(
+        operation_description="Get all bookmarked projects of a user",
+        responses={200: BookmarkedProjectSerializer(many=True)}
+    )
+    def get(self, request):
+        bookmarks = Bookmark.objects.filter(owner=request.user)
+        serializer = BookmarkedProjectSerializer(bookmarks, many=True)
+        return Response(serializer.data)

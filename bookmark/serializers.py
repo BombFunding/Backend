@@ -1,32 +1,19 @@
 from rest_framework import serializers
-from django.db import IntegrityError
-from .models import BookmarkUser
-from authenticator.models import BaseUser
+from .models import Bookmark
 
-class BookmarkSerializer(serializers.ModelSerializer):
-    target = serializers.CharField(write_only=True)
-    target_username = serializers.CharField(source="target.username", read_only=True)
+class BookmarkStatusSerializer(serializers.Serializer):
+    has_bookmarked = serializers.BooleanField()
+
+class BookmarkedProjectSerializer(serializers.ModelSerializer):
+    project_id = serializers.IntegerField(source='target.id')
+    project_header_picture = serializers.CharField(source='target.image.url')
+    project_name = serializers.CharField(source='target.name')
 
     class Meta:
-        model = BookmarkUser
-        fields = ["id", "target", "target_username"]
+        model = Bookmark
+        fields = ['project_id', 'project_header_picture', 'project_name']
 
-    def create(self, validated_data):
-        request = self.context.get("request")
-        owner = request.user
-        target_username = validated_data.pop("target")
-        try:
-            target = BaseUser.objects.get(username=target_username)
-        except BaseUser.DoesNotExist:
-            raise serializers.ValidationError({"error": "User does not exist."})
-
-        if owner == target:
-            raise serializers.ValidationError({"error": "You cannot bookmark yourself."})
-
-        try:
-            bookmark = BookmarkUser.objects.create(owner=owner, target=target)
-        except IntegrityError:
-            raise serializers.ValidationError({"error": "Bookmark already exists."})
-        return bookmark
-
-    
+class BookmarkCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Bookmark
+        fields = []  # Empty fields since we get project_id from URL
