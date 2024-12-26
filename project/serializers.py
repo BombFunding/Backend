@@ -3,10 +3,15 @@ from .models import Project, ProjectImage, CATEGORIES
 
 class ProjectSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
+    position_ids = serializers.SerializerMethodField()
+
     class Meta:
         model = Project
-        fields = ['id', 'user', 'username', 'page', 'name', 'image', 'subcategories', 'description', 'creation_date']
+        fields = ['id', 'user', 'username', 'page', 'name', 'image', 'subcategories', 'description', 'creation_date', 'position_ids']
         read_only_fields = ['user', 'id', 'username']
+
+    def get_position_ids(self, obj):
+        return [position.id for position in obj.positions.all()]
 
     def validate(self, attrs):
         if 'subcategories' in attrs:
