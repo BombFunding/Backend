@@ -37,14 +37,14 @@ urlpatterns = [
         view_own_baseuser_profile,
         name="view_own_baseuser_profile",
     ),
-    path("comment_on_profile/<str:username>/", add_comment, name="add_comment"),
-    path(
-    "all_comments_of_profile/<str:username>/",
-    get_comments_by_profile,
-    name="get_comments_by_profile",
-    ),
-    path(
-        "delete_comment/<int:comment_id>/", delete_comment, name="delete_comment"
-    ),
-    path("edit_comment/<int:comment_id>/", edit_comment, name="edit_comment"),
+    # path("comment_on_profile/<str:username>/", add_comment, name="add_comment"),
+    # path(
+    # "all_comments_of_profile/<str:username>/",
+    # get_comments_by_profile,
+    # name="get_comments_by_profile",
+    # ),
+    # path(
+    #     "delete_comment/<int:comment_id>/", delete_comment, name="delete_comment"
+    # ),
+    # path("edit_comment/<int:comment_id>/", edit_comment, name="edit_comment"),
 ]

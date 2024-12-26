@@ -146,7 +146,7 @@ def user_header_picture_path(instance, filename):
 
 
 class BaseProfile(models.Model):
-    base_user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, editable=False)
+    base_user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, editable=False, related_name="profile")
     name = models.CharField(max_length=50, editable=False, null=True)
     email = models.EmailField(max_length=100, editable=False, null=True)
     socials = models.JSONField(default=dict, null=True)
