@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "authenticator",
     "startup",
     "starboard",
+    "invest",
     "position",
     "team",
     "landing",

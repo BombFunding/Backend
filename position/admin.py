@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Position, Transaction
+from .models import Position
 from django.contrib.postgres.forms import SimpleArrayField
 from django.contrib.postgres.fields import ArrayField  
 
@@ -32,10 +32,3 @@ class PositionAdmin(admin.ModelAdmin):
         return obj.project.name  
 
     get_project_name.short_description = "Project"
-
-@admin.register(Transaction)
-class TransactionAdmin(admin.ModelAdmin):
-    list_display = ('id', 'investor_user', 'position', 'investment_amount', 'investment_date')
-    search_fields = ('investor_user__username', 'position__description')
-    list_filter = ('investment_date',)
-    ordering = ('-investment_date',)

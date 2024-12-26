@@ -3,8 +3,8 @@ from rest_framework import generics, mixins, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from drf_yasg.utils import swagger_auto_schema
-from .models import Position, Transaction
-from .serializers import PositionSerializer, TransactionSerializer
+from .models import Position
+from .serializers import PositionSerializer
 from rest_framework import mixins, generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -201,79 +201,6 @@ class PositionCostView(APIView):
     
 from django.shortcuts import get_object_or_404
 from decimal import Decimal
-
-class InvestmentCreateView(generics.CreateAPIView):
-    queryset = Transaction.objects.all()
-    serializer_class = TransactionSerializer
-    permission_classes = [IsAuthenticated]
-
-    @swagger_auto_schema(
-        operation_description="Create an investment transaction where an investor invests in a position.",
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                'position_id': openapi.Schema(type=openapi.TYPE_INTEGER),
-                'investment_amount': openapi.Schema(type=openapi.TYPE_NUMBER, format=openapi.FORMAT_DECIMAL)
-            }
-        ),
-        responses={200: openapi.Response(description="Investment successful.")},
-    )
-    def post(self, request):
-        investor = request.user
-        position_id = request.data.get("position_id")
-        investment_amount = Decimal(request.data.get("investment_amount"))
-
-        if not position_id or investment_amount <= 0:
-            return Response(
-                {"detail": "Invalid data. Position ID and investment amount are required."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        position = get_object_or_404(Position, id=position_id)
-        position_owner = position.project.user
-
-        if investor.balance < investment_amount:
-            return Response(
-                {"detail": "Insufficient balance for investment."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        if position_owner == investor:
-            return Response(
-                {"detail": "You cannot invest in your own position."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        if position.is_closed:
-            return Response(
-                {"detail": "This position is already closed."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        investor.balance -= investment_amount
-        investor.save()
-
-        position_owner.balance += investment_amount
-        position_owner.save()
-
-        position.funded += investment_amount
-        position.save()
-
-        transaction = Transaction.objects.create(
-            investor_user=investor,
-            position=position,
-            investment_amount=investment_amount
-        )
-
-        return Response(
-            {"detail": "Investment successful.", "transaction": {
-                "investor": investor.username,
-                "position": position.id,
-                "investment_amount": str(investment_amount),
-                "investment_date": transaction.investment_date
-            }},
-            status=status.HTTP_201_CREATED
-        )
 
 class PositionDetailView(RetrieveAPIView):
     queryset = Position.objects.all()

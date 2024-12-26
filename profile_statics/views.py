@@ -9,7 +9,8 @@ from drf_yasg import openapi
 from datetime import timedelta
 from calendar import month_name
 from django.utils.timezone import now
-from position.models import Position , Transaction
+from position.models import Position
+from invest.models import Transaction
 from django.db.models import Sum
 from django.utils import timezone
 from project.models import Project

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Position, Transaction
+from .models import Position
 from datetime import datetime, date 
 
 class PositionSerializer(serializers.ModelSerializer):
@@ -40,13 +40,6 @@ class PositionSerializer(serializers.ModelSerializer):
             remaining_days = (obj.end_time.date() - today).days  
             return remaining_days
         return 0
-
-class TransactionSerializer(serializers.ModelSerializer):
-    position_description = serializers.CharField(source="position.description", read_only=True)
-
-    class Meta:
-        model = Transaction
-        fields = ['id', 'investor_user', 'position', 'position_description', 'amount', 'transaction_date']
 
 class PositionDetailSerializer(serializers.ModelSerializer):
     class Meta:
