@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "startup",
     "starboard",
     "invest",
+    "like",
     "position",
     "team",
     "landing",

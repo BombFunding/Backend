@@ -56,6 +56,7 @@ urlpatterns = [
     path("profile_statics/", include("profile_statics.urls")),
     path("projects/", include("project.urls")),
     path("invest/", include("invest.urls")),
+    path("like/", include("like.urls")),
 ]
 
 if settings.DEBUG:
