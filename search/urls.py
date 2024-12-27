@@ -1,6 +1,7 @@
 from django.urls import path
-from .views import BaseUserSearchView
+from .views import CombinedSearchView
 
 urlpatterns = [
-    path("user/", BaseUserSearchView.as_view(), name="search-user"),
+    # path("search/", CombinedSearchView.as_view(), name="search"),
+    path("search/<str:query>/", CombinedSearchView.as_view(), name="search-with-query"),
 ]
