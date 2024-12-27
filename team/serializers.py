@@ -49,7 +49,7 @@ class TeamMemberUpdateSerializer(serializers.ModelSerializer):
         fields = ["role", "description"]
 
 class TeamMemberListSerializer(serializers.ModelSerializer):
-    profile_pic = serializers.ImageField(source="user.baseprofile.profile_picture")
+    profile_pic = serializers.ImageField(source="user.profile.profile_picture")
     username = serializers.CharField(source="user.username")
 
     class Meta:
