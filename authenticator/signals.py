@@ -1,15 +1,11 @@
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import post_save
 from django.dispatch import receiver
 from authenticator.models import BaseUser, BaseProfile, BasicUser,  StartupUser
 from startup.models import StartupProfile
-from django.db import transaction
-from team.models import Team
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from authenticator.models import BaseUser, BasicUser, StartupUser
 from startup.models import StartupProfile
-from profile_statics.models import ProfileStatics  
-from django.db import transaction
 from django.utils import timezone
 
 

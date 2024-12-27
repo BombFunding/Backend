@@ -5,8 +5,8 @@ from django.shortcuts import get_object_or_404
 from .models import Like
 from .serializers import LikeSerializer, LikeCountSerializer, HasLikedSerializer
 from project.models import Project
-from django.db.models import Sum, Count
 from drf_yasg.utils import swagger_auto_schema, no_body
+from profile_statics.models import ProjectStatistics
 
 class LikeCreateView(generics.CreateAPIView, generics.DestroyAPIView):
     serializer_class = LikeSerializer
@@ -22,6 +22,9 @@ class LikeCreateView(generics.CreateAPIView, generics.DestroyAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        project_statistics = ProjectStatistics.objects.get_or_create(project=project)[0]
+        project_statistics.add_like(request.user.username)
+
         like = Like.objects.create(user=request.user, project=project)
         serializer = self.get_serializer(like)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -29,6 +32,10 @@ class LikeCreateView(generics.CreateAPIView, generics.DestroyAPIView):
     @swagger_auto_schema(request_body=no_body, responses={204: "No Content"})
     def delete(self, request, *args, **kwargs):
         project = get_object_or_404(Project, id=self.kwargs.get('project_id'))
+
+        project_statistics = ProjectStatistics.objects.get_or_create(project=project)[0]
+        project_statistics.remove_like(request.user.username)
+
         try:
             like = Like.objects.get(user=request.user, project=project)
             like.delete()

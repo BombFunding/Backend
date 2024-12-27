@@ -7,15 +7,11 @@ from rest_framework import mixins, generics
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from django.db import IntegrityError
-from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import GenericAPIView
 from .models import StartupProfile, StartupUser, StartupVote
 from .serializers import StartupProfileSerializer, VoteSerializer
 from django.utils.translation import gettext as _
 from drf_yasg.utils import swagger_auto_schema
-from datetime import date
-from profile_statics.models import ProfileStatics
-
 
 class StartupProfileRetrieveView(mixins.RetrieveModelMixin, generics.GenericAPIView):
     queryset = StartupProfile.objects.all()
@@ -64,8 +60,6 @@ class StartupProfileRetrieveView(mixins.RetrieveModelMixin, generics.GenericAPIV
         if request.user.is_authenticated and request.user.username != username:
             startup_profile.startup_profile_visit_count += 1
             startup_profile.save()
-            profile_statics = ProfileStatics.objects.get(user=startup_user.username)
-            profile_statics.increment_view()
 
 
         serializer = self.get_serializer(startup_profile)
@@ -103,7 +97,6 @@ class StartupProfileUpdateView(mixins.UpdateModelMixin, generics.GenericAPIView)
                             status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class VoteProfile(GenericAPIView):
     permission_classes = [AllowAny]
@@ -164,10 +157,6 @@ class VoteProfile(GenericAPIView):
                     user=user, startup_profile=startup_profile, defaults={"vote": 1}
                 )
                 
-                profile_statics, _ = ProfileStatics.objects.get_or_create(
-                    user=startup_profile.startup_user.username
-                )
-                profile_statics.add_like(liked_by_user=user.username)
                 return Response(
                     {"detail": "Profile liked successfully."},
                     status=status.HTTP_201_CREATED,
@@ -176,11 +165,6 @@ class VoteProfile(GenericAPIView):
             elif vote_type == 0:  
                 if existing_vote and existing_vote.vote == 1:
                     
-                    profile_statics = ProfileStatics.objects.filter(
-                        user=startup_profile.startup_user.username
-                    ).first()
-                    if profile_statics:
-                        profile_statics.remove_like(liked_by_user=user.username)
                     existing_vote.delete()
                     return Response(
                         {"detail": "Like removed successfully."},
