@@ -33,12 +33,6 @@ def create_user_profile(sender, instance, created, **kwargs):
                 startup_starting_date=timezone.now().date(),
                 startup_profile_visit_count=0,
             )
-            ProfileStatics.objects.create(
-                user=instance,
-                likes={},
-                views={},
-            )
-
         
         elif instance.user_type == "basic":
             BasicUser.objects.create(username=instance)

@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "invest",
     "like",
     "comment",
+    "categories",
     "position",
     "team",
     "landing",

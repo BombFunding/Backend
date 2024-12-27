@@ -57,7 +57,8 @@ urlpatterns = [
     path("projects/", include("project.urls")),
     path("invest/", include("invest.urls")),
     path("like/", include("like.urls")),
-    path("comment/", include("comment.urls"))  
+    path("comment/", include("comment.urls")),
+    path("categories/", include("categories.urls")),
 ]
 
 if settings.DEBUG:
