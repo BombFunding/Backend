@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 
 class StartupProfile(models.Model):
     startup_user = models.OneToOneField(
-        StartupUser, on_delete=models.CASCADE, editable=False, null=True
+        StartupUser, on_delete=models.CASCADE, editable=False, null=True, related_name="startup_profile"
     )
     score = models.IntegerField(default=0)
     startup_starting_date = models.DateField(null=True, blank=True)  
