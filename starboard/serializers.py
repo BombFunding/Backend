@@ -9,11 +9,13 @@ class ProjectListSerializer(serializers.ModelSerializer):
     like_count = serializers.SerializerMethodField()
     is_liked = serializers.SerializerMethodField()
     is_bookmarked = serializers.SerializerMethodField()
+    owner_username = serializers.CharField(source='user.username', read_only=True)
+    owner_profile_picture = serializers.ImageField(source='user.profile.profile_picture', read_only=True)
     
     class Meta:
         model = Project
         fields = ['id', 'name', 'image', 'description', 
-                 'subcategories', 'visit_count', 'like_count', 'is_liked', 'is_bookmarked', 'creation_date']
+                 'subcategories', 'visit_count', 'like_count', 'is_liked', "owner_username", "owner_profile_picture", 'is_bookmarked', 'creation_date']
 
     def get_visit_count(self, obj):
         try:
