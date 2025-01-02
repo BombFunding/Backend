@@ -46,6 +46,11 @@ def filter_projects(request, queryset):
     
     return queryset
 
+def get_total_pages(queryset, results_per_page):
+    total_items = queryset.count()
+    total_pages = (total_items + results_per_page - 1) // results_per_page
+    return total_pages
+
 def paginate_queryset(queryset, request):
     results_per_page = int(request.GET.get('results_per_page', 10))
     page_number = int(request.GET.get('page_number', 1))
@@ -53,7 +58,7 @@ def paginate_queryset(queryset, request):
     start_idx = (page_number - 1) * results_per_page
     end_idx = start_idx + results_per_page
     
-    return queryset[start_idx:end_idx]
+    return queryset[start_idx:end_idx], get_total_pages(queryset, results_per_page)
 
 @swagger_auto_schema(
     method='get',
@@ -68,10 +73,13 @@ def top_visited_projects(request):
     ).order_by('-total_visits')
     
     queryset = filter_projects(request, queryset)
-    paginated_queryset = paginate_queryset(queryset, request)
+    paginated_queryset, total_pages = paginate_queryset(queryset, request)
     
     serializer = ProjectListSerializer(paginated_queryset, many=True)
-    return Response(serializer.data)
+    return Response({
+        'total_pages': total_pages,
+        'results': serializer.data
+    })
 
 @swagger_auto_schema(
     method='get',
@@ -86,10 +94,13 @@ def top_liked_projects(request):
     ).order_by('-total_likes')
     
     queryset = filter_projects(request, queryset)
-    paginated_queryset = paginate_queryset(queryset, request)
+    paginated_queryset, total_pages = paginate_queryset(queryset, request)
     
     serializer = ProjectListSerializer(paginated_queryset, many=True)
-    return Response(serializer.data)
+    return Response({
+        'total_pages': total_pages,
+        'results': serializer.data
+    })
 
 @swagger_auto_schema(
     method='get',
@@ -102,7 +113,10 @@ def most_recent_projects(request):
     queryset = Project.objects.all().order_by('-creation_date')
     
     queryset = filter_projects(request, queryset)
-    paginated_queryset = paginate_queryset(queryset, request)
+    paginated_queryset, total_pages = paginate_queryset(queryset, request)
     
     serializer = ProjectListSerializer(paginated_queryset, many=True)
-    return Response(serializer.data)
+    return Response({
+        'total_pages': total_pages,
+        'results': serializer.data
+    })
