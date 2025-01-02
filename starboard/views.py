@@ -24,7 +24,10 @@ def filter_projects(request, queryset):
     if category:
         if category in CATEGORIES:
             category_subcategories = CATEGORIES[category]
-            queryset = queryset.filter(subcategories__overlap=category_subcategories)
+            combined_queryset = Project.objects.none()
+            for category_subcategory in category_subcategories:
+                combined_queryset |= queryset.filter(subcategories__contains=[category_subcategory])
+            queryset = combined_queryset
     
     if subcategory:
         queryset = queryset.filter(subcategories__contains=[subcategory])
@@ -32,7 +35,10 @@ def filter_projects(request, queryset):
     if my_favorite and request.user.is_authenticated:
         try:
             liked_subcategories = LikedSubcategories.objects.get(user=request.user)
-            queryset = queryset.filter(subcategories__overlap=liked_subcategories.subcategories)
+            combined_queryset = Project.objects.none()
+            for subcategory in liked_subcategories.subcategories:
+                combined_queryset |= queryset.filter(subcategories__contains=[subcategory])
+            queryset = combined_queryset
         except LikedSubcategories.DoesNotExist:
             queryset = queryset.none()
     
