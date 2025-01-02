@@ -66,7 +66,6 @@ def paginate_queryset(queryset, request):
                       search_param, results_per_page_param, page_number_param]
 )
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
 def top_visited_projects(request):
     queryset = Project.objects.annotate(
         total_visits=Count('statistics__views')
@@ -87,7 +86,6 @@ def top_visited_projects(request):
                       search_param, results_per_page_param, page_number_param]
 )
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
 def top_liked_projects(request):
     queryset = Project.objects.annotate(
         total_likes=Count('statistics__likes')
@@ -108,7 +106,6 @@ def top_liked_projects(request):
                       search_param, results_per_page_param, page_number_param]
 )
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
 def most_recent_projects(request):
     queryset = Project.objects.all().order_by('-creation_date')
     
