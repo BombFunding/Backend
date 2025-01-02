@@ -7,10 +7,14 @@ from profile_statics.models import ProjectStatistics
 class BaseUserSerializer(serializers.ModelSerializer):
     profile_picture = serializers.ImageField(source='profile.profile_picture', read_only=True)
     user_id = serializers.IntegerField(source='id', read_only=True)
+    name = serializers.SerializerMethodField()
 
     class Meta:
         model = BaseUser
-        fields = ["user_id", "username", "profile_picture"]
+        fields = ["user_id", "username", "name", "profile_picture"]
+
+    def get_name(self, obj):
+        return f"{obj.profile.first_name} {obj.profile.last_name}"
 
 class StartupSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='username.username')
