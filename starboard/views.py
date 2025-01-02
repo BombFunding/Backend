@@ -1,12 +1,10 @@
-from django.db.models import Count, Q, Exists, OuterRef
+from django.db.models import Count, Q
 from project.models import Project, CATEGORIES
-from profile_statics.models import ProjectStatistics
 from categories.models import LikedSubcategories
-from search.serializers import ProjectListSerializer
+from .serializers import ProjectListSerializer
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 # Common parameters for Swagger documentation
@@ -74,7 +72,7 @@ def top_visited_projects(request):
     queryset = filter_projects(request, queryset)
     paginated_queryset, total_pages = paginate_queryset(queryset, request)
     
-    serializer = ProjectListSerializer(paginated_queryset, many=True)
+    serializer = ProjectListSerializer(paginated_queryset, many=True, context={'request': request})
     return Response({
         'result_count': queryset.count(),
         'total_pages': total_pages,
@@ -95,7 +93,7 @@ def top_liked_projects(request):
     queryset = filter_projects(request, queryset)
     paginated_queryset, total_pages = paginate_queryset(queryset, request)
     
-    serializer = ProjectListSerializer(paginated_queryset, many=True)
+    serializer = ProjectListSerializer(paginated_queryset, many=True, context={'request': request})
     return Response({
         'result_count': queryset.count(),
         'total_pages': total_pages,
@@ -114,7 +112,7 @@ def most_recent_projects(request):
     queryset = filter_projects(request, queryset)
     paginated_queryset, total_pages = paginate_queryset(queryset, request)
     
-    serializer = ProjectListSerializer(paginated_queryset, many=True)
+    serializer = ProjectListSerializer(paginated_queryset, many=True, context={'request': request})
     return Response({
         'result_count': queryset.count(),
         'total_pages': total_pages,

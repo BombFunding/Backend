@@ -34,8 +34,6 @@ class ProjectSerializer(serializers.ModelSerializer):
 class ProjectListSerializer(serializers.ModelSerializer):
     visit_count = serializers.SerializerMethodField()
     like_count = serializers.SerializerMethodField()
-    # categories = serializers.ListField(source='category')
-    # subcategories = serializers.ListField(source='subcategory')
     
     class Meta:
         model = Project
