@@ -76,6 +76,7 @@ def top_visited_projects(request):
     
     serializer = ProjectListSerializer(paginated_queryset, many=True)
     return Response({
+        'result_count': queryset.count(),
         'total_pages': total_pages,
         'results': serializer.data
     })
@@ -96,6 +97,7 @@ def top_liked_projects(request):
     
     serializer = ProjectListSerializer(paginated_queryset, many=True)
     return Response({
+        'result_count': queryset.count(),
         'total_pages': total_pages,
         'results': serializer.data
     })
@@ -114,6 +116,7 @@ def most_recent_projects(request):
     
     serializer = ProjectListSerializer(paginated_queryset, many=True)
     return Response({
+        'result_count': queryset.count(),
         'total_pages': total_pages,
         'results': serializer.data
     })
