@@ -44,7 +44,7 @@ class PositionSerializer(serializers.ModelSerializer):
 class PositionDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Position
-        fields = ['start_time', 'end_time', 'is_closed', 'total', 'funded']
+        fields = ['start_time', 'end_time', 'is_closed', 'total', 'funded', 'description']
 
 class PositionCreateSerializer(serializers.ModelSerializer):
     class Meta:
