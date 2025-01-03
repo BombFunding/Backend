@@ -165,13 +165,13 @@ class ProjectDetailView(generics.RetrieveAPIView):
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        return Project.objects.filter(id=self.kwargs["project_id"])
+        return Project.objects.filter(id=self.kwargs["pk"])
 
     @swagger_auto_schema(
         operation_description="Get details of a single project by project_id",
         manual_parameters=[
             openapi.Parameter(
-                name="project_id",
+                name="id",
                 in_=openapi.IN_PATH,
                 type=openapi.TYPE_INTEGER,
                 description="ID of the project",
