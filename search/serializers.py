@@ -21,10 +21,14 @@ class StartupSerializer(serializers.ModelSerializer):
     profile_picture = serializers.ImageField(source='username.profile.profile_picture', read_only=True)
     profile_id = serializers.IntegerField(source='startup_profile.id', read_only=True)
     user_id = serializers.IntegerField(source='username.id', read_only=True)
+    name = serializers.SerializerMethodField()
 
     class Meta:
         model = StartupUser
-        fields = ["profile_id", "user_id", "username", "profile_picture"]
+        fields = ["profile_id", "user_id", "username", "name", "profile_picture"]
+
+    def get_name(self, obj):
+        return f"{obj.username.profile.first_name} {obj.username.profile.last_name}"
 
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
