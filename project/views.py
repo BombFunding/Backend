@@ -159,3 +159,25 @@ class StartupProjectsList(generics.ListAPIView):
         
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
+
+class ProjectDetailView(generics.RetrieveAPIView):
+    serializer_class = ProjectSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        return Project.objects.filter(id=self.kwargs["project_id"])
+
+    @swagger_auto_schema(
+        operation_description="Get details of a single project by project_id",
+        manual_parameters=[
+            openapi.Parameter(
+                name="project_id",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_INTEGER,
+                description="ID of the project",
+                required=True,
+            )
+        ]
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
