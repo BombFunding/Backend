@@ -2,12 +2,18 @@ from django.db import models
 from authenticator.models import BaseUser
 
 CATEGORIES = {
-    "Technology": ["Artificial Intelligence", "Internet of Things", "Software", "Security", "Augmented Reality"],
-    "Art": ["Music", "Cinema", "Handicrafts"],
-    "Wellness": ["Nutrition", "Psychology", "Therapy"],
-    "Tourism": ["Cultural", "Urban", "International"],
-    "Education": ["Books and Publications", "Personal Development", "Educational Institutions"],
-    "Finance": ["Investment Fund", "Cryptocurrency", "Insurance"],
+    # "Technology": ["Artificial Intelligence", "Internet of Things", "Software", "Security", "Augmented Reality"],
+    "تکنولوژی": ["هوش مصنوعی", "اینترنت اشیا", "نرم‌افزار", "امنیت", "واقعیت افزوده"],
+    # "Art": ["Music", "Cinema", "Handicrafts"],
+    "هنری": ["موسیقی", "سینما", "صنایع دستی"],
+    # "Wellness": ["Nutrition", "Psychology", "Therapy"],
+    "سلامت": ["تغذیه", "روان", "درمان"],
+    # "Tourism": ["Cultural", "Urban", "International"],
+    "گردشگری": ["فرهنگی", "شهری", "بین‌المللی"],
+    # "Education": ["Books and Publications", "Personal Development", "Educational Institutions"],
+    "آموزش": ["کتاب و نشریات", "توسعه فردی", "آموزشگاه"],
+    # "Finance": ["Investment Fund", "Cryptocurrency", "Insurance"],
+    "مالی": ["سرمایه گذاری", "ارز دیجیتال", "بیمه"],
 }
 
 class Project(models.Model):
