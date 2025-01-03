@@ -6,6 +6,7 @@ from .serializers import ProjectSerializer, ProjectImageSerializer, DashboardPro
 from rest_framework.parsers import MultiPartParser, FormParser
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from starboard.serializers import ProjectListSerializer as DashboardProjectSerializer
 
 class ProjectListCreateView(generics.ListCreateAPIView):
     serializer_class = ProjectSerializer
@@ -161,7 +162,7 @@ class StartupProjectsList(generics.ListAPIView):
         return super().get(request, *args, **kwargs)
 
 class ProjectDetailView(generics.RetrieveAPIView):
-    serializer_class = ProjectSerializer
+    serializer_class = DashboardProjectSerializer
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
