@@ -8,3 +8,4 @@ psycopg2-binary
 drf-yasg
 pillow
 django-filter
+jdatetime
