@@ -164,9 +164,12 @@ class StartupProjectsList(generics.ListAPIView):
 class ProjectDetailView(generics.RetrieveAPIView):
     serializer_class = DashboardProjectSerializer
     permission_classes = [permissions.AllowAny]
+    lookup_field = "id"
 
     def get_queryset(self):
-        return Project.objects.filter(id=self.kwargs["pk"])
+        if getattr(self, "swagger_fake_view", False):
+            return Project.objects.none()
+        return Project.objects.filter(id=self.kwargs["id"])
 
     @swagger_auto_schema(
         operation_description="Get details of a single project by project_id",
