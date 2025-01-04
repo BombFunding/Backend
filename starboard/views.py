@@ -6,6 +6,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from position.utils import has_open_position
 
 # Common parameters for Swagger documentation
 category_param = openapi.Parameter('category', openapi.IN_QUERY, type=openapi.TYPE_STRING)
@@ -47,6 +48,8 @@ def filter_projects(request, queryset):
             Q(name__icontains=search_query) |
             Q(description__icontains=search_query)
         )
+    
+    queryset = queryset.filter(id__in=[project.id for project in queryset if has_open_position(project)])
     
     return queryset
 
