@@ -20,5 +20,18 @@ services:
       POSTGRES_USER: yourdbuser
       POSTGRES_PASSWORD: yourdbpassword
 
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+            - "8081:443"
+            - "8082:80"
+    depends_on:
+      - db
+
 volumes:
   postgres_data:
