@@ -1,14 +1,12 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from datetime import timedelta
+from datetime import timedelta, datetime
 from django.utils import timezone
 import calendar
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from datetime import timedelta
 from invest.models import Transaction
 from django.db.models import Sum
-from django.utils import timezone
 from project.models import Project
 from profile_statics.models import ProjectStatistics
 from rest_framework import status
@@ -256,3 +254,583 @@ class StartupVisitCountView(APIView):
                 {"error": "Startup not found or invalid ID"},
                 status=status.HTTP_404_NOT_FOUND
             )
+
+
+class StartupStatisticsLast30DaysView(APIView):
+
+    @swagger_auto_schema(
+        operation_description="Get total likes and views for all projects of a startup for the last 30 days.",
+        manual_parameters=[
+            openapi.Parameter(
+                'username', openapi.IN_QUERY, description="Username to filter the statistics by", type=openapi.TYPE_STRING
+            ),
+        ],
+        responses={
+            200: openapi.Response(
+                description="A list of statistics for the last 30 days",
+                examples={
+                    'application/json': [
+                        {"date": "2024-01-02", "like": "4234", "view": "234"},
+                        # ... more examples ...
+                    ]
+                }
+            )
+        }
+    )
+    def get(self, request, *args, **kwargs):
+        username = request.GET.get("username", None)
+        if not username:
+            return Response({"error": "Username is required."}, status=400)
+
+        projects = Project.objects.filter(user__username=username)
+        if not projects.exists():
+            return Response({"error": "No projects found for this user."}, status=404)
+
+        today = timezone.now().date()
+        days = [(today - timedelta(days=i)) for i in range(30)]
+
+        result = []
+
+        for day in days:
+            total_views = 0
+            total_likes = 0
+
+            for project in projects:
+                project_statics = ProjectStatistics.objects.filter(project=project).first()
+                if project_statics:
+                    total_views += project_statics.views.get(day.isoformat(), 0)
+                    total_likes += len(project_statics.likes.get(day.isoformat(), []))
+
+            result.append({
+                "date": day.isoformat(),
+                "view": total_views,
+                "like": total_likes
+            })
+
+        return Response(result)
+
+
+class StartupStatisticsLast90DaysView(APIView):
+
+    @swagger_auto_schema(
+        operation_description="Get total likes and views for all projects of a startup for the last 90 days.",
+        manual_parameters=[
+            openapi.Parameter(
+                'username', openapi.IN_QUERY, description="Username to filter the statistics by", type=openapi.TYPE_STRING
+            ),
+        ],
+        responses={
+            200: openapi.Response(
+                description="A list of statistics for the last 90 days",
+                examples={
+                    'application/json': [
+                        {"date": "2024-01-02", "like": "4234", "view": "234"},
+                        # ... more examples ...
+                    ]
+                }
+            )
+        }
+    )
+    def get(self, request, *args, **kwargs):
+        username = request.GET.get("username", None)
+        if not username:
+            return Response({"error": "Username is required."}, status=400)
+
+        projects = Project.objects.filter(user__username=username)
+        if not projects.exists():
+            return Response({"error": "No projects found for this user."}, status=404)
+
+        today = timezone.now().date()
+        days = [(today - timedelta(days=i)) for i in range(90)]
+
+        result = []
+
+        for day in days:
+            total_views = 0
+            total_likes = 0
+
+            for project in projects:
+                project_statics = ProjectStatistics.objects.filter(project=project).first()
+                if project_statics:
+                    total_views += project_statics.views.get(day.isoformat(), 0)
+                    total_likes += len(project_statics.likes.get(day.isoformat(), []))
+
+            result.append({
+                "date": day.isoformat(),
+                "view": total_views,
+                "like": total_likes
+            })
+
+        return Response(result)
+
+
+class StartupStatisticsLastYearView(APIView):
+
+    @swagger_auto_schema(
+        operation_description="Get total likes and views for all projects of a startup for the last year (monthly).",
+        manual_parameters=[
+            openapi.Parameter(
+                'username', openapi.IN_QUERY, description="Username to filter the statistics by", type=openapi.TYPE_STRING
+            ),
+        ],
+        responses={
+            200: openapi.Response(
+                description="A list of statistics for the last year",
+                examples={
+                    'application/json': [
+                        {"month": "2024-01", "like": "4234", "view": "234"},
+                        # ... more examples ...
+                    ]
+                }
+            )
+        }
+    )
+    def get(self, request, *args, **kwargs):
+        username = request.GET.get("username", None)
+        if not username:
+            return Response({"error": "Username is required."}, status=400)
+
+        projects = Project.objects.filter(user__username=username)
+        if not projects.exists():
+            return Response({"error": "No projects found for this user."}, status=404)
+
+        today = timezone.now().date()
+        months = [(today.replace(day=1) - timedelta(days=i*30)).replace(day=1) for i in range(12)]
+
+        result = []
+
+        for month in months:
+            total_views = 0
+            total_likes = 0
+
+            for project in projects:
+                project_statics = ProjectStatistics.objects.filter(project=project).first()
+                if project_statics:
+                    for day in range(1, calendar.monthrange(month.year, month.month)[1] + 1):
+                        date_str = month.replace(day=day).isoformat()
+                        total_views += project_statics.views.get(date_str, 0)
+                        total_likes += len(project_statics.likes.get(date_str, []))
+
+            result.append({
+                "month": month.strftime("%Y-%m"),
+                "view": total_views,
+                "like": total_likes
+            })
+
+        return Response(result)
+
+
+class ProjectStatisticsLast30DaysView(APIView):
+
+    @swagger_auto_schema(
+        operation_description="Get total likes and views for a specific project for the last 30 days.",
+        responses={
+            200: openapi.Response(
+                description="A list of statistics for the last 30 days",
+                examples={
+                    'application/json': [
+                        {"date": "2024-01-02", "like": "4234", "view": "234"},
+                        # ... more examples ...
+                    ]
+                }
+            )
+        }
+    )
+    def get(self, request, project_id, *args, **kwargs):
+        try:
+            project = Project.objects.get(id=project_id)
+        except Project.DoesNotExist:
+            return Response({"error": "Project not found."}, status=404)
+
+        today = timezone.now().date()
+        days = [(today - timedelta(days=i)) for i in range(30)]
+
+        result = []
+
+        for day in days:
+            project_statics = ProjectStatistics.objects.filter(project=project).first()
+            total_views = project_statics.views.get(day.isoformat(), 0) if project_statics else 0
+            total_likes = len(project_statics.likes.get(day.isoformat(), [])) if project_statics else 0
+
+            result.append({
+                "date": day.isoformat(),
+                "view": total_views,
+                "like": total_likes
+            })
+
+        return Response(result)
+
+
+class ProjectStatisticsLast90DaysView(APIView):
+
+    @swagger_auto_schema(
+        operation_description="Get total likes and views for a specific project for the last 90 days.",
+        responses={
+            200: openapi.Response(
+                description="A list of statistics for the last 90 days",
+                examples={
+                    'application/json': [
+                        {"date": "2024-01-02", "like": "4234", "view": "234"},
+                        # ... more examples ...
+                    ]
+                }
+            )
+        }
+    )
+    def get(self, request, project_id, *args, **kwargs):
+        try:
+            project = Project.objects.get(id=project_id)
+        except Project.DoesNotExist:
+            return Response({"error": "Project not found."}, status=404)
+
+        today = timezone.now().date()
+        days = [(today - timedelta(days=i)) for i in range(90)]
+
+        result = []
+
+        for day in days:
+            project_statics = ProjectStatistics.objects.filter(project=project).first()
+            total_views = project_statics.views.get(day.isoformat(), 0) if project_statics else 0
+            total_likes = len(project_statics.likes.get(day.isoformat(), [])) if project_statics else 0
+
+            result.append({
+                "date": day.isoformat(),
+                "view": total_views,
+                "like": total_likes
+            })
+
+        return Response(result)
+
+
+class ProjectStatisticsLastYearView(APIView):
+
+    @swagger_auto_schema(
+        operation_description="Get total likes and views for a specific project for the last year (monthly).",
+        responses={
+            200: openapi.Response(
+                description="A list of statistics for the last year",
+                examples={
+                    'application/json': [
+                        {"month": "2024-01", "like": "4234", "view": "234"},
+                        # ... more examples ...
+                    ]
+                }
+            )
+        }
+    )
+    def get(self, request, project_id, *args, **kwargs):
+        try:
+            project = Project.objects.get(id=project_id)
+        except Project.DoesNotExist:
+            return Response({"error": "Project not found."}, status=404)
+
+        today = timezone.now().date()
+        months = [(today.replace(day=1) - timedelta(days=i*30)).replace(day=1) for i in range(12)]
+
+        result = []
+
+        for month in months:
+            total_views = 0
+            total_likes = 0
+
+            project_statics = ProjectStatistics.objects.filter(project=project).first()
+            if project_statics:
+                for day in range(1, calendar.monthrange(month.year, month.month)[1] + 1):
+                    date_str = month.replace(day=day).isoformat()
+                    total_views += project_statics.views.get(date_str, 0)
+                    total_likes += len(project_statics.likes.get(date_str, []))
+
+            result.append({
+                "month": month.strftime("%Y-%m"),
+                "view": total_views,
+                "like": total_likes
+            })
+
+        return Response(result)
+
+
+class StartupFundStatisticsLast30DaysView(APIView):
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'username', openapi.IN_QUERY, description="Username to filter the statistics by", type=openapi.TYPE_STRING
+            ),
+        ],
+        operation_description="Get total fund for all projects of a startup for the last 30 days.",
+        responses={
+            200: openapi.Response(
+                description="A list of fund statistics for the last 30 days",
+                examples={
+                    'application/json': [
+                        {"date": "2024-01-02", "fund": "12313"},
+                        # ... more examples ...
+                    ]
+                }
+            )
+        }
+    )
+    def get(self, request, *args, **kwargs):
+        username = request.GET.get("username", None)
+        if not username:
+            return Response({"error": "Username is required."}, status=400)
+
+        projects = Project.objects.filter(user__username=username)
+        if not projects.exists():
+            return Response({"error": "No projects found for this user."}, status=404)
+
+        today = timezone.now().date()
+        days = [(today - timedelta(days=i)) for i in range(30)]
+
+        result = []
+
+        for day in days:
+            total_fund = 0
+
+            for project in projects:
+                transactions = Transaction.objects.filter(
+                    position__project=project,
+                    investment_date__date=day
+                )
+                total_fund += transactions.aggregate(Sum('investment_amount'))['investment_amount__sum'] or 0
+
+            result.append({
+                "date": day.isoformat(),
+                "fund": f"{total_fund:.0f}"
+            })
+
+        return Response(result)
+
+
+class StartupFundStatisticsLast90DaysView(APIView):
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'username', openapi.IN_QUERY, description="Username to filter the statistics by", type=openapi.TYPE_STRING
+            ),
+        ],
+        operation_description="Get total fund for all projects of a startup for the last 90 days.",
+        responses={
+            200: openapi.Response(
+                description="A list of fund statistics for the last 90 days",
+                examples={
+                    'application/json': [
+                        {"date": "2024-01-02", "fund": "12313"},
+                        # ... more examples ...
+                    ]
+                }
+            )
+        }
+    )
+    def get(self, request, *args, **kwargs):
+        username = request.GET.get("username", None)
+        if not username:
+            return Response({"error": "Username is required."}, status=400)
+
+        projects = Project.objects.filter(user__username=username)
+        if not projects.exists():
+            return Response({"error": "No projects found for this user."}, status=404)
+
+        today = timezone.now().date()
+        days = [(today - timedelta(days=i)) for i in range(90)]
+
+        result = []
+
+        for day in days:
+            total_fund = 0
+
+            for project in projects:
+                transactions = Transaction.objects.filter(
+                    position__project=project,
+                    investment_date__date=day
+                )
+                total_fund += transactions.aggregate(Sum('investment_amount'))['investment_amount__sum'] or 0
+
+            result.append({
+                "date": day.isoformat(),
+                "fund": f"{total_fund:.0f}"
+            })
+
+        return Response(result)
+
+
+class StartupFundStatisticsLastYearView(APIView):
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'username', openapi.IN_QUERY, description="Username to filter the statistics by", type=openapi.TYPE_STRING
+            ),
+        ],
+        operation_description="Get total fund for all projects of a startup for the last year (monthly).",
+        responses={
+            200: openapi.Response(
+                description="A list of fund statistics for the last year",
+                examples={
+                    'application/json': [
+                        {"month": "2024-01", "fund": "12313"},
+                        # ... more examples ...
+                    ]
+                }
+            )
+        }
+    )
+    def get(self, request, *args, **kwargs):
+        username = request.GET.get("username", None)
+        if not username:
+            return Response({"error": "Username is required."}, status=400)
+
+        projects = Project.objects.filter(user__username=username)
+        if not projects.exists():
+            return Response({"error": "No projects found for this user."}, status=404)
+
+        today = timezone.now().date()
+        months = [(today.replace(day=1) - timedelta(days=i*30)).replace(day=1) for i in range(12)]
+
+        result = []
+
+        for month in months:
+            total_fund = 0
+
+            for project in projects:
+                transactions = Transaction.objects.filter(
+                    position__project=project,
+                    investment_date__year=month.year,
+                    investment_date__month=month.month
+                )
+                total_fund += transactions.aggregate(Sum('investment_amount'))['investment_amount__sum'] or 0
+
+            result.append({
+                "month": month.strftime("%Y-%m"),
+                "fund": f"{total_fund:.0f}"
+            })
+
+        return Response(result)
+
+
+class ProjectFundStatisticsLast30DaysView(APIView):
+
+    @swagger_auto_schema(
+        operation_description="Get total fund for a specific project for the last 30 days.",
+        responses={
+            200: openapi.Response(
+                description="A list of fund statistics for the last 30 days",
+                examples={
+                    'application/json': [
+                        {"date": "2024-01-02", "fund": "12313"},
+                        # ... more examples ...
+                    ]
+                }
+            )
+        }
+    )
+    def get(self, request, project_id, *args, **kwargs):
+        try:
+            project = Project.objects.get(id=project_id)
+        except Project.DoesNotExist:
+            return Response({"error": "Project not found."}, status=404)
+
+        today = timezone.now().date()
+        days = [(today - timedelta(days=i)) for i in range(30)]
+
+        result = []
+
+        for day in days:
+            transactions = Transaction.objects.filter(
+                position__project=project,
+                investment_date__date=day
+            )
+            total_fund = transactions.aggregate(Sum('investment_amount'))['investment_amount__sum'] or 0
+
+            result.append({
+                "date": day.isoformat(),
+                "fund": f"{total_fund:.0f}"
+            })
+
+        return Response(result)
+
+
+class ProjectFundStatisticsLast90DaysView(APIView):
+
+    @swagger_auto_schema(
+        operation_description="Get total fund for a specific project for the last 90 days.",
+        responses={
+            200: openapi.Response(
+                description="A list of fund statistics for the last 90 days",
+                examples={
+                    'application/json': [
+                        {"date": "2024-01-02", "fund": "12313"},
+                        # ... more examples ...
+                    ]
+                }
+            )
+        }
+    )
+    def get(self, request, project_id, *args, **kwargs):
+        try:
+            project = Project.objects.get(id=project_id)
+        except Project.DoesNotExist:
+            return Response({"error": "Project not found."}, status=404)
+
+        today = timezone.now().date()
+        days = [(today - timedelta(days=i)) for i in range(90)]
+
+        result = []
+
+        for day in days:
+            transactions = Transaction.objects.filter(
+                position__project=project,
+                investment_date__date=day
+            )
+            total_fund = transactions.aggregate(Sum('investment_amount'))['investment_amount__sum'] or 0
+
+            result.append({
+                "date": day.isoformat(),
+                "fund": f"{total_fund:.0f}"
+            })
+
+        return Response(result)
+
+
+class ProjectFundStatisticsLastYearView(APIView):
+
+    @swagger_auto_schema(
+        operation_description="Get total fund for a specific project for the last year (monthly).",
+        responses={
+            200: openapi.Response(
+                description="A list of fund statistics for the last year",
+                examples={
+                    'application/json': [
+                        {"month": "2024-01", "fund": "12313"},
+                        # ... more examples ...
+                    ]
+                }
+            )
+        }
+    )
+    def get(self, request, project_id, *args, **kwargs):
+        try:
+            project = Project.objects.get(id=project_id)
+        except Project.DoesNotExist:
+            return Response({"error": "Project not found."}, status=404)
+
+        today = timezone.now().date()
+        months = [(today.replace(day=1) - timedelta(days=i*30)).replace(day=1) for i in range(12)]
+
+        result = []
+
+        for month in months:
+            transactions = Transaction.objects.filter(
+                position__project=project,
+                investment_date__year=month.year,
+                investment_date__month=month.month
+            )
+            total_fund = transactions.aggregate(Sum('investment_amount'))['investment_amount__sum'] or 0
+
+            result.append({
+                "month": month.strftime("%Y-%m"),
+                "fund": f"{total_fund:.0f}"
+            })
+
+        return Response(result)
