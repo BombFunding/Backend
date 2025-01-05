@@ -17,7 +17,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = ['id', 'name', 'image', 'description', 
+        fields = ['id', 'name', 'image', 'description', 'page', 
                  'subcategories', 'visit_count', 'like_count', 'is_liked', "owner_username", "owner_profile_picture", 'is_bookmarked', 'creation_date', 'open_position']
 
     def get_visit_count(self, obj):
