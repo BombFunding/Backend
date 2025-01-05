@@ -216,6 +216,7 @@ def baseuser_search_by_name(request, username):
                     "bio": baseuser_profile.bio,
                     "email": base_user.email, 
                     "socials": baseuser_profile.socials,
+                    "user_type": base_user.user_type,
                     "first_name": baseuser_profile.first_name,
                     "last_name": baseuser_profile.last_name,
                     "profile_picture": (
