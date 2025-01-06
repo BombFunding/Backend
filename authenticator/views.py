@@ -291,6 +291,7 @@ def view_own_baseuser_profile(request):
                     "bio": base_profile.bio,
                     "email": user.email,
                     "socials": base_profile.socials,
+                    "user_type": base_user.user_type,
                     "phone": base_profile.phone,
                     "first_name": base_profile.first_name,
                     "last_name": base_profile.last_name,
