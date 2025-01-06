@@ -41,7 +41,8 @@ SECRET_KEY = "django-insecure-f#9+k7e2jgzn#j443w_rzi4j4v!dhy%92yhsacjjnf4we0b!20
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# Handle allowed hosts via environment variable
+ALLOWED_HOSTS = env("ALLOWED_HOSTS").split(",")
 
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
