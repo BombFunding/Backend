@@ -72,10 +72,12 @@ class StartupLikeCountView(generics.RetrieveAPIView):
         if getattr(self, 'swagger_fake_view', False):
             return Response({'likes': 0})
             
-        startup_id = self.kwargs.get('startup_id')
+        startup_username = self.kwargs.get('username')
+        
         total_likes = Like.objects.filter(
-            project__user_id=startup_id
+            project__user__username=startup_username
         ).count()
+
         serializer = self.get_serializer({'likes': total_likes})
         return Response(serializer.data)
 
