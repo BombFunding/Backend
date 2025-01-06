@@ -15,7 +15,7 @@ class TransactionHistorySerializer(serializers.ModelSerializer):
 
 class ProjectInvestmentHistorySerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='investor_user.username')
-    user_picture = serializers.ImageField(source='investor_user.username.profile.profile_picture', read_only=True)
+    user_picture = serializers.ImageField(source='investor_user.profile.profile_picture', read_only=True)
 
     class Meta:
         model = Transaction
