@@ -124,7 +124,7 @@ def get_statistics(request):
 from rest_framework import status
 from django.db.models import Sum
 from position.models import Position
-from project.models import CATEGORIES
+from project.models import CATEGORIES , Project
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
@@ -139,3 +139,76 @@ def CategoryFunded(request, *args, **kwargs):
                 category_revenue[category] += position.funded
 
     return Response(category_revenue, status=status.HTTP_200_OK)
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework import status
+from startup.models import Position, StartupProfile
+from django.db.models import Q
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def CategoryUserCount(request, *args, **kwargs):
+    category_user_counts = {category: 0 for category in CATEGORIES.keys()}  
+
+    
+    startup_profiles = StartupProfile.objects.all()
+
+    for profile in startup_profiles:
+        user = profile.startup_user  
+
+        
+        projects = Project.objects.filter(user=user.username)  
+
+        for project in projects:
+            
+            for category, subcategories in CATEGORIES.items():
+                if any(subcategory in project.subcategories for subcategory in subcategories):
+                    category_user_counts[category] += 1  
+
+    return Response(category_user_counts, status=status.HTTP_200_OK)
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def CategoryLiked(request, *args, **kwargs):
+    category_likes = {category: 0 for category in CATEGORIES.keys()}  
+
+    
+    startup_profiles = StartupProfile.objects.all()
+
+    for profile in startup_profiles:
+        user = profile.startup_user  
+
+        
+        projects = Project.objects.filter(user=user.username)  
+
+        for project in projects:
+            
+            for category, subcategories in CATEGORIES.items():
+                if any(subcategory in project.subcategories for subcategory in subcategories):
+                    category_likes[category] += profile.startup_profile_visit_count  
+
+    return Response(category_likes, status=status.HTTP_200_OK)
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def CategoryViewd(request, *args, **kwargs):
+    category_views = {category: 0 for category in CATEGORIES.keys()}  
+
+    
+    startup_profiles = StartupProfile.objects.all()
+
+    for profile in startup_profiles:
+        user = profile.startup_user  
+
+        
+        projects = Project.objects.filter(user=user.username)  
+
+        for project in projects:
+            
+            for category, subcategories in CATEGORIES.items():
+                if any(subcategory in project.subcategories for subcategory in subcategories):
+                    category_views[category] += profile.startup_profile_visit_count  
+
+    return Response(category_views, status=status.HTTP_200_OK)
