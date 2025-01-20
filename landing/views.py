@@ -121,22 +121,21 @@ def get_statistics(request):
     return Response(data, status=200)
 
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework import status
 from django.db.models import Sum
 from position.models import Position
 from project.models import CATEGORIES
 
-class CategoryFunded(APIView):
-    def get(self, request, *args, **kwargs):
-        category_revenue = {category: 0 for category in CATEGORIES.keys()}
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def CategoryFunded(request, *args, **kwargs):
+    category_revenue = {category: 0 for category in CATEGORIES.keys()}
 
-        positions = Position.objects.all()
+    positions = Position.objects.all()
 
-        for position in positions:
-            for category, subcategories in CATEGORIES.items():
-                if any(subcategory in position.project.subcategories for subcategory in subcategories):
-                    category_revenue[category] += position.funded
+    for position in positions:
+        for category, subcategories in CATEGORIES.items():
+            if any(subcategory in position.project.subcategories for subcategory in subcategories):
+                category_revenue[category] += position.funded
 
-        return Response(category_revenue, status=status.HTTP_200_OK)
+    return Response(category_revenue, status=status.HTTP_200_OK)
