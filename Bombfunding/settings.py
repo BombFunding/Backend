@@ -44,6 +44,7 @@ DEBUG = True
 # Handle allowed hosts via environment variable
 ALLOWED_HOSTS = env("ALLOWED_HOSTS").split(",")
 
+
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 # Application definition
