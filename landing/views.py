@@ -187,7 +187,7 @@ def CategoryLiked(request, *args, **kwargs):
             
             for category, subcategories in CATEGORIES.items():
                 if any(subcategory in project.subcategories for subcategory in subcategories):
-                    category_likes[category] += profile.startup_profile_visit_count  
+                    category_likes[category] += profile.score  
 
     return Response(category_likes, status=status.HTTP_200_OK)
 
