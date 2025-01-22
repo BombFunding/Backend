@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     "categories",
     "position",
     "team",
+    "map",
     "landing",
     "profile_statics",
     "search",
