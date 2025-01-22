@@ -1,8 +1,8 @@
 
 from django.urls import path
-from . import views
+from map.views import PinListView, PinCreateView
 
 urlpatterns = [
-    path('pins/', views.PinListView.as_view(), name='pin-list'),
-    path('pins/add/', views.PinCreateView.as_view(), name='pin-create'),
+    path('pins/', PinListView.as_view(), name='list_pins'),  
+    path('pins/add/', PinCreateView.as_view(), name='add_pin'),  
 ]
