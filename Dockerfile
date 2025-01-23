@@ -13,6 +13,15 @@ COPY . /app/
 ARG ALLOWED_HOSTS
 ENV ALLOWED_HOSTS $ALLOWED_HOSTS
 
+ARG GMAIL_ID
+ENV GMAIL_ID $GMAIL_ID
+
+ARG GMAIL_PW
+ENV GMAIL_PW $GMAIL_PW
+
+ARG EMAIL_PAGE_DOMAIN
+ENV EMAIL_PAGE_DOMAIN $EMAIL_PAGE_DOMAIN
+
 RUN python manage.py makemigrations
 RUN python manage.py migrate
 RUN python manage.py collectstatic --noinput
