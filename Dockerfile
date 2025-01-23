@@ -10,6 +10,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . /app/
 
+ARG ALLOWED_HOSTS
+ENV ALLOWED_HOSTS $ALLOWED_HOSTS
+
 RUN python manage.py makemigrations
 RUN python manage.py migrate
 RUN python manage.py collectstatic --noinput
