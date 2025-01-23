@@ -55,3 +55,33 @@ class PinCreateView(APIView):
             serializer.save(user=user)  
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PinDeleteView(APIView):
+    permission_classes = [permissions.IsAuthenticated]  
+
+    def delete(self, request):
+        user = request.user
+
+        pins = Pin.objects.filter(user=user)
+        if pins.exists():
+            pins.delete()
+            return Response({"detail": "All pins deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+        
+        return Response({"detail": "No pins found for this user."}, status=status.HTTP_200_OK)
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])  
+def user_details(request):
+    user = request.user 
+    return Response({
+        "username": user.username,
+        "email": user.email
+    })
