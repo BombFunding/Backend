@@ -17,7 +17,7 @@ from pathlib import Path
 import environ
 
 env = environ.Env()
-environ.Env.read_env("credentials.env", override=True)
+environ.Env.read_env("credentials.env")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -235,9 +235,7 @@ def password_change_callback(user, password):
 EMAIL_MAIL_PAGE_TEMPLATE = "mail_page.html"
 EMAIL_MAIL_CALLBACK = email_verified_callback
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-]
+CORS_ALLOW_ALL_ORIGINS = True
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
