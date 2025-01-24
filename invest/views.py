@@ -11,6 +11,7 @@ from .models import Transaction
 from .serializers import TransactionSerializer, ProjectInvestmentHistorySerializer
 from position.models import Position
 from drf_yasg import openapi
+from notifications.models import send_investment_notification
 
 
 class InvestmentCreateView(generics.CreateAPIView):
@@ -77,6 +78,8 @@ class InvestmentCreateView(generics.CreateAPIView):
             position=position,
             investment_amount=investment_amount
         )
+
+        send_investment_notification(investor, position_owner, investment_amount)
 
         return Response(
             {"detail": "Investment successful.", "transaction": {
