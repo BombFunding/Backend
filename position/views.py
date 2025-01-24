@@ -18,6 +18,9 @@ from rest_framework.views import APIView
 from rest_framework.generics import RetrieveAPIView
 from .serializers import PositionDetailSerializer, PositionCreateSerializer, PositionUpdateSerializer
 from project.models import Project
+from django.views.generic.edit import CreateView
+from bookmark.models import Bookmark
+from notifications.models import send_notification
 
 
 POSITION_CREATION_BASE_COST = 100000
@@ -60,6 +63,11 @@ class PositionCreateView(generics.CreateAPIView):
         owner = project.user
         mixin = UserBalanceMixin()
         mixin.reduce_balance(owner, cost)
+
+        # Send notifications to users who have bookmarked the project
+        bookmarks = Bookmark.objects.filter(target=project)
+        for bookmark in bookmarks:
+            send_notification(bookmark.owner, f"A new position has been created for the project {project.name}.", "position_created_bookmarked")
 
         return super().post(request, *args, **kwargs)
 
