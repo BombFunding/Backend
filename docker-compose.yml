@@ -12,27 +12,27 @@ services:
       - db
       - redis
 
-  db:
-    image: postgres:13
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_DB: yourdbname
-      POSTGRES_USER: yourdbuser
-      POSTGRES_PASSWORD: yourdbpassword
+  # db:
+  #   image: postgres:13
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   environment:
+  #     POSTGRES_DB: yourdbname
+  #     POSTGRES_USER: yourdbuser
+  #     POSTGRES_PASSWORD: yourdbpassword
 
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: pgadmin
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@example.com
-      PGADMIN_DEFAULT_PASSWORD: admin
-    ports:
-      - "8081:443"
-      - "8082:80"
-    depends_on:
-      - db
+  # pgadmin:
+  #   image: dpage/pgadmin4
+  #   container_name: pgadmin
+  #   restart: always
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: admin@example.com
+  #     PGADMIN_DEFAULT_PASSWORD: admin
+  #   ports:
+  #           - "8081:443"
+  #           - "8082:80"
+  #   depends_on:
+  #     - db
 
   redis:
     image: redis:latest
