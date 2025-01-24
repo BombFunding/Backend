@@ -1,12 +1,64 @@
 
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from drf_yasg.utils import swagger_auto_schema
 from map.models import Pin
 from map.serializers import PinSerializer
+from django.db import models
+
+from geopy.geocoders import Nominatim
+from geopy.exc import GeocoderTimedOut
+from django.http import JsonResponse
+from rest_framework.views import APIView
+from .models import Pin
+from collections import defaultdict
+
+def get_province_from_coords(latitude, longitude):
+    geolocator = Nominatim(user_agent="YourAppName/1.0 (contact@yourdomain.com)")
+    try:
+        location = geolocator.reverse((latitude, longitude), exactly_one=True)
+        if location:
+            address = location.raw.get('address', {})
+            province = address.get('state', address.get('city', None))
+            
+            if province:
+                province = province.replace("استان ", "")
+                
+                if "خراسان رضوی" in province:
+                    province = province.replace("خراسان رضوی", "خ رضوی")
+                elif "خراسان جنوبی" in province:
+                    province = province.replace("خراسان جنوبی", "خ جنوبی")
+                elif "سیستان" in province:
+                    province = "سیستان"
+
+            return province
+    except GeocoderTimedOut:
+        return get_province_from_coords(latitude, longitude)  
+    
+    return None
 
 
+class ProvincePinCountView(APIView):
+    def get(self, request, *args, **kwargs):
+        province_count = defaultdict(int)
+
+        pins = Pin.objects.all()
+
+        for pin in pins:
+            province = get_province_from_coords(pin.latitude, pin.longitude)
+            if province:
+                province_count[province] += 1
+
+        response_data = [{"province": province, "pin_count": count} for province, count in province_count.items()]
+        
+        return JsonResponse(response_data, safe=False)
+
+    
 class PinListView(APIView):
     permission_classes = [permissions.AllowAny]  
 
@@ -70,10 +122,6 @@ class PinDeleteView(APIView):
         
         return Response({"detail": "No pins found for this user."}, status=status.HTTP_200_OK)
 
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
@@ -85,3 +133,4 @@ def user_details(request):
         "username": user.username,
         "email": user.email
     })
+
