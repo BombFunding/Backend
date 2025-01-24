@@ -11,3 +11,5 @@ django-filter
 jdatetime
 geopy
 daphne
+channels
+channels-redis
