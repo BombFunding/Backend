@@ -9,3 +9,5 @@ drf-yasg
 pillow
 django-filter
 jdatetime
+geopy
+daphne
