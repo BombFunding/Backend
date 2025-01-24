@@ -60,6 +60,7 @@ urlpatterns = [
     path("map/", include("map.urls")),
     path("comment/", include("comment.urls")),
     path("categories/", include("categories.urls")),
+    path("notifications/", include("notifications.urls")),
 ]
 
 if settings.DEBUG:

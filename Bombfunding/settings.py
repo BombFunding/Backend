@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     "promotion",
     "profilepage",
     "project",
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -78,7 +79,18 @@ INSTALLED_APPS = [
     "django_email_verification",
     "corsheaders",
     "drf_yasg",
+    "channels",
+    "notifications",
 ]
+
+ASGI_APPLICATION = "Bombfunding.asgi.application"
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {"hosts": [("redis://localhost:6379")]},
+    }
+}
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
