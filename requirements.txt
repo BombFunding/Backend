@@ -13,3 +13,4 @@ geopy
 daphne
 channels
 channels-redis
+django-prometheus

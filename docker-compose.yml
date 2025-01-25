@@ -1,43 +1,148 @@
+# services:
+#   web:
+#     build: .
+#     command: python manage.py runserver 0.0.0.0:8000
+#     volumes:
+#       - .:/app
+#     ports:
+#       - "8000:8000"
+#     env_file:
+#       - .env
+#     depends_on:
+#       - db
+
+#   db:
+#     image: postgres:13
+#     volumes:
+#       - postgres_data:/var/lib/postgresql/data
+#     environment:
+#       POSTGRES_DB: yourdbname
+#       POSTGRES_USER: yourdbuser
+#       POSTGRES_PASSWORD: yourdbpassword
+
+#   pgadmin:
+#     image: dpage/pgadmin4
+#     container_name: pgadmin
+#     restart: always
+#     environment:
+#       PGADMIN_DEFAULT_EMAIL: admin@example.com
+#       PGADMIN_DEFAULT_PASSWORD: admin
+#     ports:
+#             - "8081:443"
+#             - "8082:80"
+#     depends_on:
+#       - db
+
+#   redis:
+#     image: redis:6.0.9
+#     ports:
+#       - "6379:6379"
+
+#   prometheus:
+#     image: prom/prometheus
+#     volumes:
+#       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+#     ports:
+#       - "9090:9090"
+
+# volumes:
+#   postgres_data:
+
+
 services:
-  web:
-    build: .
+  # Django App
+  django-web:
+    build: .  # Path to your Django Dockerfile
     command: python manage.py runserver 0.0.0.0:8000
-    volumes:
-      - .:/app
     ports:
       - "8000:8000"
+    depends_on:
+      - postgres-db
+      - redis
     env_file:
       - .env
+    networks:
+      - monitoring-network
+
+  # PostgreSQL Database
+  postgres-db:
+    image: postgres:14
+    environment:
+      - POSTGRES_USER=yourdbuser
+      - POSTGRES_PASSWORD=yourdbpassword
+      - POSTGRES_DB=yourdbname
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - monitoring-network
+
+  # PostgreSQL Exporter
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter
+    environment:
+      - DATA_SOURCE_NAME=postgres://yourdbuser:yourdbpassword@postgres-db:5432/yourdbname?sslmode=disable
+    ports:
+      - "9187:9187"
     depends_on:
-      - redis
+      - postgres-db
+    networks:
+      - monitoring-network
 
-  # db:
-  #   image: postgres:13
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
-  #   environment:
-  #     POSTGRES_DB: yourdbname
-  #     POSTGRES_USER: yourdbuser
-  #     POSTGRES_PASSWORD: yourdbpassword
-
-  # pgadmin:
-  #   image: dpage/pgadmin4
-  #   container_name: pgadmin
-  #   restart: always
-  #   environment:
-  #     PGADMIN_DEFAULT_EMAIL: admin@example.com
-  #     PGADMIN_DEFAULT_PASSWORD: admin
-  #   ports:
-  #           - "8081:443"
-  #           - "8082:80"
-  #   depends_on:
-  #     - db
-
+  # Redis
   redis:
-    image: redis:latest
-    container_name: redis
+    image: redis:7
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - monitoring-network
+
+  # Redis Exporter
+  redis-exporter:
+    image: bitnami/redis-exporter
+    environment:
+      - REDIS_ADDR=redis://redis:6379
+    ports:
+      - "9121:9121"
+    depends_on:
+      - redis
+    networks:
+      - monitoring-network
+
+  # Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    depends_on:
+      - django-web
+      - postgres-exporter
+      - redis-exporter
+    networks:
+      - monitoring-network
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - monitoring-network
 
 volumes:
   postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  monitoring-network:

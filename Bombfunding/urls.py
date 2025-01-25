@@ -22,6 +22,7 @@ from django.urls import include, path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
+from django_prometheus import exports
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -61,6 +62,7 @@ urlpatterns = [
     path("comment/", include("comment.urls")),
     path("categories/", include("categories.urls")),
     path("notifications/", include("notifications.urls")),
+    path('metrics/', exports.ExportToDjangoView, name='prometheus-django-metrics'),
 ]
 
 if settings.DEBUG:
