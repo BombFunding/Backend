@@ -10,4 +10,5 @@ urlpatterns = [
     path('category-count/', views.CategoryUserCount, name='category-count'),
     path('category-viewd/', views.CategoryViewd, name='category-viewd'),
     path('category-liked/', views.CategoryLiked, name='category-liked'),
+    path('total-funded/', views.total_funded_positions, name='total-funded'),
 ]

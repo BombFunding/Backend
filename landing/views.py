@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import api_view, permission_classes
+from like.models import Like
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
@@ -174,22 +175,22 @@ def CategoryUserCount(request, *args, **kwargs):
 def CategoryLiked(request, *args, **kwargs):
     category_likes = {category: 0 for category in CATEGORIES.keys()}  
 
-    
     startup_profiles = StartupProfile.objects.all()
 
     for profile in startup_profiles:
         user = profile.startup_user  
 
-        
         projects = Project.objects.filter(user=user.username)  
 
         for project in projects:
-            
             for category, subcategories in CATEGORIES.items():
                 if any(subcategory in project.subcategories for subcategory in subcategories):
-                    category_likes[category] += profile.score  
+                    total_likes = Like.objects.filter(project=project).count()
+                    category_likes[category] += total_likes  
 
     return Response(category_likes, status=status.HTTP_200_OK)
+
+from profile_statics.models import ProjectStatistics
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
@@ -207,8 +208,20 @@ def CategoryViewd(request, *args, **kwargs):
 
         for project in projects:
             
-            for category, subcategories in CATEGORIES.items():
-                if any(subcategory in project.subcategories for subcategory in subcategories):
-                    category_views[category] += profile.startup_profile_visit_count  
+            project_statics = ProjectStatistics.objects.filter(project=project).first()
+            if project_statics:
+                for category, subcategories in CATEGORIES.items():
+                    
+                    if any(subcategory in project.subcategories for subcategory in subcategories):
+                        
+                        category_views[category] += sum(project_statics.views.values())  
 
     return Response(category_views, status=status.HTTP_200_OK)
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def total_funded_positions(request):
+    total_funded = Position.objects.aggregate(total_funded=Sum('funded'))['total_funded'] or 0
+
+    return Response({"total_funded": total_funded}, status=status.HTTP_200_OK)
+
