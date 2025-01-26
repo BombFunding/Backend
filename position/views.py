@@ -67,7 +67,7 @@ class PositionCreateView(generics.CreateAPIView):
         # Send notifications to users who have bookmarked the project
         bookmarks = Bookmark.objects.filter(target=project)
         for bookmark in bookmarks:
-            send_notification(bookmark.owner, f"A new position has been created for the project {project.name}.", "position_created_bookmarked")
+            send_notification(bookmark.owner, f"یک موقعیت جدید برای پروژه {project.name} ایجاد شده است.", "position_created_bookmarked")
 
         return super().post(request, *args, **kwargs)
 

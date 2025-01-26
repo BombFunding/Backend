@@ -16,5 +16,5 @@ def send_notification(user, message, type):
     Notification.objects.create(user=user, message=message, type=type)
 
 def send_investment_notification(investor, position_owner, investment_amount):
-    message = f"{investment_amount} has been added to your balance from an investment by {investor.username}."
+    message = f"مبلغ {investment_amount} توسط {investor.username} به حساب شما اضافه شد."
     send_notification(position_owner, message, "investment-notification")
